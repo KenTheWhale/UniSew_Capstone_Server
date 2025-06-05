@@ -23,11 +23,6 @@ public class SubOrder {
     @Column(name = "`start_date`")
     LocalDate startDate;
 
-    @OneToOne(mappedBy = "subOrder", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    GarmentContract garmentContract;
-
     @ManyToOne
     @JoinColumn(name = "`order_id`")
     Order order;
@@ -41,4 +36,18 @@ public class SubOrder {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<DefectiveOrder> defectiveOrders;
+
+    @ManyToOne
+    @JoinColumn(name = "`garment_id`")
+    Customer garment;
+
+    @OneToOne
+    @JoinColumn(name = "contract_id")
+    Contract contract;
+
+    @OneToOne(mappedBy = "subOrder", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    Progress progress;
 }

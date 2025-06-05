@@ -3,14 +3,14 @@ package com.unisew.server.models;
 import com.unisew.server.enums.ClothCategory;
 import com.unisew.server.enums.ClothType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+
+import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
@@ -28,9 +30,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DeclarationItem {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    @EmbeddedId
+    ID id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "`cloth_type`")
@@ -43,10 +44,26 @@ public class DeclarationItem {
     long price;
 
     @ManyToOne
+    @MapsId("declarationId")
     @JoinColumn(name = "`declaration_id`")
     GarmentDeclaration garmentDeclaration;
 
     @ManyToOne
+    @MapsId("fabricId")
     @JoinColumn(name = "`fabric_id`")
     Fabric fabric;
+
+    @Embeddable
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class ID implements Serializable {
+        @Column(name = "`declaration_id`")
+        Integer declarationId;
+
+        @Column(name = "`fabric_id`")
+        Integer fabricId;
+    }
 }

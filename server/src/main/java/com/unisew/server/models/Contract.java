@@ -10,6 +10,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -59,12 +60,12 @@ public class Contract {
     @OneToOne(mappedBy = "contract", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    GarmentContract garmentContract;
+    SubOrder subOrder;
 
-    @OneToOne(mappedBy = "contract", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "contract")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    SchoolContract schoolContract;
+    Order order;
 
     @OneToMany(mappedBy = "contract")
     @ToString.Exclude

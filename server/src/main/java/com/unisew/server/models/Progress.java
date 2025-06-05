@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -27,7 +28,7 @@ import java.time.LocalDate;
 public class Progress {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "`garment_contract_id`")
     Integer id;
 
     @Column(name = "`first_milestone_date`")
@@ -70,6 +71,7 @@ public class Progress {
     LocalDate delayDate;
 
     @OneToOne
-    @JoinColumn(name = "`contract_id`")
-    GarmentContract garmentContract;
+    @MapsId
+    @JoinColumn(name = "`sub_order_id`")
+    SubOrder subOrder;
 }

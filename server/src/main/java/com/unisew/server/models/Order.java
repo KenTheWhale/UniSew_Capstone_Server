@@ -74,10 +74,9 @@ public class Order {
     @JoinColumn(name = "`school_id`")
     Customer school;
 
-    @OneToOne(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    SchoolContract schoolContract;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "`contract_id`")
+    Contract contract;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude

@@ -42,4 +42,5 @@ public class OrderDetail {
     @ManyToOne
     @JoinColumn(name = "`item_id`")
     DesignRequestItem designRequestItem;
+
 }

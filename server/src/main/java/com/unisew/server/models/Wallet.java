@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -30,7 +31,7 @@ import java.util.List;
 public class Wallet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "`account_id`")
     Integer id;
 
     long balance;
@@ -39,6 +40,7 @@ public class Wallet {
     long pendingBalance;
 
     @OneToOne
+    @MapsId
     @JoinColumn(name = "`account_id`")
     Account account;
 
