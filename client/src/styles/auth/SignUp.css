@@ -1,0 +1,81 @@
+.sign-up-main{
+    background-color: #121212 !important;
+}
+
+.sign-up-container{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.container-content{
+    width: 25vw;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.area{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #121212;
+    border-radius: 4px;
+    padding: calc(4 * 8px);
+    gap: 8px;
+    border: 1px solid rgba(189, 189, 189, 0.4);
+    box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2),0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12);
+}
+
+.title{
+    font-weight: 400;
+    font-size: 2.125rem;
+    line-height: 1.235;
+    letter-spacing: 0.00735em;
+    margin: 0 0 0.5vh;
+    color: white;
+}
+
+.subtitle{
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.43;
+    letter-spacing: 0.01071em;
+    margin: 0 0 2vh;
+    color: white;
+}
+
+.input-area{
+    width: 100%;
+}
+
+.google-area{
+    display: flex;
+    flex-direction: column;
+}
+
+.google-area button{
+    border-radius: 4px;
+    border: 1px solid white;
+    background-color: transparent;
+    color: white;
+    text-transform: capitalize;
+}
+
+.google-area button:hover{
+    cursor: pointer;
+}
+
+.css-1pzfmz2-MuiInputBase-input-MuiOutlinedInput-input,
+.css-81qg8w,
+.css-hvjq6j-MuiFormLabel-root-MuiInputLabel-root,
+.css-1blp12k-MuiInputBase-root-MuiOutlinedInput-root,
+.css-1kfabtt-MuiFormLabel-root-MuiInputLabel-root,
+.css-13meb6w-MuiInputBase-input-MuiOutlinedInput-input{
+    color: white !important;
+}
+
+.css-1ll44ll-MuiOutlinedInput-notchedOutline{
+    border-color: rgba(255 255 255 / 0.23) !important;
+}
