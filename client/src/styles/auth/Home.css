@@ -1,0 +1,15 @@
+.home-container{
+    max-height: 300vh;
+    width: 100vw;
+}
+
+/* image area */
+.image-area {
+    height: 90vh;
+    width: 100vw;
+}
+
+.image-area img {
+    height: 100%;
+    width: 100%;
+}
