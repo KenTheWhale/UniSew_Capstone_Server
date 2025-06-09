@@ -53,4 +53,9 @@ public class DesignResult {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<ResultImage> resultImages;
+
+    @OneToMany(mappedBy = "designResult")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<ReDesignRequest> reDesignRequests;
 }

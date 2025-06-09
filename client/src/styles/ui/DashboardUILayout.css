@@ -1,0 +1,9 @@
+.css-8p6m3b-MuiDrawer-docked,
+.css-8p6m3b-MuiDrawer-docked .MuiDrawer-paper{
+    width: 25vw !important;
+}
+
+.outlet-container{
+    flex: 1;
+    margin: 5vh 5vw !important;
+}

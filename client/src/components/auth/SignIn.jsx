@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import {useState} from "react";
 import {Visibility, VisibilityOff} from '@mui/icons-material';
+import {useNavigate} from "react-router-dom";
 
 /* init ui */
 const brand = {
@@ -33,6 +34,7 @@ const providers = [
 ]
 
 function CustomSignInBtn(){
+    const navigate = useNavigate();
     return (
         <Button
             variant={"contained"}
@@ -41,6 +43,7 @@ function CustomSignInBtn(){
             sx={{
                 margin: '2vh 0'
             }}
+            onClick={() => navigate('/admin/dashboard')}
         >
             Sign in
         </Button>
