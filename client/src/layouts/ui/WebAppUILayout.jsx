@@ -1,4 +1,4 @@
-import '../../styles/ui/WebAppLayout.css'
+import '../../styles/ui/WebAppUILayout.css'
 import {Button, Divider, Link, Typography} from "@mui/material";
 import {useNavigate} from "react-router-dom";
 
@@ -27,7 +27,7 @@ function RenderHeaderButton({link, title}) {
             component={"button"}
             underline={"none"}
             color={"textPrimary"}
-            sx={{fontWeight: "500", fontSize: '1.2rem', height: '100%', width: '7vw'}}
+            sx={{fontWeight: "500", fontSize: '1.2rem', height: '100%', width: '9vw'}}
             onClick={() => navigate(link)}
         >
             {title}
@@ -102,7 +102,7 @@ function RenderPage({children, title}) {
     )
 }
 
-export default function WebAppLayout({children, title}) {
+export default function WebAppUILayout({children, title}) {
     return (
         <RenderPage children={children} title={title}/>
     )

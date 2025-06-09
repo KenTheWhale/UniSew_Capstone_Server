@@ -2,38 +2,54 @@ import './styles/App.css'
 import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
 import {SnackbarProvider} from 'notistack'
 import {Grow} from "@mui/material";
-import WebAppLayout from "./components/ui/WebAppLayout.jsx";
+import WebAppUILayout from "./layouts/ui/WebAppUILayout.jsx";
 import Home from "./components/auth/Home.jsx";
 import SignIn from "./components/auth/SignIn.jsx";
 import Register from "./components/auth/SignUp.jsx";
 import {useEffect} from "react";
-import UniSewConsole from "./components/deco/UniSewConsole.jsx";
+import UniSewConsole from "./components/ui/UniSewConsole.jsx";
 import 'bootstrap/dist/css/bootstrap.min.css'
+import PlatformAdminLayout from "./layouts/platform_admin/PlatformAdminLayout.jsx";
+import PlatformAdminDashboard from "./components/platform_admin/PlatformAdminDashboard.jsx";
 
 const router = createBrowserRouter([
     {
         path: "/home",
         element: (
-            <WebAppLayout title={"Home"}>
+            <WebAppUILayout title={"Home"}>
                 <Home/>
-            </WebAppLayout>
+            </WebAppUILayout>
         )
     },
     {
         path: "/sign-in",
         element: (
-            <WebAppLayout title={"Sign in"}>
+            <WebAppUILayout title={"Sign in"}>
                 <SignIn/>
-            </WebAppLayout>
+            </WebAppUILayout>
         )
     },
     {
         path: "/sign-up",
         element: (
-            <WebAppLayout title={"Sign up"}>
+            <WebAppUILayout title={"Sign up"}>
                 <Register/>
-            </WebAppLayout>
+            </WebAppUILayout>
         )
+    },
+    {
+        path: "/admin",
+        element: <PlatformAdminLayout/>,
+        children: [
+            {
+                index: true,
+                element: <Navigate to={'/admin/dashboard'}/>
+            },
+            {
+                path: 'dashboard',
+                element: <PlatformAdminDashboard/>
+            }
+        ]
     },
     {
         path: "*",
