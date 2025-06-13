@@ -68,4 +68,8 @@ public class DesignRequest {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<Transaction> transactions;
+
+    @ManyToOne
+    @JoinColumn(name = "`package_id`")
+    Package pkg;
 }
