@@ -62,4 +62,9 @@ public class Package {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<PackageRule> rules;
+
+    @OneToMany(mappedBy = "pkg")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<DesignRequest> designRequests;
 }
