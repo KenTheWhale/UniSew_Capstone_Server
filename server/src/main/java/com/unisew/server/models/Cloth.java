@@ -29,9 +29,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`design_request_item`")
+@Table(name = "`cloth`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DesignRequestItem {
+public class Cloth {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,48 +39,52 @@ public class DesignRequestItem {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "`cloth_type`")
-    ClothType clothType;
+    ClothType type;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "`cloth_category`")
-    ClothCategory clothCategory;
-
-    String color;
+    ClothCategory category;
 
     @Column(name = "`logo_image`")
     String logoImage;
 
-    @Column(name = "`private_design`")
-    boolean privateDesign;
+    @Column(name = "`logo_position`")
+    String logoPosition;
 
-    String description;
+    @Column(name = "`logo_width`")
+    int logoWidth;
 
-    @OneToMany(mappedBy = "designRequestItem")
+    @Column(name = "`logo_height`")
+    int logoHeight;
+
+    String color;
+
+    String fabric;
+
+    String note;
+
+    @OneToMany(mappedBy = "cloth")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<OrderDetail> orderDetails;
 
     @ManyToOne
-    @JoinColumn(name = "`fabric_id`")
-    Fabric fabric;
-
-    @ManyToOne
     @JoinColumn(name = "`request_id`")
     DesignRequest designRequest;
 
-    @OneToMany(mappedBy = "designRequestItem")
+    @OneToMany(mappedBy = "cloth")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<RequestedImage> requestedImages;
+    List<SampleImage> sampleImages;
 
     @ManyToOne
     @JoinColumn(name = "template_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    DesignRequestItem template;
+    Cloth template;
 
-    @OneToMany(mappedBy = "designRequestItem")
+    @OneToMany(mappedBy = "cloth")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<DesignResult> designResults;
+    List<DesignDraft> designDrafts;
 }

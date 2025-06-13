@@ -1,11 +1,7 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.ClothSize;
-import com.unisew.server.enums.ClothType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,24 +20,18 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`defective_order_detail`")
+@Table(name = "`feedback_image`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DefectiveOrderDetail {
+public class FeedbackImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "`cloth_type`")
-    ClothType clothType;
-
-    @Enumerated(EnumType.STRING)
-    ClothSize size;
-
-    int quantity;
+    @Column(name = "`image_url`")
+    String imageUrl;
 
     @ManyToOne
-    @JoinColumn(name = "`defective_order_id`")
-    DefectiveOrder defectiveOrder;
+    @JoinColumn(name = "`feedback_id`")
+    Feedback feedback;
 }

@@ -1,7 +1,7 @@
 package com.unisew.server.repositories;
 
-import com.unisew.server.models.Rule;
+import com.unisew.server.models.Cloth;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface RuleRepo extends JpaRepository<Rule, Integer> {
+public interface ClothRepo extends JpaRepository<Cloth, Integer> {
 }
