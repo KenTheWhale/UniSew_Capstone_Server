@@ -39,6 +39,17 @@ public class Wallet {
     @Column(name = "`pending_balance`")
     long pendingBalance;
 
+    @Column(name = "`card_number`")
+    String cardNumber;
+
+    @Column(name = "`card_name`")
+    String cardName;
+
+    @Column(name = "`card_expired_date`")
+    String cardExpiredDate;
+
+    int cvv;
+
     @OneToOne
     @MapsId
     @JoinColumn(name = "`account_id`")

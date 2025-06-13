@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -37,24 +38,34 @@ public class DesignRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    LocalDate deadline;
-
     @Column(name = "`creation_date`")
     LocalDate creationDate;
+
+    @Column(name = "`private`")
+    boolean isPrivate;
 
     @Enumerated(EnumType.STRING)
     Status status;
 
     @ManyToOne
-    @JoinColumn(name = "`designer_id`")
-    Account designer;
+    @JoinColumn(name = "`school_id`")
+    Account school;
 
     @ManyToOne
-    @JoinColumn(name = "`school_id`")
-    Customer school;
+    @JoinColumn(name = "`designer_id`")
+    Account designer;
 
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<DesignRequestItem> designRequestItems;
+    List<Cloth> cloths;
+
+    @OneToOne
+    @JoinColumn(name = "`feedback_id`")
+    Feedback feedback;
+
+    @OneToMany(mappedBy = "designRequest")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Transaction> transactions;
 }

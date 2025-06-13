@@ -34,25 +34,47 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`order_id`")
-    Integer orderId;
+    @Column(name = "`sender_name`")
+    String senderName;
 
-    @Column(name = "`sub_order_id`")
-    Integer subOrderId;
+    @Column(name = "`receiver_name`")
+    String receiverName;
+
+    long amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "`payment_type`")
     PaymentType paymentType;
 
-    long amount;
-
-    String description;
+    String note;
 
     @Column(name = "`creation_date`")
     LocalDate creationDate;
 
     @Enumerated(EnumType.STRING)
     Status status;
+
+    @Column(name = "`payment_gateway_code`")
+    String paymentGatewayCode;
+
+    @Column(name = "`payment_gateway_message`")
+    String paymentGatewayMessage;
+
+    @ManyToOne
+    @JoinColumn(name = "`order_id`")
+    Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "`design_request_id`")
+    DesignRequest designRequest;
+
+    @ManyToOne
+    @JoinColumn(name = "`sender_id`")
+    Account sender;
+
+    @ManyToOne
+    @JoinColumn(name = "`receiver_id`")
+    Account receiver;
 
     @ManyToOne
     @JoinColumn(name = "`wallet_id`")

@@ -1,6 +1,10 @@
 package com.unisew.server.models;
 
+import com.unisew.server.enums.Status;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,22 +18,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`requested_image`")
+@Table(name = "`package_rule`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RequestedImage {
+public class PackageRule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String image;
+    String rule;
+
+    @Column(name = "`creation_date`")
+    LocalDate creationDate;
+
+    @Enumerated(EnumType.STRING)
+    Status status;
 
     @ManyToOne
-    @JoinColumn(name = "`item_id`")
-    DesignRequestItem designRequestItem;
+    @JoinColumn(name = "`package_id`")
+    Package pkg;
 }

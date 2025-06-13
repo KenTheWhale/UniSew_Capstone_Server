@@ -1,16 +1,13 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -29,33 +26,36 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`design_result`")
+@Table(name = "`feedback`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DesignResult {
+public class Feedback {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String description;
+    int rating;
 
-    @Column(name = "`design_date`")
-    LocalDate designDate;
+    String content;
 
-    @Enumerated(EnumType.STRING)
-    Status status;
+    @Column(name = "`report`")
+    boolean isReport;
 
-    @ManyToOne
-    @JoinColumn(name = "`item_id`")
-    DesignRequestItem designRequestItem;
+    @Column(name = "`creation_date`")
+    LocalDate creationDate;
 
-    @OneToMany(mappedBy = "designResult")
+    @OneToOne(mappedBy = "feedback", fetch = FetchType.EAGER)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<ResultImage> resultImages;
+    DesignRequest designRequest;
 
-    @OneToMany(mappedBy = "designResult")
+    @OneToOne(mappedBy = "feedback", fetch = FetchType.EAGER)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<ReDesignRequest> reDesignRequests;
+    Order order;
+
+    @OneToMany(mappedBy = "feedback")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<FeedbackImage> feedbackImages;
 }

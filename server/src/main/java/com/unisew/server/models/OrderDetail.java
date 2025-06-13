@@ -40,7 +40,7 @@ public class OrderDetail {
     Order order;
 
     @ManyToOne
-    @JoinColumn(name = "`item_id`")
-    DesignRequestItem designRequestItem;
+    @JoinColumn(name = "`cloth_id`")
+    Cloth cloth;
 
 }

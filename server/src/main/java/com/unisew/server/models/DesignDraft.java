@@ -1,18 +1,16 @@
 package com.unisew.server.models;
 
 import com.unisew.server.enums.Status;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,44 +29,33 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`contract`")
+@Table(name = "`design_draft`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Contract {
+public class DesignDraft {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`signing_date`")
-    LocalDate signingDate;
+    String description;
 
-    @Column(name = "`effective_date`")
-    LocalDate effectiveDate;
+    @Column(name = "`design_date`")
+    LocalDate designDate;
 
-    @Column(name = "`delivery_date`")
-    LocalDate deliveryDate;
+    @Column(name = "`final`")
+    boolean isFinal;
 
-    @Column(name = "`total_price`")
-    long totalPrice;
+    @ManyToOne
+    @JoinColumn(name = "`cloth_id`")
+    Cloth cloth;
 
-    @Column(name = "`creation_date`")
-    LocalDate creationDate;
-
-    @Enumerated(EnumType.STRING)
-    Status status;
-
-    @OneToOne(mappedBy = "contract", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "designDraft")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    SubOrder subOrder;
+    List<DraftImage> draftImages;
 
-    @OneToOne(mappedBy = "contract")
+    @OneToMany(mappedBy = "designDraft")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    Order order;
-
-    @OneToMany(mappedBy = "contract")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<ContractRule> contractRules;
+    List<ReDesignRequest> reDesignRequests;
 }

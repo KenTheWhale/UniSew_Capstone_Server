@@ -27,9 +27,9 @@ public class ReDesignRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String description;
+    String note;
 
     @ManyToOne
-    @JoinColumn(name = "`result_id`")
-    DesignResult designResult;
+    @JoinColumn(name = "`draft_id`")
+    DesignDraft designDraft;
 }

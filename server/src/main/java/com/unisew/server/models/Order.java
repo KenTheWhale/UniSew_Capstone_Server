@@ -1,7 +1,6 @@
 package com.unisew.server.models;
 
 import com.unisew.server.enums.Status;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,22 +39,12 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`school_deadline`")
-    LocalDate schoolDeadline;
-
-    @Column(name = "`garment_deadline`")
-    LocalDate garmentDeadline;
+    LocalDate deadline;
 
     long price;
 
-    @Column(name = "`ship_fee`")
-    long shipFee;
-
     @Column(name = "`service_fee`")
     long serviceFee;
-
-    @Column(name = "`design_fee`")
-    long designFee;
 
     @Column(name = "`order_date`")
     LocalDate orderDate;
@@ -63,28 +52,27 @@ public class Order {
     String note;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "`school_status`")
-    Status schoolStatus;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "`garment_status`")
-    Status garmentStatus;
+    Status status;
 
     @ManyToOne
     @JoinColumn(name = "`school_id`")
-    Customer school;
+    Account school;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "`contract_id`")
-    Contract contract;
-
-    @OneToMany(mappedBy = "order")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<SubOrder> subOrders;
+    @ManyToOne
+    @JoinColumn(name = "`garment_id`")
+    Account garment;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<OrderDetail> orderDetails;
+
+    @OneToOne
+    @JoinColumn(name = "`feedback_id`")
+    Feedback feedback;
+
+    @OneToMany(mappedBy = "order")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Transaction> transactions;
 }

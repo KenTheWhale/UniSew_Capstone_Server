@@ -1,10 +1,12 @@
 package com.unisew.server.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,25 +24,26 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`fabric`")
+@Table(name = "`designer`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Fabric {
+public class Designer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "`profile_id`")
     Integer id;
 
-    String name;
+    @Column(name = "`short_preview`")
+    String shortPreview;
 
-    String description;
+    String bio;
 
-    @OneToMany(mappedBy = "fabric")
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "`profile_id`")
+    Profile profile;
+
+    @OneToMany(mappedBy = "designer")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<DeclarationItem> declarationItems;
-
-    @OneToMany(mappedBy = "fabric")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<DesignRequestItem> designRequestItems;
+    List<Package> packages;
 }
