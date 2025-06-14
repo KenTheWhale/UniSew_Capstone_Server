@@ -8,26 +8,28 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`package_rule`")
+@Table(name = "`services`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PackageRule {
+public class Services {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,7 +43,8 @@ public class PackageRule {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @ManyToOne
-    @JoinColumn(name = "`package_id`")
-    Package pkg;
+    @OneToMany(mappedBy = "service")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<PackageService> packageServices;
 }
