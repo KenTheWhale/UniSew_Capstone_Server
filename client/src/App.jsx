@@ -11,7 +11,8 @@ import UniSewConsole from "./components/ui/UniSewConsole.jsx";
 import 'bootstrap/dist/css/bootstrap.min.css'
 import PlatformAdminLayout from "./layouts/platform_admin/PlatformAdminLayout.jsx";
 import PlatformAdminDashboard from "./components/platform_admin/PlatformAdminDashboard.jsx";
-import PlatformDesignRequest from "./components/platform_design_request/PlatformDesignRequest.jsx";
+import PlatformDesignRequestLayout from "./layouts/platform_design_request/PlatformDesignRequestLayout.jsx";
+
 
 const router = createBrowserRouter([
     {
@@ -54,10 +55,10 @@ const router = createBrowserRouter([
     },
 
     {
-        path: "/design_request",
+        path: "/design",
         element: (
-            <WebAppUILayout title={"Design Request"}>
-                <PlatformDesignRequest></PlatformDesignRequest>
+            <WebAppUILayout title={"Choose Designer"}>
+                <PlatformDesignRequestLayout></PlatformDesignRequestLayout>
             </WebAppUILayout>
         )
 
