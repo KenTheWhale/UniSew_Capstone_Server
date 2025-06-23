@@ -12,6 +12,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import PlatformAdminLayout from "./layouts/platform_admin/PlatformAdminLayout.jsx";
 import PlatformAdminDashboard from "./components/platform_admin/PlatformAdminDashboard.jsx";
 import PlatformDesignRequestLayout from "./layouts/platform_design_request/PlatformDesignRequestLayout.jsx";
+import DesignerDetail from "./components/platform_design_request/designers/DesignerDetail.jsx";
 
 
 const router = createBrowserRouter([
@@ -63,6 +64,16 @@ const router = createBrowserRouter([
         )
 
     },
+
+    {
+        path: "/designDetail",
+        element:
+        <WebAppUILayout title={"Designer Detail"}>
+            <DesignerDetail></DesignerDetail>
+        </WebAppUILayout>
+
+    },
+
 
     {
         path: "*",
