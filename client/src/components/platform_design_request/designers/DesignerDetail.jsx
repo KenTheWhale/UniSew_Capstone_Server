@@ -10,7 +10,7 @@ import {
     LinearProgress,
     ListItem, Paper, Rating, List,
     Stack, TextField, Toolbar,
-    Typography
+    Typography, Pagination, Fab, Tooltip, styled
 } from "@mui/material";
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import WorkIcon from '@mui/icons-material/Work';
@@ -20,11 +20,29 @@ import ShareIcon from '@mui/icons-material/Share';
 import MailIcon from '@mui/icons-material/Mail';
 import PhoneIcon from '@mui/icons-material/Phone';
 import ReviewsIcon from '@mui/icons-material/Reviews';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ReplyIcon from '@mui/icons-material/Reply';
+import CreateIcon from '@mui/icons-material/Create';
+import EditIcon from '@mui/icons-material/Edit'
+import {useState} from "react";
+
+
+
+const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
+    padding: theme.spacing(1),
+}));
+
+
+
 
 const DesignerDetail = () => {
+
+
+
 
 
     {/* Portfolio data */}
@@ -101,34 +119,85 @@ const DesignerDetail = () => {
         }
     ];
     {/* Feedback data */}
-    const reviewdata = [
+
+    const reviewDataList = [
         {
             id: 1,
-            ratings: 5,
-            content: 'Excellent logo design service! Quick turnaround and exactly what I wanted.',
-            createdDate: '2025-06-22T10:30:00Z',
-            images: ['/img1.jpg', '/img2.jpg'],
+            user: {
+                name: "Sarah Johnson",
+                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+                isVerified: true,
+                location: "New York, USA"
+            },
+            rating: 4.5,
+            date: "2 weeks ago",
+            content: "Absolutely amazing work! The designer exceeded my expectations and delivered exactly what I was looking for. The attention to detail is incredible and the communication throughout the project was excellent. I'll definitely be working with them again!",
+            images: [
+                "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=200&fit=crop",
+                "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=200&fit=crop",
+                "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=300&h=200&fit=crop"
+            ],
+            likes: 12,
+            helpful: true,
+            projectType: "Logo Design"
         },
         {
             id: 2,
-            ratings: 4,
-            content: 'Excellent logo design service! Quick turnaround and exactly what I wanted.',
-            createdDate: '2025-06-21T14:20:00Z',
-            images: ['/img3.jpg'],
+            user: {
+                name: "John Cena",
+                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+                isVerified: true,
+                location: "New York, USA"
+            },
+            rating: 4.5,
+            date: "2 weeks ago",
+            content: "Absolutely amazing work! The designer exceeded my expectations and delivered exactly what I was looking for. The attention to detail is incredible and the communication throughout the project was excellent. I'll definitely be working with them again!",
+            images: [
+                "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=200&fit=crop",
+                "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=200&fit=crop",
+                "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=300&h=200&fit=crop"
+            ],
+            likes: 12,
+            helpful: true,
+            projectType: "Logo Design"
         },
         {
             id: 3,
-            ratings: 5,
-            content: 'Excellent logo design service! Quick turnaround and exactly what I wanted.',
-            createdDate: '2025-06-19T08:45:00Z',
-            images: ['/img4.jpg', '/img5.jpg', '/img6.jpg'],
+            user: {
+                name: "John Conor",
+                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+                isVerified: true,
+                location: "New York, USA"
+            },
+            rating: 4.5,
+            date: "2 weeks ago",
+            content: "Absolutely amazing work! The designer exceeded my expectations and delivered exactly what I was looking for. The attention to detail is incredible and the communication throughout the project was excellent. I'll definitely be working with them again!",
+            images: [
+                "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=200&fit=crop",
+                "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=300&h=200&fit=crop",
+                "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=300&h=200&fit=crop"
+            ],
+            likes: 12,
+            helpful: true,
+            projectType: "Logo Design"
         },
     ];
+    const reviewsPerPage = 2;
+    const [page, setPage] = useState(1);
 
+    const handleChangePage = (event, value) => {
+        setPage(value);
+    };
 
+    const paginatedReviews = reviewDataList.slice(
+        (page - 1) * reviewsPerPage,
+        page * reviewsPerPage
+    );
 
     return (
+
         <Box sx={{ flexGrow: 1 }}>
+
             {/* Hero Section */}
             <Box sx={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -271,75 +340,437 @@ const DesignerDetail = () => {
                     </Grid>
                 </Container>
             </Box>
+
+
+
             {/* Review Section */}
+            {/*<Card
+                        sx={{
+                            width: "100%",
+                            maxWidth: 600,
+                            margin: "0 auto",
+                            backgroundColor: "#FFEAD8",
+                            borderRadius: 3,
+                            overflow: "hidden",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                            transition: "all 0.3s ease",
+                            "&:hover": {
+                                boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                                transform: "translateY(-2px)"
+                            }
+                        }}
+                    >
+                         Header with User Info
+                        <CardContent sx={{ pb: 1 }}>
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                                <Box display="flex" alignItems="center" gap={1.5}>
+                                    <Avatar
+                                        src={reviewData.user.avatar}
+                                        alt={reviewData.user.name}
+                                        sx={{
+                                            width: 48,
+                                            height: 48,
+                                            border: "3px solid #fff",
+                                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                                        }}
+                                    />
+                                    <Box>
+                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                            <Typography variant="subtitle1" fontWeight="600" color="#2c3e50">
+                                                {reviewData.user.name}
+                                            </Typography>
+                                            {reviewData.user.isVerified && (
+                                                <VerifiedIcon sx={{ fontSize: 16, color: "#4CAF50" }} />
+                                            )}
+                                        </Box>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {reviewData.user.location} • {reviewData.date}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <IconButton size="small" sx={{ color: "text.secondary" }}>
+                                    <MoreVertIcon />
+                                </IconButton>
+                            </Box>
+
+                             Rating and Project Type
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <Rating
+                                        value={reviewData.rating}
+                                        readOnly
+                                        size="small"
+                                        precision={0.5}
+                                        sx={{ color: "#FF6B35" }}
+                                    />
+                                    <Typography variant="body2" fontWeight="500" color="#2c3e50">
+                                        {reviewData.rating}
+                                    </Typography>
+                                </Box>
+                                <Chip
+                                    label={reviewData.projectType}
+                                    size="small"
+                                    sx={{
+                                        backgroundColor: "#E8F5E8",
+                                        color: "#2E7D32",
+                                        fontWeight: "500",
+                                        fontSize: "0.75rem"
+                                    }}
+                                />
+                            </Box>
+                        </CardContent>
+
+                         Images Section
+                        <Box sx={{
+                            px: 2,
+                            pb: 2
+                        }}>
+                            <Box sx={{
+                                display: 'flex',
+                                overflowX: 'auto',
+                                gap: 1.5,
+                                pb: 1,
+                                '&::-webkit-scrollbar': {
+                                    height: 6,
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    backgroundColor: 'rgba(0,0,0,0.1)',
+                                    borderRadius: 10,
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: 'rgba(0,0,0,0.3)',
+                                    borderRadius: 10,
+                                }
+                            }}>
+                                {reviewData.images.map((imageUrl, index) => (
+                                    <Box
+                                        key={index}
+                                        sx={{
+                                            position: 'relative',
+                                            minWidth: 180,
+                                            height: 120,
+                                            borderRadius: 2,
+                                            overflow: 'hidden',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s ease',
+                                            '&:hover': {
+                                                transform: 'scale(1.02)'
+                                            }
+                                        }}
+                                    >
+                                        <CardMedia
+                                            component="img"
+                                            image={imageUrl}
+                                            alt={`Review image ${index + 1}`}
+                                            sx={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 8,
+                                                right: 8,
+                                                backgroundColor: 'rgba(0,0,0,0.6)',
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                width: 24,
+                                                height: 24,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            {index + 1}
+                                        </Box>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Box>
+
+                         Content Section
+                        <CardContent sx={{ pt: 0 }}>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    lineHeight: 1.6,
+                                    color: "#2c3e50",
+                                    mb: 2
+                                }}
+                            >
+                                {reviewData.content}
+                            </Typography>
+
+                            <Divider sx={{ mb: 2, backgroundColor: "rgba(0,0,0,0.08)" }} />
+
+                             Actions
+                            <Box display="flex" alignItems="center" justifyContent="between" gap={2}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <IconButton
+                                        size="small"
+                                        sx={{
+                                            color: reviewData.helpful ? "#4CAF50" : "text.secondary",
+                                            "&:hover": { backgroundColor: "rgba(76, 175, 80, 0.1)" }
+                                        }}
+                                    >
+                                        <ThumbUpIcon fontSize="small" />
+                                    </IconButton>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {reviewData.likes} helpful
+                                    </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                    <IconButton
+                                        size="small"
+                                        sx={{
+                                            color: "text.secondary",
+                                            "&:hover": { backgroundColor: "rgba(0,0,0,0.05)" }
+                                        }}
+                                    >
+                                        <ReplyIcon fontSize="small" />
+                                    </IconButton>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Reply
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>*/}
             <Container maxWidth="lg" sx={{ py: 6 }}>
                 <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
                     Reviews <ReviewsIcon></ReviewsIcon>
                 </Typography>
-                <Stack
-                    direction="column"
-                    spacing={2}
-                    sx={{
-                        justifyContent: "center",
-                        alignItems: "stretch",
-                    }}
-                >
-
-                    <List>
-                        {reviewdata.map((item)  => (
-                            <ListItem key={item.id}>
-                                <Card sx={{
-                                    width: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    justifyContent: "center",
-                                    backgroundColor: "#FFEAD8"
-                                }}>
-
-                                    {/* Images Section */}
-                                    <Box sx={{ display: 'flex', overflowX: 'auto' }}>
-                                        {item.images.map((imageUrl, index) => (
-                                            <CardMedia
-                                                key={index}
-                                                component="img"
-                                                image={imageUrl}
-                                                alt={`Review image ${index + 1}`}
-                                                sx={{
-                                                    height: 150,
-                                                    width: 200,
-                                                    objectFit: 'cover',
-                                                    mr: 1,
-                                                    borderRadius: 1,
-                                                }}
-                                            />
-                                        ))}
-                                    </Box>
-
-
-                                    {/* Content Section */}
-                                    <CardContent>
-                                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                                            <Rating value={item.ratings} readOnly size="small" />
-                                            <Typography variant="caption" color="text.secondary">
-                                                None
-                                            </Typography>
+                <Tooltip title="Write your review" arrow>
+                    <Fab color="secondary" aria-label="edit" sx={{ position: 'fixed',
+                        bottom: 16,
+                        right: 16,
+                    }}>
+                        <EditIcon />
+                    </Fab>
+                </Tooltip>
+                    <Stack direction="row"
+                           spacing={8}
+                           sx={{
+                               justifyContent: "flex-start",
+                               alignItems: "center",
+                           }}>
+                        {paginatedReviews.map((reviewData) => (
+                            <Item key={reviewData.id} disableGutters sx={{ mb: 4,}}>
+                                {/* Your Full Custom Card Component Here */}
+                                <Card
+                                    sx={{
+                                        width: "100%",
+                                        maxWidth: 600,
+                                        margin: "0 auto",
+                                        backgroundColor: "#FFEAD8",
+                                        borderRadius: 3,
+                                        overflow: "hidden",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                        transition: "all 0.3s ease",
+                                        "&:hover": {
+                                            boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                                            transform: "translateY(-2px)",
+                                        },
+                                    }}
+                                >
+                                    {/* Header */}
+                                    <CardContent sx={{ pb: 1 }}>
+                                        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                                            <Box display="flex" alignItems="center" gap={1.5}>
+                                                <Avatar
+                                                    src={reviewData.user.avatar}
+                                                    alt={reviewData.user.name}
+                                                    sx={{
+                                                        width: 48,
+                                                        height: 48,
+                                                        border: "3px solid #fff",
+                                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                                    }}
+                                                />
+                                                <Box>
+                                                    <Box display="flex" alignItems="center" gap={0.5}>
+                                                        <Typography variant="subtitle1" fontWeight="600" color="#2c3e50">
+                                                            {reviewData.user.name}
+                                                        </Typography>
+                                                        {reviewData.user.isVerified && (
+                                                            <VerifiedIcon sx={{ fontSize: 16, color: "#4CAF50" }} />
+                                                        )}
+                                                    </Box>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {reviewData.user.location} • {reviewData.date}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                            <IconButton size="small" sx={{ color: "text.secondary" }}>
+                                                <MoreVertIcon />
+                                            </IconButton>
                                         </Box>
 
-                                        <Typography variant="body1" sx={{ mt: 1 }}>
-                                            {item.content}
-                                        </Typography>
+                                        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                                            <Box display="flex" alignItems="center" gap={1}>
+                                                <Rating
+                                                    value={reviewData.rating}
+                                                    readOnly
+                                                    size="small"
+                                                    precision={0.5}
+                                                    sx={{ color: "#FF6B35" }}
+                                                />
+                                                <Typography variant="body2" fontWeight="500" color="#2c3e50">
+                                                    {reviewData.rating}
+                                                </Typography>
+                                            </Box>
+                                            <Chip
+                                                label={reviewData.projectType}
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: "#E8F5E8",
+                                                    color: "#2E7D32",
+                                                    fontWeight: "500",
+                                                    fontSize: "0.75rem",
+                                                }}
+                                            />
+                                        </Box>
                                     </CardContent>
 
+                                    {/* Images */}
+                                    <Box sx={{ px: 2, pb: 2 }}>
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                overflowX: "auto",
+                                                gap: 1.5,
+                                                pb: 1,
+                                                "&::-webkit-scrollbar": {
+                                                    height: 6,
+                                                },
+                                                "&::-webkit-scrollbar-track": {
+                                                    backgroundColor: "rgba(0,0,0,0.1)",
+                                                    borderRadius: 10,
+                                                },
+                                                "&::-webkit-scrollbar-thumb": {
+                                                    backgroundColor: "rgba(0,0,0,0.3)",
+                                                    borderRadius: 10,
+                                                },
+                                            }}
+                                        >
+                                            {reviewData.images.map((imageUrl, index) => (
+                                                <Box
+                                                    key={index}
+                                                    sx={{
+                                                        position: "relative",
+                                                        minWidth: 180,
+                                                        height: 120,
+                                                        borderRadius: 2,
+                                                        overflow: "hidden",
+                                                        cursor: "pointer",
+                                                        transition: "transform 0.2s ease",
+                                                        "&:hover": {
+                                                            transform: "scale(1.02)",
+                                                        },
+                                                    }}
+                                                >
+                                                    <CardMedia
+                                                        component="img"
+                                                        image={imageUrl}
+                                                        alt={`Review image ${index + 1}`}
+                                                        sx={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            objectFit: "cover",
+                                                        }}
+                                                    />
+                                                    <Box
+                                                        sx={{
+                                                            position: "absolute",
+                                                            top: 8,
+                                                            right: 8,
+                                                            backgroundColor: "rgba(0,0,0,0.6)",
+                                                            color: "white",
+                                                            borderRadius: "50%",
+                                                            width: 24,
+                                                            height: 24,
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: "0.75rem",
+                                                            fontWeight: "bold",
+                                                        }}
+                                                    >
+                                                        {index + 1}
+                                                    </Box>
+                                                </Box>
+                                            ))}
+                                        </Box>
+                                    </Box>
+
+                                    {/* Content */}
+                                    <CardContent sx={{ pt: 0 }}>
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                lineHeight: 1.6,
+                                                color: "#2c3e50",
+                                                mb: 2,
+                                            }}
+                                        >
+                                            {reviewData.content}
+                                        </Typography>
+
+                                        <Divider sx={{ mb: 2, backgroundColor: "rgba(0,0,0,0.08)" }} />
+
+                                        {/* Actions */}
+                                        <Box display="flex" alignItems="center" justifyContent="space-between" gap={2}>
+                                            <Box display="flex" alignItems="center" gap={1}>
+                                                <IconButton
+                                                    size="small"
+                                                    sx={{
+                                                        color: reviewData.helpful ? "#4CAF50" : "text.secondary",
+                                                        "&:hover": { backgroundColor: "rgba(76, 175, 80, 0.1)" },
+                                                    }}
+                                                >
+                                                    <ThumbUpIcon fontSize="small" />
+                                                </IconButton>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {reviewData.likes} helpful
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </CardContent>
                                 </Card>
-                            </ListItem>
+                            </Item>
                         ))}
-                    </List>
-                </Stack>
+                    </Stack>
+                <Box display="flex" justifyContent="center">
+                    <Pagination
+                        count={Math.ceil(reviewDataList.length / reviewsPerPage)}
+                        page={page}
+                        onChange={handleChangePage}
+                        color="primary"
+                    />
+                </Box>
+
+
+
+
+
             </Container>
+
+
         </Box>
     )
 
 }
+
+
+
+
+
+
 export default DesignerDetail;
 
 

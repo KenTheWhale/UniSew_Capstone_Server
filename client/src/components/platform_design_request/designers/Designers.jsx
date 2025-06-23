@@ -17,6 +17,7 @@ import {
     FormControl
 } from '@mui/material';
 import Image from '../../../assets/s-l1600.png';
+import {useNavigate} from "react-router-dom";
 
 
 const designerList = [
@@ -39,6 +40,9 @@ export default function Designers() {
     const [category, setCategory] = useState('');
     const [page, setPage] = useState(1);
     const cardsPerPage = 9;
+    const navigateDetail = useNavigate();
+
+
 
     const handleReset = () => {
         setFilter('');
@@ -149,7 +153,7 @@ export default function Designers() {
                                 </CardContent>
                                 <CardActions>
                                     <Button size="small">Share</Button>
-                                    <Button size="small">Learn More</Button>
+                                    <Button size="small" onClick={() => navigateDetail('/designDetail')}>Learn More</Button>
                                 </CardActions>
                             </Card>
                         </Grid>
