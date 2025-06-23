@@ -10,7 +10,7 @@ import {
     LinearProgress,
     ListItem, Paper, Rating, List,
     Stack, TextField, Toolbar,
-    Typography, Pagination, Fab, Tooltip, styled
+    Typography, Pagination, Fab, Tooltip, styled, DialogTitle, Dialog, DialogContent, DialogActions
 } from "@mui/material";
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import WorkIcon from '@mui/icons-material/Work';
@@ -26,8 +26,9 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ReplyIcon from '@mui/icons-material/Reply';
 import CreateIcon from '@mui/icons-material/Create';
 import EditIcon from '@mui/icons-material/Edit'
+import CloseIcon from '@mui/icons-material/Close';
 import {useState} from "react";
-
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -40,10 +41,6 @@ const Item = styled(Paper)(({ theme }) => ({
 
 
 const DesignerDetail = () => {
-
-
-
-
 
     {/* Portfolio data */}
     const portfolio = [
@@ -182,6 +179,7 @@ const DesignerDetail = () => {
             projectType: "Logo Design"
         },
     ];
+    {/* handle pagination Section */}
     const reviewsPerPage = 2;
     const [page, setPage] = useState(1);
 
@@ -193,6 +191,45 @@ const DesignerDetail = () => {
         (page - 1) * reviewsPerPage,
         page * reviewsPerPage
     );
+
+
+
+    {/* handle feedback dialog Section */}
+    const [open, setOpen] = useState(false);
+    const [name, setName] = useState('');
+    const [rating, setRating] = useState(0);
+    const [review, setReview] = useState('');
+    const [images, setImages] = useState([]);
+
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => {
+        setOpen(false);
+        setName('');
+        setRating(0);
+        setReview('');
+        setImages([]);
+    };
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        setImages(files);
+    };
+
+    const handleSubmit = () => {
+        const feedbackData = {
+            name,
+            rating,
+            review,
+            images
+        };
+
+        console.log("Feedback submitted:", feedbackData);
+        // You can send this to server or update state
+        handleClose();
+    };
+
+
+
 
     return (
 
@@ -231,7 +268,7 @@ const DesignerDetail = () => {
                         <Chip icon={<WorkIcon />} label="5+ Years Experience" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
                     </Box>
                     <Button variant="contained" size="large" sx={{ bgcolor: 'white', color: '#667eea', '&:hover': { bgcolor: '#f5f5f5' } }}>
-                        View My Services
+                        Quote 
                     </Button>
                 </Container>
             </Box>
@@ -545,14 +582,112 @@ const DesignerDetail = () => {
                 <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
                     Reviews <ReviewsIcon></ReviewsIcon>
                 </Typography>
+
+                {/* Write a Review Section */}
+                {/* FAB */}
                 <Tooltip title="Write your review" arrow>
-                    <Fab color="secondary" aria-label="edit" sx={{ position: 'fixed',
-                        bottom: 16,
-                        right: 16,
-                    }}>
+                    <Fab
+                        color="secondary"
+                        aria-label="edit"
+                        onClick={handleOpen}
+                        sx={{
+                            position: 'fixed',
+                            bottom: 16,
+                            right: 16,
+                        }}
+                    >
                         <EditIcon />
                     </Fab>
                 </Tooltip>
+
+                {/* Dialog */}
+                <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+                    <DialogTitle>
+                        Write a Review
+                        <IconButton
+                            onClick={handleClose}
+                            sx={{ position: 'absolute', right: 8, top: 8 }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </DialogTitle>
+
+                    <DialogContent dividers>
+                        {/*<TextField
+                            label="Your Name"
+                            fullWidth
+                            margin="dense"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />*/}
+
+                        <Box display="flex" alignItems="center" gap={2} mt={2} mb={2}>
+                            <Typography component="legend">Rating</Typography>
+                            <Rating
+                                name="rating"
+                                value={rating}
+                                onChange={(e, newValue) => setRating(newValue)}
+                            />
+                        </Box>
+
+                        <TextField
+                            label="Your Review"
+                            multiline
+                            rows={4}
+                            fullWidth
+                            margin="dense"
+                            value={review}
+                            onChange={(e) => setReview(e.target.value)}
+                        />
+
+                        <Box mt={3}>
+                            <Typography variant="body2" gutterBottom>
+                                Upload Images (Multiple):
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                component="label"
+                                startIcon={<PhotoCameraIcon />}
+                            >
+                                Upload
+                                <input
+                                    type="file"
+                                    hidden
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                />
+                            </Button>
+
+                            {/* Show preview of uploaded files */}
+                            {images.length > 0 && (
+                                <Box mt={2} display="flex" gap={1} flexWrap="wrap">
+                                    {images.map((img, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={URL.createObjectURL(img)}
+                                            alt={`preview-${idx}`}
+                                            width={80}
+                                            height={60}
+                                            style={{ objectFit: 'cover', borderRadius: 4 }}
+                                        />
+                                    ))}
+                                </Box>
+                            )}
+                        </Box>
+                    </DialogContent>
+
+                    <DialogActions>
+                        <Button onClick={handleClose} color="inherit">Cancel</Button>
+                        <Button onClick={handleSubmit} variant="contained" color="secondary">
+                            Submit
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+
+
+
                     <Stack direction="row"
                            spacing={8}
                            sx={{
@@ -753,10 +888,6 @@ const DesignerDetail = () => {
                         color="primary"
                     />
                 </Box>
-
-
-
-
 
             </Container>
 
