@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum ClothCategory {
 
     REGULAR("regular"),
-    PHYSICAL_EDUCATION("pe"),;
+    PHYSICAL("pe"),;
 
     private final String value;
 }

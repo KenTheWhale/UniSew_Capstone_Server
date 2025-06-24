@@ -11,18 +11,18 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 // import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import GoogleResponse from "./components/auth/GoogleResponse.jsx";
 import SignIn from "./components/auth/SignIn.jsx";
-// import DesignerDetail from "./components/school/DesignerDetail.jsx";
+import DesignerDetail from "./components/school/DesignerDetail.jsx";
 // import SchoolProfile from "./components/school/SchoolProfile.jsx";
 // import DesignerProfile from "./components/designer/Profile.jsx";
 // import GarmentProfile from "./components/garment/Profile.jsx";
-// import RequestHistory from "./components/school/RequestHistory.jsx";
+import RequestHistory from "./components/school/RequestHistory.jsx";
 // import DesignerList from "./components/school/DesignerList.jsx";
 import SchoolOrder from "./components/school/SchoolOrder.jsx";
 import SchoolLayout from "./layouts/school/SchoolLayout.jsx";
 import DesignerDashboard from "./components/designer/DesignerDashboard.jsx";
 import DesignerLayout from "./layouts/designer/DesignerLayout.jsx";
 import DesignerProfile from "./components/designer/DesignerProfile.jsx";
-// import RequestDetail from "./components/school/RequestDetail.jsx";
+import RequestDetail from "./components/school/RequestDetail.jsx";
 // import AdminAccount from "./components/admin/AdminAccount.jsx";
 // import UploadZip from "./components/school/UploadZip.jsx";
 
@@ -63,28 +63,28 @@ const router = createBrowserRouter([
                 index: true,
                 element: <Navigate to={"/school/order"}/>
             },
-            // {
-            //     path: 'design',
-            //     element: <RequestHistory/>
-            // },
-            // {
-            //     path: 'detail',
-            //     element: <RequestDetail/>
-            // },
+            {
+                path: 'design',
+                element: <RequestHistory/>
+            },
+            {
+                path: 'detail',
+                element: <RequestDetail/>
+            },
             {
                 path: 'order',
                 element: <SchoolOrder/>
             }
         ]
     },
-    // {
-    //     path: "/designer/detail",
-    //     element: (
-    //         <WebAppUILayout title={"Profile"}>
-    //             <DesignerDetail/>
-    //         </WebAppUILayout>
-    //     )
-    // },
+    {
+        path: "/designer/detail",
+        element: (
+            <WebAppUILayout title={"Profile"}>
+                <DesignerDetail/>
+            </WebAppUILayout>
+        )
+    },
     {
         path: "/sign-in",
         element: (
