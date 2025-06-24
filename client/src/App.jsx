@@ -7,12 +7,6 @@ import Home from "./components/auth/Home.jsx";
 import {useEffect} from "react";
 import UniSewConsole from "./components/ui/UniSewConsole.jsx";
 import 'bootstrap/dist/css/bootstrap.min.css'
-import PlatformAdminLayout from "./layouts/platform_admin/PlatformAdminLayout.jsx";
-import PlatformAdminDashboard from "./components/platform_admin/dashboard/PlatformAdminDashboard.jsx";
-import PlatformDesignRequestLayout from "./layouts/platform_design_request/PlatformDesignRequestLayout.jsx";
-import DesignerDetail from "./components/platform_design_request/designers/DesignerDetail.jsx";
-import AccountManagement from "./components/platform_admin/account/AccountManagement.jsx";
-
 // import AdminLayout from "./layouts/admin/AdminLayout.jsx";
 // import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import GoogleResponse from "./components/auth/GoogleResponse.jsx";
@@ -27,6 +21,7 @@ import SchoolOrder from "./components/school/SchoolOrder.jsx";
 import SchoolLayout from "./layouts/school/SchoolLayout.jsx";
 import DesignerDashboard from "./components/designer/DesignerDashboard.jsx";
 import DesignerLayout from "./layouts/designer/DesignerLayout.jsx";
+import DesignerProfile from "./components/designer/DesignerProfile.jsx";
 // import RequestDetail from "./components/school/RequestDetail.jsx";
 // import AdminAccount from "./components/admin/AdminAccount.jsx";
 // import UploadZip from "./components/school/UploadZip.jsx";
@@ -143,29 +138,13 @@ const router = createBrowserRouter([
             {
                 path: 'dashboard',
                 element: <DesignerDashboard/>
+            },
+            {
+                path: 'profile',
+                element: <DesignerProfile/>
             }
         ]
     },
-
-    {
-        path: "/design",
-        element: (
-            <WebAppUILayout title={"Choose Designer"}>
-                <PlatformDesignRequestLayout></PlatformDesignRequestLayout>
-            </WebAppUILayout>
-        )
-
-    },
-
-    {
-        path: "/designDetail",
-        element:
-        <WebAppUILayout title={"Designer Detail"}>
-            <DesignerDetail></DesignerDetail>
-        </WebAppUILayout>
-
-    },
-
 
     {
         path: "*",
