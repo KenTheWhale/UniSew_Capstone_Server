@@ -2,6 +2,7 @@ package com.unisew.server.models;
 
 import com.unisew.server.enums.ClothCategory;
 import com.unisew.server.enums.ClothType;
+import com.unisew.server.enums.Gender;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,11 +39,9 @@ public class Cloth {
     Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "`cloth_type`")
     ClothType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "`cloth_category`")
     ClothCategory category;
 
     @Column(name = "`logo_image`")
@@ -63,6 +62,9 @@ public class Cloth {
 
     String note;
 
+    @Enumerated(EnumType.STRING)
+    Gender gender;
+
     @OneToMany(mappedBy = "cloth")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -78,7 +80,7 @@ public class Cloth {
     List<SampleImage> sampleImages;
 
     @ManyToOne
-    @JoinColumn(name = "template_id")
+    @JoinColumn(name = "`template_id`")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Cloth template;

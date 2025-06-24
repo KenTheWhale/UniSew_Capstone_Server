@@ -30,7 +30,7 @@ import java.util.List;
 @Entity
 @Table(name = "`package`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Package {
+public class Packages {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,10 +59,10 @@ public class Package {
     @OneToMany(mappedBy = "pkg")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<PackageService> rules;
+    List<PackageService> packageServices;
 
     @OneToMany(mappedBy = "pkg")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<PackageService> packageServices;
+    List<DesignRequest> designRequests;
 }

@@ -30,7 +30,7 @@ public class PackageService {
     @ManyToOne
     @MapsId("packageId")
     @JoinColumn(name = "`package_id`")
-    Package pkg;
+    Packages pkg;
 
     @ManyToOne
     @MapsId("serviceId")

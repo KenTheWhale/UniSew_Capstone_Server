@@ -2,9 +2,10 @@ import {ReactRouterAppProvider} from "@toolpad/core/react-router";
 import {Outlet, useNavigate} from 'react-router-dom'
 import {useMemo, useState} from "react";
 import {Account, AccountPreview, DashboardLayout, SignOutButton} from "@toolpad/core";
-import {Chip, Divider, IconButton, Stack, Typography} from "@mui/material";
+import {Chip, createTheme, Divider, IconButton, Stack, Typography} from "@mui/material";
 import '../../styles/ui/DashboardUILayout.css'
 import {Logout} from '@mui/icons-material';
+import {enqueueSnackbar} from "notistack";
 
 function CustomAppTitle(title) {
     return(
@@ -20,7 +21,7 @@ function CustomSignOutButton(){
     const navigate = useNavigate();
 
     return (
-        <IconButton color={"error"} size={"medium"} onClick={()=> navigate("/home")}>
+        <IconButton color={"error"} size={"medium"} onClick={()=> navigate("/sign-in")}>
             <Logout/>
         </IconButton>
     )
@@ -73,34 +74,43 @@ function SidebarFooterAccount({mini}) {
 export default function DashboardUILayout({navigation, header, title}) {
     document.title = title;
 
+    const user = JSON.parse(localStorage.getItem('user'))
+
     const [session, setSession] = useState({
             user: {
-                name: 'Mr Test',
-                email: 'test@gmail.com',
-                image: '/logo.png',
+                name: user.profile.name,
+                email: user.email,
+                image: user.profile.avatar,
             }
         }
     );
 
+    if(localStorage.getItem('message') && localStorage.getItem('variant')){
+        enqueueSnackbar(localStorage.getItem('message'), {variant: localStorage.getItem('variant')})
+        localStorage.removeItem('message')
+        localStorage.removeItem('variant')
+    }
+
+
     const authentication = {
         signIn: () => {
-            setSession({
-                user: {
-                    name: 'Mr Test',
-                    email: 'test@gmail.com',
-                    image: '/logo.png',
-                }
-            });
+            setSession(session);
         }
     };
+
+    const theme = createTheme({
+        colorSchemes: {light: true, dark: false}
+    })
 
     return (
         <ReactRouterAppProvider
             navigation={navigation}
             session={session}
             authentication={authentication}
+            theme={theme}
         >
             <DashboardLayout
+                disableCollapsibleSidebar
                 slots={{
                     toolbarAccount: () => null,
                     sidebarFooter: SidebarFooterAccount,

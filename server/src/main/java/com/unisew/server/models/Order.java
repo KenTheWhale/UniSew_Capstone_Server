@@ -75,4 +75,9 @@ public class Order {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "order")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Quotation> quotations;
 }
