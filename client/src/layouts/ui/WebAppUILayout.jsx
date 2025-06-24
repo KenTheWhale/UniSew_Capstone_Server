@@ -1,11 +1,22 @@
 import '../../styles/ui/WebAppUILayout.css'
-import {Button, Divider, Link, Typography} from "@mui/material";
+import {Badge, Button, Divider, IconButton, Link, ListItemIcon, Menu, MenuItem, Typography,} from "@mui/material";
+import {
+    AccountBox,
+    DesignServices,
+    Inventory,
+    KeyboardArrowDown,
+    KeyboardArrowUp,
+    Logout,
+    Notifications
+} from '@mui/icons-material';
 import {useNavigate} from "react-router-dom";
+import {useState} from "react";
+
 
 function RenderFooterPolicyButton({link, title}) {
     const navigate = useNavigate()
 
-    return(
+    return (
         <Link
             component={"button"}
             variant={"body2"}
@@ -21,34 +32,207 @@ function RenderFooterPolicyButton({link, title}) {
 function RenderHeaderButton({link, title}) {
     const navigate = useNavigate()
 
-    return(
-        <Link
+    return (
+        <Button
             className={"btn-link"}
-            component={"button"}
-            underline={"none"}
-            color={"textPrimary"}
-            sx={{fontWeight: "500", fontSize: '1.2rem', height: '100%', width: '9vw'}}
+            variant={"text"}
             onClick={() => navigate(link)}
         >
             {title}
-        </Link>
+        </Button>
+    )
+}
+
+function RenderHeaderMenuButton({title, children}) {
+    const navigate = useNavigate()
+    const [anchorEl, setAnchorEl] = useState(null)
+    const open = Boolean(anchorEl)
+
+    const handleClick = (e) => {
+        setAnchorEl(anchorEl === null ? e.currentTarget : null)
+    }
+
+    const handleCloseMenu = (link) => {
+        if (link !== null) {
+            navigate(link)
+        }
+        setAnchorEl(null)
+    }
+
+    return (
+        <>
+            <Button
+                className={"btn-link"}
+                variant={"text"}
+                onClick={handleClick}
+                endIcon={open ? <KeyboardArrowUp fontSize={"medium"}/> : <KeyboardArrowDown fontSize={"large"}/>}
+            >
+                {title}
+            </Button>
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={() => handleCloseMenu(null)}
+            >
+                {
+                    children.map((child, index) => (
+                        <MenuItem key={index} onClick={() => handleCloseMenu(child.link)}>{child.title}</MenuItem>
+                    ))
+                }
+            </Menu>
+        </>
+    )
+}
+
+function RenderHeaderProfileButton({children}) {
+    const navigate = useNavigate()
+    const [anchorEl, setAnchorEl] = useState(null)
+    const open = Boolean(anchorEl)
+
+    const handleClick = (e) => {
+        setAnchorEl(anchorEl === null ? e.currentTarget : null)
+    }
+
+    const handleCloseMenu = (link) => {
+        if (link !== null) {
+            navigate(link)
+        }
+        setAnchorEl(null)
+    }
+
+    return (
+        <>
+            <Button
+                className={"btn-link"}
+                variant={"text"}
+                onClick={handleClick}
+                fullWidth
+                endIcon={
+                    <img
+                        className={'profile-btn-image'}
+                        referrerPolicy={"no-referrer"}
+                        src={JSON.parse(localStorage.getItem('user')).profile.avatar}
+                        alt={""}
+                    />
+                }
+                sx={{color: "black"}}
+            >
+                {JSON.parse(localStorage.getItem('user')).profile.name}
+            </Button>
+            <Menu
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                anchorEl={anchorEl}
+                open={open}
+                onClose={() => handleCloseMenu(null)}
+            >
+                {
+                    children.map((child, index) => (
+                        <MenuItem key={index} sx={{width: '15vw'}} onClick={() => handleCloseMenu(child.link)}>
+                            <ListItemIcon>
+                                {child.icon}
+                            </ListItemIcon>
+                            {child.title}
+                        </MenuItem>
+                    ))
+                }
+            </Menu>
+        </>
     )
 }
 
 function RenderHeader() {
     const navigate = useNavigate()
+    const existedUser = JSON.parse(localStorage.getItem("user"));
+    const profileLink = existedUser ? '/' + existedUser.role + "-profile" : null
+    const notification = 0
     return (
-        <div className="header">
+        <div className="home-header">
             <img src={"/logo_full.png"} alt="UniSew"/>
             <div className="header-content">
-                <RenderHeaderButton link={"/home"} title="Home"/>
-                <RenderHeaderButton link={"/info/about"} title="About"/>
-                <RenderHeaderButton link={"/info/contact"} title="Contact"/>
-                <RenderHeaderButton link={"/info/showroom"} title="Showroom"/>
+                <RenderHeaderButton
+                    link={"/home"}
+                    title="Home"
+                />
+                {!existedUser && (
+                    <RenderHeaderMenuButton
+                        title="Become Partner"
+                        children={[
+                            {
+                                link: '/partner/designer',
+                                title: 'Join Designer'
+                            },
+                            {
+                                link: '/partner/garment',
+                                title: 'Join Garment Factory'
+                            }
+                        ]}
+                    />
+                )}
+                {existedUser && (
+                    <Button
+                        variant={"outlined"}
+                        color={"primary"}
+                        onClick={() => navigate('/school/design')}
+                    >
+                        Create my design
+                    </Button>
+                )}
             </div>
             <div className="header-buttons">
-                <Button variant={"outlined"} onClick={() => navigate("/sign-up")}>Sign up</Button>
-                <Button variant={"contained"} onClick={() => navigate("/sign-in")}>Sign in</Button>
+                {!existedUser ? (
+                    <Button variant={"outlined"} sx={{color: "black", borderColor: "black"}}
+                            onClick={() => navigate("/sign-in")}>Sign in</Button>
+                ) : (
+                    <>
+                        <IconButton>
+                            <Badge badgeContent={notification} max={10} color={"error"} invisible={notification === 0}>
+                                <Notifications sx={{height: '30px', width: '30px'}} color={"warning"}/>
+                            </Badge>
+                        </IconButton>
+                        <RenderHeaderProfileButton
+                            children={
+                                existedUser.role === 'school' ?
+                                    [
+                                        {
+                                            link: profileLink,
+                                            title: 'Profile',
+                                            icon: <AccountBox fontSize={"small"} color={"info"}/>
+                                        },
+                                        {
+                                            link: '/school/design',
+                                            title: 'My Designs',
+                                            icon: <DesignServices fontSize={"small"} color={"primary"}/>
+                                        },
+                                        {
+                                            link: '/school/order',
+                                            title: 'My Orders',
+                                            icon: <Inventory fontSize={"small"} color={"secondary"}/>
+                                        },
+                                        {
+                                            link: '/sign-in',
+                                            title: 'Sign out',
+                                            icon: <Logout fontSize={"small"} color={"error"}/>
+                                        }
+                                    ]
+                                    :
+                                    [
+                                        {
+                                            link: profileLink,
+                                            title: 'Profile',
+                                            icon: <AccountBox fontSize={"small"} color={"info"}/>
+                                        },
+                                        {
+                                            link: '/sign-in',
+                                            title: 'Sign out',
+                                            icon: <Logout fontSize={"small"} color={"error"}/>
+                                        }
+                                    ]
+                            }
+                        />
+                    </>
+                )}
+
             </div>
         </div>
     )
@@ -58,7 +242,7 @@ function RenderFooter() {
     const today = new Date();
 
     return (
-        <div className={"footer"}>
+        <div className={"home-footer"}>
             <div className={"footer-content"}>
                 <img src={"/logo_full.png"} alt="UniSew"/>
                 <div className={"footer-item"}>
@@ -76,9 +260,6 @@ function RenderFooter() {
                 <div className={"footer-item"}>
                     <Typography variant={"body1"} sx={{fontWeight: "bold", color: 'black'}}>Payment</Typography>
                     <img src={"/payos.png"} alt="PayOS"/>
-
-                    <Typography variant={"body1"} sx={{fontWeight: "bold", color: 'black', marginTop: "2vh"}}>Shipping</Typography>
-                    <img src={"/ghn.png"} alt="Giao hang nhanh"/>
                 </div>
             </div>
             <Divider/>
@@ -92,9 +273,9 @@ function RenderFooter() {
 function RenderPage({children, title}) {
     document.title = title;
     return (
-        <div className={"main"}>
+        <div className={"home-main"}>
             <RenderHeader/>
-            <div className={"body"}>
+            <div className={"home-body"}>
                 {children}
             </div>
             <RenderFooter/>
@@ -103,6 +284,9 @@ function RenderPage({children, title}) {
 }
 
 export default function WebAppUILayout({children, title}) {
+    if(localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')).role !== 'school'){
+        window.location.href = "/sign-in"
+    }
     return (
         <RenderPage children={children} title={title}/>
     )

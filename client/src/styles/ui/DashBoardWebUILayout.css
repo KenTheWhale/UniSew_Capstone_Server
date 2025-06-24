@@ -1,0 +1,20 @@
+.dbwui-main{
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    padding: 0 3vw;
+    margin: 15vh 0;
+    min-height: 50vh;
+}
+
+.dbwui-nav{
+    /*border: 2px solid purple;*/
+    border-right: 1px solid rgba(225, 221, 221, 0.6);
+    flex: 1;
+    padding-top: 3vh;
+}
+
+.dbwui-outlet{
+    /*border: 2px solid darkslategrey;*/
+    flex: 7;
+}

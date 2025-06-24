@@ -1,6 +1,5 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.RegisterType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import jakarta.persistence.CascadeType;
@@ -43,14 +42,8 @@ public class Account {
 
     String email;
 
-    String password;
-
     @Enumerated(EnumType.STRING)
     Role role;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "`register_type`")
-    RegisterType registerType;
 
     @Column(name = "`register_date`")
     LocalDate registerDate;
@@ -59,13 +52,11 @@ public class Account {
     Status status;
 
     @OneToOne(mappedBy = "account", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Profile profile;
 
     @OneToOne(mappedBy = "account", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Wallet wallet;
@@ -74,11 +65,6 @@ public class Account {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<DesignRequest> schoolDesignRequests;
-
-    @OneToMany(mappedBy = "designer", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<DesignRequest> designerDesignRequests;
 
     @OneToMany(mappedBy = "school")
     @ToString.Exclude

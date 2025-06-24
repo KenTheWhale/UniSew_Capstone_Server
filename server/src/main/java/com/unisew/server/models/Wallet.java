@@ -31,7 +31,7 @@ import java.util.List;
 public class Wallet {
 
     @Id
-    @Column(name = "`account_id`")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     long balance;
@@ -51,7 +51,6 @@ public class Wallet {
     int cvv;
 
     @OneToOne
-    @MapsId
     @JoinColumn(name = "`account_id`")
     Account account;
 

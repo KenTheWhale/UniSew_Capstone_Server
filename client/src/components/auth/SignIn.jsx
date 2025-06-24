@@ -1,163 +1,67 @@
 import '../../styles/auth/SignIn.css'
-import {SignInPage} from "@toolpad/core";
-import {ReactRouterAppProvider} from "@toolpad/core/react-router";
-import {
-    Button, FormControl,
-    IconButton,
-    InputAdornment,
-    InputLabel,
-    Link,
-    OutlinedInput,
-    TextField,
-    Typography
-} from "@mui/material";
-import {useState} from "react";
-import {Visibility, VisibilityOff} from '@mui/icons-material';
-import {useNavigate} from "react-router-dom";
+import {Button, Typography, Link} from "@mui/material";
+import {KeyboardBackspace} from '@mui/icons-material';
+import {getGoogleUrl} from "../../services/AuthService.jsx";
+import {enqueueSnackbar} from "notistack";
 
-/* init ui */
-const brand = {
-    logo: (
-        <img
-            src="/logo.png"
-            alt="UniSew"
-            width={50}
-            height={50}
-        />
-    ),
-    title: 'UniSew',
+const signIn = async () => {
+    const response = await getGoogleUrl()
+    if(response.status === 200 && response.data.data.url){
+        window.location.href = response.data.data.url
+    }
 }
 
-const providers = [
-    { id: 'google', name: 'Google' },
-    { id: 'credentials', name: 'Email and Password'}
-]
-
-function CustomSignInBtn(){
-    const navigate = useNavigate();
+function RenderLoginArea() {
     return (
-        <Button
-            variant={"contained"}
-            size={"medium"}
-            fullWidth
-            sx={{
-                margin: '2vh 0'
-            }}
-            onClick={() => navigate('/admin/dashboard')}
-        >
-            Sign in
-        </Button>
+        <div className={'sign-in-login-area-container'}>
+            <Typography variant={"h2"}>UniSew</Typography>
+            <Typography variant={"h6"}>Sign in to your account</Typography>
+            <Button
+                fullWidth
+                size={'medium'}
+                startIcon={<img src={'/google.png'} alt={'Google'} height={20} width={20}/>}
+                variant={"outlined"}
+                color={"inherit"}
+                onClick={signIn}
+            >
+                Continue with Google
+            </Button>
+            <div className={'d-flex align-items-end'}>
+                <KeyboardBackspace height={15} width={15} sx={{marginRight: '0.5vw'}}/>
+                <Link sx={{color: 'white', cursor: 'pointer'}} underline={"none"} href={'/home'}>Back to home</Link>
+            </div>
+
+        </div>
     )
 }
-
-function CustomSubtitle(){
-    return (
-        <Typography variant={"body2"} sx={{marginBottom: '2vh'}}>UniSew</Typography>
-    )
-}
-
-function CustomTitle(){
-    return (
-        <Typography variant={"h4"} sx={{marginBottom: '0.5vh'}}>SIGN IN</Typography>
-    )
-}
-
-function CustomRegister() {
-    return (
-        <Link href="/client/src/components/auth/SignUp" variant="body2" underline="none">
-            Sign up
-        </Link>
-    );
-}
-
-function CustomForgetPass(){
-
-    return (
-        <Link underline={"none"} variant={"body2"} href={"/home"}>Forget password ?</Link>
-    )
-}
-
-function CustomEmailField() {
-    return (
-        <TextField
-            label="Email *"
-            name="email"
-            type="email"
-            size="small"
-            fullWidth
-            variant="outlined"
-        />
-    );
-}
-
-function CustomPasswordField() {
-    const [showPassword, setShowPassword] = useState(false);
-
-    const handleClickShowPassword = () => setShowPassword((show) => !show);
-
-    const handleMouseDownPassword = (event) => {
-        event.preventDefault();
-    };
-
-    return (
-        <FormControl sx={{ my: 2 }} fullWidth variant="outlined">
-            <InputLabel size="small">
-                Password *
-            </InputLabel>
-            <OutlinedInput
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                size="small"
-                endAdornment={
-                    <InputAdornment position="end">
-                        <IconButton
-                            onClick={handleClickShowPassword}
-                            onMouseDown={handleMouseDownPassword}
-                            edge="end"
-                            size="small"
-                        >
-                            {showPassword ? (
-                                <VisibilityOff fontSize="inherit" />
-                            ) : (
-                                <Visibility fontSize="inherit" />
-                            )}
-                        </IconButton>
-                    </InputAdornment>
-                }
-                label="Password"
-            />
-        </FormControl>
-    );
-}
-
-
-/* end init ui */
 
 function RenderPage() {
 
+    if(localStorage.length > 0) {
+        localStorage.clear()
+        enqueueSnackbar("Logout successfully, you will be redirect to homepage in seconds", {variant: 'success'})
+        setTimeout(() => {
+            window.location.href = '/home'
+        }, 2000)
+    }
+
     return (
-        <div className="sign-in-container">
-            <SignInPage
-                providers={providers}
-                slots={{
-                    submitButton: CustomSignInBtn,
-                    subtitle: CustomSubtitle,
-                    title: CustomTitle,
-                    forgotPasswordLink: CustomForgetPass,
-                    signUpLink: CustomRegister,
-                    emailField: CustomEmailField,
-                    passwordField: CustomPasswordField,
-                }}
-            />
+        <div className={'sign-in-main'}>
+            <div className={'sign-in-main-container'}>
+                <div className={'sign-in-login-area'}>
+                    <RenderLoginArea/>
+                </div>
+                <div className={'sign-in-img-area'}>
+                    <img src={"/unisew.jpg"} alt={'UniSew'}/>
+                </div>
+            </div>
         </div>
     )
 }
 
 export default function SignIn() {
-
+    document.title = "Sign in"
     return (
-        <ReactRouterAppProvider branding={brand}>
-            <RenderPage/>
-        </ReactRouterAppProvider>
+        <RenderPage/>
     )
 }

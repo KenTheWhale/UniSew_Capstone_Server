@@ -1,4 +1,4 @@
-import {Dashboard, ManageAccounts, ShoppingCart} from '@mui/icons-material';
+import {Dashboard, ManageAccounts} from '@mui/icons-material';
 import DashboardUILayout from "../ui/DashboardUILayout.jsx";
 
 function RenderLayout() {
@@ -18,18 +18,9 @@ function RenderLayout() {
             title: 'Account Management',
         },
         {
-            segment: 'admin/accounts',
+            segment: 'admin/account',
             title: 'Accounts',
             icon: <ManageAccounts/>
-        },
-        {
-            kind: 'header',
-            title: 'Order Management',
-        },
-        {
-            segment: 'admin/orders',
-            title: 'Orders',
-            icon: <ShoppingCart/>
         },
     ]
 
@@ -44,7 +35,7 @@ function RenderLayout() {
 
 }
 
-export default function PlatformAdminLayout() {
+export default function AdminLayout() {
     return (
         <RenderLayout/>
     )
