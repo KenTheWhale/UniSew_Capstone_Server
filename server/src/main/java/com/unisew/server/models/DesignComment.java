@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -39,7 +40,7 @@ public class DesignComment {
     String content;
 
     @Column(name = "`creation_date`")
-    LocalDate creationDate;
+    LocalDateTime creationDate;
 
     @ManyToOne
     @JoinColumn(name = "`request_id`")
