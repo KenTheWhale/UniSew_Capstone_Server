@@ -30,10 +30,16 @@ public class DesignComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`request_date`")
-    LocalDate requestDate;
+    @Column(name = "`sender_id`")
+    Integer senderId;
 
-    String note;
+    @Column(name = "`sender_role`")
+    String senderRole;
+
+    String content;
+
+    @Column(name = "`creation_date`")
+    LocalDate creationDate;
 
     @ManyToOne
     @JoinColumn(name = "`request_id`")
