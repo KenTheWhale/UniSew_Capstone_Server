@@ -2,6 +2,8 @@ package com.unisew.server.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
@@ -24,7 +26,7 @@ import lombok.experimental.FieldDefaults;
 public class Partner {
 
     @Id
-    @Column(name = "`profile_id`")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     String street;
@@ -35,8 +37,10 @@ public class Partner {
 
     String province;
 
+    @Column(name = "`busy`")
+    boolean isBusy;
+
     @OneToOne
-    @MapsId
     @JoinColumn(name = "`profile_id`")
     Profile profile;
 }

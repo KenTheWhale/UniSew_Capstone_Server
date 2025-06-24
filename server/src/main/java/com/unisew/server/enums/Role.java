@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Role {
-    PLATFORM_ADMIN("padmin"),
+    ADMIN("admin"),
     DESIGNER("designer"),
-    SCHOOL_ADMIN("sadmin"),
+    SCHOOL("school"),
     GARMENT_FACTORY("garment");
 
     private final String value;

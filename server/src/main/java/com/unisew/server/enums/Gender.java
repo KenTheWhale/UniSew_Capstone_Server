@@ -5,10 +5,10 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum RegisterType {
+public enum Gender{
 
-    MANUAL("manual"),
-    GOOGLE("google");
+    BOY("boy"),
+    GIRL("girl");
 
     private final String value;
 }

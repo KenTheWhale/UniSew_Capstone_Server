@@ -51,10 +51,6 @@ public class DesignRequest {
     @JoinColumn(name = "`school_id`")
     Account school;
 
-    @ManyToOne
-    @JoinColumn(name = "`designer_id`")
-    Account designer;
-
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -71,5 +67,10 @@ public class DesignRequest {
 
     @ManyToOne
     @JoinColumn(name = "`package_id`")
-    Package pkg;
+    Packages pkg;
+
+    @OneToMany(mappedBy = "designRequest")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<DesignComment> designComments;
 }

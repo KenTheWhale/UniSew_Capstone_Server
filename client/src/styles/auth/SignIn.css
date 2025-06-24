@@ -1,4 +1,77 @@
-.sign-in-container{
-    max-height: 100vh;
+.sign-in-main{
+    background-image: url('/unisew.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.sign-in-main::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.sign-in-main-container{
+    border-radius: 10px !important;
+    display: flex;
+    flex-direction: row;
+    height: 80%;
+    width: 80%;
+    z-index: 2;
+}
+
+.sign-in-login-area{
+    flex: 1;
+    background-color: #121111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.sign-in-login-area-container{
+    width: 80%;
+    height: 50%;
+    color: white;
+}
+
+.sign-in-login-area-container h6{
+    margin-top: 1vh;
+    margin-bottom: 5vh;
+}
+
+.sign-in-login-area-container button{
+    text-transform: capitalize;
+    color: white;
+    margin-bottom: 5vh;
+    border-radius: 5px !important;
+}
+
+.sign-in-login-area-container img{
+    height: 20px;
+    width: 20px;
+}
+
+.sign-in-img-area{
+    flex: 2;
+}
+
+.sign-in-img-area img{
+    height: 100%;
+    width: 100%;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
