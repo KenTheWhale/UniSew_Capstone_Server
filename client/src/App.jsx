@@ -21,6 +21,7 @@ import SchoolOrder from "./components/school/SchoolOrder.jsx";
 import SchoolLayout from "./layouts/school/SchoolLayout.jsx";
 import DesignerDashboard from "./components/designer/DesignerDashboard.jsx";
 import DesignerLayout from "./layouts/designer/DesignerLayout.jsx";
+import DesignerProfile from "./components/designer/DesignerProfile.jsx";
 // import RequestDetail from "./components/school/RequestDetail.jsx";
 // import AdminAccount from "./components/admin/AdminAccount.jsx";
 // import UploadZip from "./components/school/UploadZip.jsx";
@@ -137,9 +138,14 @@ const router = createBrowserRouter([
             {
                 path: 'dashboard',
                 element: <DesignerDashboard/>
+            },
+            {
+                path: 'profile',
+                element: <DesignerProfile/>
             }
         ]
     },
+
     {
         path: "*",
         element: <Navigate to={"/home"}/>

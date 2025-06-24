@@ -1,5 +1,7 @@
 import {Dashboard, ManageAccounts} from '@mui/icons-material';
 import DashboardUILayout from "../ui/DashboardUILayout.jsx";
+import {Account} from "@toolpad/core";
+import AccountManagement from "../../components/platform_admin/account/AccountManagement.jsx";
 
 function RenderLayout() {
 
@@ -20,7 +22,8 @@ function RenderLayout() {
         {
             segment: 'admin/account',
             title: 'Accounts',
-            icon: <ManageAccounts/>
+            icon: <ManageAccounts/>,
+
         },
     ]
 

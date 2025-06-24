@@ -1,4 +1,4 @@
-import {Dashboard, Draw} from '@mui/icons-material';
+import {Dashboard, Draw, AccountCircle} from '@mui/icons-material';
 import DashboardUILayout from "../ui/DashboardUILayout.jsx";
 
 function RenderLayout() {
@@ -13,7 +13,7 @@ function RenderLayout() {
             title: 'Dashboard',
             icon: <Dashboard/>
         },
-        {
+        /*{
             kind: 'header',
             title: 'Design Management',
         },
@@ -21,7 +21,16 @@ function RenderLayout() {
             segment: 'designer/design',
             title: 'Design Request',
             icon: <Draw/>
+        },*/
+        {
+            kind: 'header',
+            title: 'Account Settings',
         },
+        {
+            segment: 'designer/profile',
+            title: 'Profile',
+            icon: <AccountCircle/>
+        }
     ]
 
 

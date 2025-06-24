@@ -1,3 +1,8 @@
 ### IntelliJ IDEA ###
 .idea
 
+package-lock.json
+*.json
+
+# Package manager lock files
+package-lock.json

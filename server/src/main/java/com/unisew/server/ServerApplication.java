@@ -72,7 +72,7 @@ public class ServerApplication {
 
                     Account account3 = accountRepo.save(
                             Account.builder()
-                                    .email("kenkami296@gmail.com")
+                                    .email("luandokhacthanh@gmail.com")
                                     .role(Role.DESIGNER)
                                     .registerDate(LocalDate.now())
                                     .status(Status.ACCOUNT_ACTIVE)
@@ -110,8 +110,8 @@ public class ServerApplication {
                     Profile profile3 = profileRepo.save(
                             Profile.builder()
                                     .account(account3)
-                                    .name("Ken")
-                                    .phone("0911094322")
+                                    .name("Neb")
+                                    .phone("0909090909")
                                     .avatar("https://employer.jobsgo.vn/uploads/media/img/201803/pictures_library_hue-dinh_8457_180316171037_1078.jpg")
                                     .build()
                     );
