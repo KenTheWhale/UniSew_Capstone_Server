@@ -1,0 +1,16 @@
+.profile-left-card{
+    text-align: center;
+    padding: 0 2vw;
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.profile-left-card img{
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2vh;
+    border-radius: 100px;
+    height: 100px;
+    width: 100px;
+}
