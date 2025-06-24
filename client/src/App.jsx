@@ -10,10 +10,10 @@ import {useEffect} from "react";
 import UniSewConsole from "./components/ui/UniSewConsole.jsx";
 import 'bootstrap/dist/css/bootstrap.min.css'
 import PlatformAdminLayout from "./layouts/platform_admin/PlatformAdminLayout.jsx";
-import PlatformAdminDashboard from "./components/platform_admin/PlatformAdminDashboard.jsx";
+import PlatformAdminDashboard from "./components/platform_admin/dashboard/PlatformAdminDashboard.jsx";
 import PlatformDesignRequestLayout from "./layouts/platform_design_request/PlatformDesignRequestLayout.jsx";
 import DesignerDetail from "./components/platform_design_request/designers/DesignerDetail.jsx";
-import AccountManagement from "./components/platform_admin/AccountManagement.jsx";
+import AccountManagement from "./components/platform_admin/account/AccountManagement.jsx";
 
 
 const router = createBrowserRouter([

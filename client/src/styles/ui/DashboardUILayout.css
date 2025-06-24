@@ -8,3 +8,128 @@
     margin: 5vh 5vw !important;
 
 }
+
+/*Dashboard*/
+
+.main .content {
+    width: 80%;
+    flex: 0 0 80%;
+}
+
+.right-content {
+    padding: 10px 20px;
+
+
+}
+.dashboardBoxWrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+
+}
+
+.dashboardBoxWrapper .dashboardBox {
+    width: 48%;
+    height: 170px;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: left;
+    color: #fff;
+    overflow: hidden;
+}
+
+.dashboardBoxWrapper .dashboardBox .col1 h4 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.dashboardBoxWrapper .dashboardBox .col1 span {
+    font-size: 40px;
+    font-weight: bold;
+    line-height: 35px;
+    color: #fff;
+}
+
+.dashboardBoxWrapper .dashboardBox .icon-top-right {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: linear-gradient(to bottom right, rgba(0,0,0,0.0), rgba(0,0,0,0.2));
+}
+
+.dashboardBoxWrapper .dashboardBox .icon-top-right svg {
+    font-size: 30px;
+    opacity: 0.6;
+    color: #fff;
+}
+
+.dashboardBoxWrapper .dashboardBox .chart {
+    opacity: 0.1;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}
+
+.dashboardBoxWrapper .dashboardBox .chart svg {
+    font-size: 110px;
+    color: #000;
+}
+
+.dashboardBoxWrapper .dashboardBox .bottomEle {
+    position: relative;
+    top: 10px;
+}
+
+.dashboardBoxWrapper .dashboardBox .toggleIcon {
+    font-size: 22px;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    min-width: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+}
+
+/* DashboardChart.css */
+.dashboardChartBox {
+    height: 360px;
+    background-image: linear-gradient(to right, #0072ff, #00c6ff);
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+}
+
+.dashboardChartBox .icon-container {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.chart-area {
+    height: 80px;
+    margin-top: 10px;
+}
+
+.box {
+    min-height: 360px;
+}

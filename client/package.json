@@ -12,6 +12,7 @@
   "dependencies": {
     "@mui/icons-material": "^7.1.2",
     "@mui/material": "^7.1.2",
+    "@mui/x-charts": "^8.5.3",
     "@toolpad/core": "^0.15.0",
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
