@@ -13,6 +13,7 @@ import PlatformAdminLayout from "./layouts/platform_admin/PlatformAdminLayout.js
 import PlatformAdminDashboard from "./components/platform_admin/PlatformAdminDashboard.jsx";
 import PlatformDesignRequestLayout from "./layouts/platform_design_request/PlatformDesignRequestLayout.jsx";
 import DesignerDetail from "./components/platform_design_request/designers/DesignerDetail.jsx";
+import AccountManagement from "./components/platform_admin/AccountManagement.jsx";
 
 
 const router = createBrowserRouter([
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
             {
                 path: 'dashboard',
                 element: <PlatformAdminDashboard/>
+            },
+            {
+                path: 'accounts',
+                element: <AccountManagement></AccountManagement>
             }
         ]
     },

@@ -4,10 +4,7 @@ import Designers from "../../components/platform_design_request/designers/Design
 function PlatformDesignRequestLayout() {
     return (
         <>
-
             <Designers></Designers>
-
-
         </>
     )
 
