@@ -12,11 +12,10 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import GoogleResponse from "./components/auth/GoogleResponse.jsx";
 import SignIn from "./components/auth/SignIn.jsx";
 import DesignerDetail from "./components/school/DesignerDetail.jsx";
-// import SchoolProfile from "./components/school/SchoolProfile.jsx";
-// import DesignerProfile from "./components/designer/Profile.jsx";
-// import GarmentProfile from "./components/garment/Profile.jsx";
+import SchoolProfile from "./components/school/SchoolProfile.jsx";
+import GarmentProfile from "./components/garment/GarmentProfile.jsx";
 import RequestHistory from "./components/school/RequestHistory.jsx";
-// import DesignerList from "./components/school/DesignerList.jsx";
+import DesignerList from "./components/school/DesignerList.jsx";
 import SchoolOrder from "./components/school/SchoolOrder.jsx";
 import SchoolLayout from "./layouts/school/SchoolLayout.jsx";
 import DesignerDashboard from "./components/designer/DesignerDashboard.jsx";
@@ -25,6 +24,7 @@ import DesignerProfile from "./components/designer/DesignerProfile.jsx";
 import RequestDetail from "./components/school/RequestDetail.jsx";
 // import AdminAccount from "./components/admin/AdminAccount.jsx";
 // import UploadZip from "./components/school/UploadZip.jsx";
+import 'bootstrap/dist/css/bootstrap.min.css'
 
 const router = createBrowserRouter([
     {
@@ -35,22 +35,22 @@ const router = createBrowserRouter([
             </WebAppUILayout>
         )
     },
-    // {
-    //     path: "/school-profile",
-    //     element: (
-    //         <WebAppUILayout title={"Profile"}>
-    //             <SchoolProfile/>
-    //         </WebAppUILayout>
-    //     )
-    // },
-    // {
-    //     path: "/garment-profile",
-    //     element: (
-    //         <WebAppUILayout title={"Profile"}>
-    //             <GarmentProfile/>
-    //         </WebAppUILayout>
-    //     )
-    // },
+    {
+        path: "/school-profile",
+        element: (
+            <WebAppUILayout title={"Profile"}>
+                <SchoolProfile/>
+            </WebAppUILayout>
+        )
+    },
+    {
+        path: "/garment-profile",
+        element: (
+            <WebAppUILayout title={"Profile"}>
+                <GarmentProfile/>
+            </WebAppUILayout>
+        )
+    },
     {
         path: "/school",
         element: (
@@ -103,12 +103,12 @@ const router = createBrowserRouter([
             <GoogleResponse/>
         )
     },
-    // {
-    //     path: "/designer/list",
-    //     element: (
-    //         <DesignerList/>
-    //     )
-    // },
+    {
+        path: "/designer/list",
+        element: (
+            <DesignerList/>
+        )
+    },
     // {
     //     path: "/admin",
     //     element: <AdminLayout/>,
