@@ -246,8 +246,6 @@ function DesignerProfile() {
                     </Box>
                 </Paper>
             </Box>
-
-
         </>
     )
 }
