@@ -1,5 +1,5 @@
 import {Avatar, Box, Button, Divider, Grid, Paper, Stack, styled, TextField, Typography} from "@mui/material";
-import {useState} from "react";
+import {useRef, useState} from "react";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const DropZone = styled(Box)(({ theme }) => ({
@@ -16,11 +16,62 @@ const DropZone = styled(Box)(({ theme }) => ({
     alignItems: 'center',
 }));
 
-
 export default function MyDetails() {
     const [bio, setBio] = useState(
         "I'm a Product Designer based in Melbourne, Australia..."
     );
+    const [avatarUrl, setAvatarUrl] = useState("https://i.pravatar.cc/100");
+    const [isDragOver, setIsDragOver] = useState(false);
+    const fileInputRef = useRef(null);
+
+    // Handle file selection (both click and drag)
+    const handleFileSelect = (file) => {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setAvatarUrl(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select a valid image file (SVG, PNG, JPEG, or GIF)');
+        }
+    };
+
+    // Handle drag over
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+    };
+
+    // Handle drag leave
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+    };
+
+    // Handle drop
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    };
+
+    // Handle click to upload
+    const handleClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    // Handle file input change
+    const handleFileInputChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleFileSelect(file);
+        }
+    };
 
     return (
         <Paper elevation={0} sx={{ borderRadius: 3, p: 3 }}>
@@ -42,25 +93,36 @@ export default function MyDetails() {
 
 
                 {/* Avatar - Upload */}
-                <Stack spacing={2} direction={"row"}>
+                <Stack spacing={2} direction={{ xs: "column", sm: "row" }} alignItems="center">
                     <Avatar
-                        src="https://i.pravatar.cc/100"
-                        sx={{ width: 64, height: 64 }}
+                        src={avatarUrl}
+                        sx={{ width: 64, height: 64, flexShrink: 0 }}
                     />
 
                     {/* DropZone (right side) */}
-                    <DropZone>
+                    <DropZone
+                        isDragOver={isDragOver}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={handleClick}
+                    >
                         <CloudUploadIcon fontSize="large" />
                         <Typography>Click to upload or drag and drop</Typography>
                         <Typography variant="caption" color="primary">
                             SVG, PNG, JPEG OR GIF (max 1080x1200px)
                         </Typography>
                     </DropZone>
+
+                    {/* Hidden file input */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileInputChange}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                    />
                 </Stack>
-
-
-
-
 
                 {/* Role - ZIP Code */}
                 <TextField fullWidth label="Role" value="Designer" aria-readonly={true}/>
@@ -92,3 +154,4 @@ export default function MyDetails() {
         </Paper>
     );
 }
+

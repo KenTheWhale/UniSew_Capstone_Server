@@ -100,6 +100,7 @@ export default function Billing() {
                     flexDirection={{ xs: "column", md: "row" }}
                     gap={3}
                     justifyContent="space-between"
+                    alignItems="stretch"
                 >
                     {/* Contact Email Section */}
                     <Paper
@@ -107,34 +108,35 @@ export default function Billing() {
                         sx={{
                             flex: 1,
                             borderRadius: 3,
-                            overflow: 'hidden',
+                            overflow: "hidden",
+                            display: 'flex',  // Add this
+                            flexDirection: 'column'  // Add this
                         }}
                     >
                         <Box p={2} borderBottom="1px solid #eee">
                             <Typography fontWeight={600}>Contact Email</Typography>
                         </Box>
 
-                        <FormControl sx={{ p: 2 }}>
+                        <FormControl sx={{ p: 2, flex: 1 }}>  {/* Add flex: 1 here */}
                             <RadioGroup defaultValue="account">
-                                <Stack direction="column" >
+                                <Stack spacing={2} sx={{ height: '100%' }}>  {/* Add height: 100% */}
                                     {/* First Option */}
                                     <Box
                                         display="flex"
                                         justifyContent="space-between"
                                         alignItems="center"
-                                        bgcolor="#EEF4FF"
-                                        pt={1.5}    // padding-top: 12px
-                                        pb={1.5}    // padding-bottom: 12px
-
-                                        px={20}      // padding-left & right: 24px
+                                        bgcolor="#f1f6fd"
+                                        p={2}
                                         borderRadius={2}
-                                        width="100%"
-
-                                        mb={2}
+                                        sx={{
+                                            border: "1px solid #e0e0e0",
+                                        }}
                                     >
                                         <Box>
                                             <Typography fontWeight={600}>Send to my email account</Typography>
-                                            <Typography variant="body2">exampleinfo@mail.com</Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                exampleinfo@mail.com
+                                            </Typography>
                                         </Box>
                                         <Radio value="account" />
                                     </Box>
@@ -142,28 +144,28 @@ export default function Billing() {
                                     {/* Second Option */}
                                     <Box
                                         display="flex"
-                                        alignItems="flex-start"
-                                        bgcolor="#EEF4FF"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        bgcolor="#f1f6fd"
                                         p={2}
-                                        pt={1.5}    // padding-top: 12px
-                                        pb={1.5}    // padding-bottom: 12px
-                                        px={20}      // padding-left & right: 24px
                                         borderRadius={2}
-                                        width="100%"
+                                        sx={{
+                                            border: "1px solid #e0e0e0",
+                                            flex: 1  // Add this to make second option take remaining space
+                                        }}
                                     >
-                                        <Box flexGrow={1} pr={2}>
+                                        <Box flex={1} pr={2}>
                                             <Typography fontWeight={600}>Send to an alternative email</Typography>
                                             <TextField
                                                 fullWidth
                                                 size="small"
-                                                placeholder="exampleinfo@mail.com"
+                                                placeholder="exampleinfo@gmail.com"
                                                 sx={{ mt: 1 }}
                                             />
                                         </Box>
-                                        <Radio value="alternative" sx={{ mt: '28px' }} />
+                                        <Radio value="alternative" />
                                     </Box>
                                 </Stack>
-
                             </RadioGroup>
                         </FormControl>
                     </Paper>
