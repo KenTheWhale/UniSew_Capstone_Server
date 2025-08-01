@@ -1,20 +1,11 @@
 package com.unisew.server.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -29,18 +20,39 @@ public class Partner {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String street;
-
-    String ward;
-
-    String district;
-
-    String province;
-
-    @Column(name = "`busy`")
-    boolean isBusy;
-
     @OneToOne
-    @JoinColumn(name = "`profile_id`")
-    Profile profile;
+    @JoinColumn(name = "`customer_id`")
+    Customer customer;
+
+    @Column(name = "`outside_preview`")
+    String outsidePreview;
+
+    @Column(name = "`inside_preview`")
+    String insidePreview;
+
+    @Column(name = "`start_time`")
+    LocalTime startTime;
+
+    @Column(name = "`end_time`")
+    LocalTime endTime;
+
+    Integer rating;
+
+    @Column(name = "`is_busy`")
+    boolean busy;
+
+    @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Packages> packages;
+
+    @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<ThumbnailImage> thumbnailImages;
+
+    @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Quotation> quotations;
 }

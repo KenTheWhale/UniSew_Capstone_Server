@@ -38,8 +38,8 @@ public class Feedback {
 
     String content;
 
-    @Column(name = "`report`")
-    boolean isReport;
+    @Column(name = "`is_report`")
+    boolean report;
 
     @Column(name = "`creation_date`")
     LocalDate creationDate;

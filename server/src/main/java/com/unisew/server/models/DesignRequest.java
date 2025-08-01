@@ -38,39 +38,67 @@ public class DesignRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`creation_date`")
-    LocalDate creationDate;
-
-    @Column(name = "`private`")
-    boolean isPrivate;
-
-    @Enumerated(EnumType.STRING)
-    Status status;
-
     @ManyToOne
     @JoinColumn(name = "`school_id`")
-    Account school;
-
-    @OneToMany(mappedBy = "designRequest")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Cloth> cloths;
+    Customer school;
 
     @OneToOne
     @JoinColumn(name = "`feedback_id`")
     Feedback feedback;
 
+    @ManyToOne
+    @JoinColumn(name = "`template_id`")
+    SchoolDesign template;
+
+    int packageId;
+
+    String name;
+
+    @Column(name = "`creation_date`")
+    LocalDate creationDate;
+
+    @Column(name = "`logo_image`")
+    String logoImage;
+
+    @Column(name = "`is_private`")
+    boolean privacy;
+
+    @Enumerated(EnumType.STRING)
+    Status status;
+
+    @Column(name = "`package_name`")
+    String packageName;
+
+    @Column(name = "`package_header_content`")
+    String headerContent;
+
+    @Column(name = "`package_delivery_date`")
+    LocalDate deliveryDate;
+
+    @Column(name = "`revision_time`")
+    Integer revisionTime;
+
+    @Column(name = "`package_price`")
+    long packagePrice;
+
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<Transaction> transactions;
+    List<RequestReceipt> requestReceipts;
 
-    @ManyToOne
-    @JoinColumn(name = "`package_id`")
-    Packages pkg;
+    @OneToMany(mappedBy = "designRequest")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<DesignDelivery> designDeliveries;
+
+    @OneToMany(mappedBy = "designRequest")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<DesignItem> designItems;
 
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<DesignComment> designComments;
+
 }

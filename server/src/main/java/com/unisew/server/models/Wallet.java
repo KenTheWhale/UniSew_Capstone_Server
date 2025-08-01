@@ -34,6 +34,10 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @OneToOne
+    @JoinColumn(name = "`account_id`")
+    Account account;
+
     long balance;
 
     @Column(name = "`pending_balance`")
@@ -47,12 +51,6 @@ public class Wallet {
 
     @Column(name = "`card_expired_date`")
     String cardExpiredDate;
-
-    int cvv;
-
-    @OneToOne
-    @JoinColumn(name = "`account_id`")
-    Account account;
 
     @OneToMany(mappedBy = "wallet")
     @ToString.Exclude

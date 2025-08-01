@@ -1,6 +1,5 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.ClothSize;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -10,24 +9,20 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`order_detail`")
+@Table(name = "`item_image`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderDetail {
+public class ItemImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "`order_id`")
-    Order order;
+    @JoinColumn(name = "`delivery_item_id`")
+    DeliveryItem deliveryItem;
 
-    @Column(name = "`delivery_item_id`")
-    int deliveryItemId;
+    @Column(name = "`image_url`")
+    String imageUrl;
 
-    @Enumerated(EnumType.STRING)
-    ClothSize size;
-
-    int quantity;
-
+    String name;
 }

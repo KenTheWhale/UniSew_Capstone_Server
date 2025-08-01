@@ -39,6 +39,19 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @ManyToOne
+    @JoinColumn(name = "`school_design_id`")
+    SchoolDesign schoolDesign;
+
+    @OneToOne
+    @JoinColumn(name = "`feedback_id`")
+    Feedback feedback;
+
+    int garmentId;
+
+    @Column(name = "`garment_name`")
+    String garmentName;
+
     LocalDate deadline;
 
     long price;
@@ -54,30 +67,14 @@ public class Order {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @ManyToOne
-    @JoinColumn(name = "`school_id`")
-    Account school;
-
-    @ManyToOne
-    @JoinColumn(name = "`garment_id`")
-    Account garment;
+    @OneToMany(mappedBy = "order")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Quotation> quotations;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<OrderDetail> orderDetails;
 
-    @OneToOne
-    @JoinColumn(name = "`feedback_id`")
-    Feedback feedback;
-
-    @OneToMany(mappedBy = "order")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Transaction> transactions;
-
-    @OneToMany(mappedBy = "order")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Quotation> quotations;
 }

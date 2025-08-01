@@ -1,33 +1,31 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.ClothSize;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`order_detail`")
+@Table(name = "`fabric`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderDetail {
+public class Fabric {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "`order_id`")
-    Order order;
+    String name;
 
-    @Column(name = "`delivery_item_id`")
-    int deliveryItemId;
+    String description;
 
-    @Enumerated(EnumType.STRING)
-    ClothSize size;
-
-    int quantity;
+    @OneToMany(mappedBy = "fabric", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<SchoolDesign> schoolDesigns;
 
 }

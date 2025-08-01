@@ -32,6 +32,6 @@ public class SampleImage {
     String imageUrl;
 
     @ManyToOne
-    @JoinColumn(name = "`cloth_id`")
-    Cloth cloth;
+    @JoinColumn(name = "`design_item_id`")
+    DesignItem designItem;
 }

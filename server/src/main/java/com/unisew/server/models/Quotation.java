@@ -33,11 +33,19 @@ public class Quotation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @ManyToOne
+    @JoinColumn(name = "`order_id`")
+    Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "`garment_id`")
+    Partner garment;
+
     @Column(name = "`early_delivery_date`")
     LocalDate earlyDeliveryDate;
 
-    @Column(name = "`expiration_date`")
-    LocalDate expirationDate;
+    @Column(name = "`acceptance_deadline`")
+    LocalDate acceptanceDeadline;
 
     long price;
 
@@ -46,11 +54,4 @@ public class Quotation {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @ManyToOne
-    @JoinColumn(name = "`order_id`")
-    Order order;
-
-    @ManyToOne
-    @JoinColumn(name = "`garment_id`")
-    Account garment;
 }
