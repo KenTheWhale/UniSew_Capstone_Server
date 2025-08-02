@@ -23,9 +23,6 @@ public class SchoolDesign {
     @JoinColumn(name = "`delivery_id`")
     DesignDelivery designDelivery;
 
-    @ManyToOne
-    @JoinColumn(name = "`fabric_id`")
-    Fabric fabric;
 
     @ManyToOne
     @JoinColumn(name = "`school_id`")

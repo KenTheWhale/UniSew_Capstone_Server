@@ -10,7 +10,7 @@ public class ResponseBuilder {
                 .body(
                         ResponseObject.builder()
                                 .message(message)
-                                .data(data)
+                                .body(data)
                                 .build()
                 );
     }
