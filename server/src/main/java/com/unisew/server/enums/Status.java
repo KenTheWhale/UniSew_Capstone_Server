@@ -7,14 +7,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Status {
 
+    //ACCOUNT
     ACCOUNT_ACTIVE("active"),
-    SERVICE_ACTIVE("active"),
-    PACKAGE_ACTIVE("active"),
-    PACKAGE_UN_ACTIVE("un-active"),
-    DESIGN_REQUEST_CREATED("created"),
-    DESIGN_REQUEST_DRAFT("draft"),
-    DESIGN_REQUEST_PENDING("pending"),
-    DESIGN_REQUEST_APPROVE("approve");
+    ACCOUNT_INACTIVE("inactive");
 
     private final String value;
 }

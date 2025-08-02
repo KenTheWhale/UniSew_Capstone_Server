@@ -1,4 +1,4 @@
-package com.unisew.server.responses;
+package com.unisew.server.requests;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ResponseObject {
-    String message;
-    Object body;
+public class LoginRequest {
+    String email;
+    String name;
+    String avatar;
 }
