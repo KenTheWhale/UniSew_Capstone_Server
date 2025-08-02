@@ -5,12 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class ResponseBuilder {
-    public static ResponseEntity<ResponseObject> build(HttpStatus status, String message, Object data) {
+    public static ResponseEntity<ResponseObject> build(HttpStatus status, String message, Object body) {
         return ResponseEntity.status(status)
                 .body(
                         ResponseObject.builder()
                                 .message(message)
-                                .body(data)
+                                .body(body)
                                 .build()
                 );
     }
