@@ -23,7 +23,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +45,7 @@ public class DesignServiceImpl implements DesignService {
         String errorMessage = CreateDesignValidation.validate(createDesignRequest);
 
         if (!errorMessage.isEmpty()) {
-            ResponseBuilder.build(HttpStatus.BAD_REQUEST,errorMessage, null);
+            ResponseBuilder.build(HttpStatus.BAD_REQUEST, errorMessage, null);
         }
 
         DesignRequest designRequest = DesignRequest.builder()
@@ -55,7 +57,7 @@ public class DesignServiceImpl implements DesignService {
                 .build();
 
         designRequestRepo.save(designRequest);
-        for (CreateDesignRequest.Item item : createDesignRequest.getDesignItem()){
+        for (CreateDesignRequest.Item item : createDesignRequest.getDesignItem()) {
 
             Fabric fabric = fabricRepo.findById(item.getFabricId()).orElse(null);
 
@@ -64,22 +66,81 @@ public class DesignServiceImpl implements DesignService {
                     DesignItem.builder()
                             .fabric(fabric)
                             .designRequest(designRequest)
-                            .category(DesignItemCategory.valueOf(item.getCategory().toUpperCase()))
+                            .category(DesignItemCategory.valueOf(item.getItemCategory().toUpperCase()))
                             .color(item.getColor())
                             .gender(Gender.valueOf(item.getGender().toUpperCase()))
                             .logoPosition(item.getLogoPosition())
                             .note(item.getNote())
-                            .type(DesignItemType.valueOf(item.getClothType().toUpperCase()))
+                            .type(DesignItemType.valueOf(item.getItemType().toUpperCase()))
                             .build());
 
-            if (item.getDesignType().equalsIgnoreCase("UPLOAD")){
+            if (item.getDesignType().equalsIgnoreCase("UPLOAD")) {
                 createSampleImageByItem(newDesignItem, item.getUploadImage());
             }
 
         }
 
 
-        return ResponseBuilder.build(HttpStatus.CREATED,"create design request successfully",null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "create design request successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewListDesignRequests() {
+
+        List<DesignRequest> designRequests = designRequestRepo.findAll();
+
+        return getResponseObjectResponseEntity(designRequests);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(int customerId) {
+
+        List<DesignRequest> designRequests = designRequestRepo.findAllBySchool_Id(customerId);
+
+        return getResponseObjectResponseEntity(designRequests);
+    }
+
+    private ResponseEntity<ResponseObject> getResponseObjectResponseEntity(List<DesignRequest> designRequests) {
+        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
+                designRequest -> {
+                    Map<String, Object> designRequestMap = new HashMap<>();
+                    designRequestMap.put("id", designRequest.getId());
+                    designRequestMap.put("name", designRequest.getName());
+                    designRequestMap.put("creationDate", designRequest.getCreationDate());
+                    designRequestMap.put("numberOfItem", designRequest.getDesignItems().size());
+
+                    List<DesignItem> designItems = designRequest.getDesignItems();
+
+                    List<Map<String,Object>> itemMaps = designItems.stream()
+                            .map(
+                                    designItem -> {
+                                        Map<String, Object> itemMap = new HashMap<>();
+                                        itemMap.put("id", designItem.getId());
+                                        itemMap.put("itemType", designItem.getType());
+                                        itemMap.put("itemCategory", designItem.getCategory());
+                                        itemMap.put("gender", designItem.getGender());
+
+                                        Map<String, Object> fabricMap = new HashMap<>();
+                                        fabricMap.put("fabricId", designItem.getFabric().getId());
+                                        fabricMap.put("fabricName", designItem.getFabric().getName());
+                                        fabricMap.put("fabricCategory", designItem.getFabric().getDesignItemCategory().toString());
+                                        fabricMap.put("fabricType", designItem.getFabric().getDesignItemType().toString());
+
+
+                                        itemMap.put("fabric", fabricMap);
+                                        itemMap.put("color", designItem.getColor());
+                                        itemMap.put("logoPosition", designItem.getLogoPosition());
+                                        itemMap.put("note", designItem.getNote());
+                                        return itemMap;
+                                    }
+                            ).toList();
+                    designRequestMap.put("listItemDesign", itemMaps);
+
+                    return designRequestMap;
+                }
+        ).toList();
+
+        return ResponseBuilder.build(HttpStatus.OK,"list design requests successfully",designRequestMaps);
     }
 
     //-----------------------------------FABRIC---------------------------------------//
@@ -120,11 +181,11 @@ public class DesignServiceImpl implements DesignService {
 
         }
 
-        return ResponseBuilder.build(HttpStatus.OK,"list fabrics", response);
+        return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
     }
 
 
-    private Map<String, Object> mapFabric(Fabric fabric){
+    private Map<String, Object> mapFabric(Fabric fabric) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", fabric.getId());
         map.put("name", fabric.getName());

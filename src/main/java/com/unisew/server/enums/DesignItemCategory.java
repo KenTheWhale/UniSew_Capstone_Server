@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum DesignItemCategory {
 
     REGULAR("regular"),
-    PHYSICAL("pe"),;
+    PHYSICAL("pe"),
+    ;
 
     private final String value;
 }

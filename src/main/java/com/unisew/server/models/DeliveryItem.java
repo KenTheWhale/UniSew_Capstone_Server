@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,8 +30,10 @@ public class DeliveryItem {
     @Column(name = "`base_logo_width`")
     double baseLogoWidth;
 
-    @OneToMany(mappedBy = "deliveryItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<ItemImage> itemImages;
+    @Column(name = "`front_image_url`")
+    String frontImageUrl;
+
+    @Column(name = "`back_image_url`")
+    String backImageUrl;
+
 }

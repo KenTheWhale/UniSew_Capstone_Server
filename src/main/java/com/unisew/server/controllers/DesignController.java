@@ -1,6 +1,5 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.models.DesignRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
@@ -26,10 +25,21 @@ public class DesignController {
         return designService.createDesignRequest(request);
     }
 
+    @GetMapping("/list-request")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListDesignRequest() {
+        return designService.viewListDesignRequests();
+    }
+
+    @GetMapping("/list-request/{customerId}")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(@PathVariable int customerId) {
+        return designService.getListDesignRequestByCustomerId(customerId);
+    }
 
     //-------------------FABRICS----------------------------//
     @GetMapping("/fabrics")
-    @PreAuthorize("hasRole('SCHOOL')")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListFabrics() {
         return designService.getAllFabric();
     }
