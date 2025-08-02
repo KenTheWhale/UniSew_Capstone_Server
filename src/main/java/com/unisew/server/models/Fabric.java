@@ -31,7 +31,7 @@ public class Fabric {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "`cloth_category`")
-    DesignItemCategory itemCategory;
+    DesignItemCategory designItemCategory;
 
     @OneToMany(mappedBy = "fabric", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude

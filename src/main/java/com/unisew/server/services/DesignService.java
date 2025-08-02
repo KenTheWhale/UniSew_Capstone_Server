@@ -8,6 +8,12 @@ import org.springframework.http.ResponseEntity;
 public interface DesignService {
     //--------------------------------DESIGN_REQUEST-----------------------------------------//
     ResponseEntity<ResponseObject> createDesignRequest(CreateDesignRequest createDesignRequest);
+
+    ResponseEntity<ResponseObject> viewListDesignRequests();
+
+    ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(int customerId);
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
+
 }
