@@ -26,6 +26,6 @@ public class Fabric {
     @OneToMany(mappedBy = "fabric", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<SchoolDesign> schoolDesigns;
+    List<DesignRequest> designRequests;
 
 }
