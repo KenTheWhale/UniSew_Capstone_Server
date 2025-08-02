@@ -1,5 +1,7 @@
 package com.unisew.server;
 
+import com.unisew.server.enums.ClothCategory;
+import com.unisew.server.enums.ClothType;
 import com.unisew.server.models.Fabric;
 import com.unisew.server.models.FeedbackImage;
 import com.unisew.server.models.SchoolDesign;
@@ -9,6 +11,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 @SpringBootApplication
 @RequiredArgsConstructor
@@ -64,6 +68,8 @@ public class ServerApplication {
 
     private final WalletRepo walletRepo;
 
+    private ClothType clothType;
+
 
 
     public static void main(String[] args) {
@@ -106,8 +112,109 @@ public class ServerApplication {
 
                 }
                 //----------------------FABRIC--------------------//
-                if(fabricRepo.count() == 0) {
+                if (fabricRepo.count() == 0) {
 
+                    List<Fabric> fabrics = List.of(
+                            // Regular School Uniform
+                            Fabric.builder().name("Cotton fabric")
+                                    .description("Soft, breathable cotton for school shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+                            Fabric.builder().name("Oxford fabric")
+                                    .description("Durable and slightly textured oxford for shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+                            Fabric.builder().name("Poplin fabric")
+                                    .description("Smooth and lightweight poplin for shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+                            Fabric.builder().name("Poly-cotton blend")
+                                    .description("Blend of polyester and cotton for shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+
+                            Fabric.builder().name("Gabardine")
+                                    .description("Tightly woven, durable fabric for trousers")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+                            Fabric.builder().name("Twill fabric")
+                                    .description("Diagonal weave twill for school pants")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+                            Fabric.builder().name("Lightweight khaki fabric")
+                                    .description("Light and breathable khaki for pants")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+
+                            Fabric.builder().name("Wool blend")
+                                    .description("Soft and warm wool blend for skirts")
+                                    .clothType(ClothType.SKIRT)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+                            Fabric.builder().name("Soft twill")
+                                    .description("Soft and flexible twill fabric for skirts")
+                                    .clothType(ClothType.SKIRT)
+                                    .clothCategory(ClothCategory.REGULAR)
+                                    .build(),
+
+                            // Sports / PE Uniform
+                            Fabric.builder().name("Stretch cotton")
+                                    .description("Elastic and comfortable cotton for PE T-shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+                            Fabric.builder().name("Breathable polyester")
+                                    .description("Quick-dry and breathable polyester for PE shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+                            Fabric.builder().name("Poly-spandex blend")
+                                    .description("Flexible poly-spandex blend for PE shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+                            Fabric.builder().name("Sports mesh fabric")
+                                    .description("Breathable mesh fabric for PE T-shirts")
+                                    .clothType(ClothType.SHIRT)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+
+                            Fabric.builder().name("Poly-cotton jersey")
+                                    .description("Soft jersey for sports shorts and sweatpants")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+                            Fabric.builder().name("French terry")
+                                    .description("Comfortable French terry for sweatpants")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+                            Fabric.builder().name("Stretch athletic fabric")
+                                    .description("Flexible fabric for sports pants and shorts")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+
+                            Fabric.builder().name("Poly-spandex blend")
+                                    .description("Stretch fabric for sports pants")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build(),
+                            Fabric.builder().name("Breathable athletic fabric")
+                                    .description("Light and breathable fabric for PE pants")
+                                    .clothType(ClothType.PANTS)
+                                    .clothCategory(ClothCategory.PHYSICAL)
+                                    .build()
+                    );
+
+                    fabricRepo.saveAll(fabrics);
                 }
                 //----------------------FEEDBACK--------------------//
                 if(feedbackRepo.count() == 0) {
