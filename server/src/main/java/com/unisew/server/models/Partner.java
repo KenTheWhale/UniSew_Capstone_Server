@@ -41,12 +41,12 @@ public class Partner {
     @Column(name = "`is_busy`")
     boolean busy;
 
-    @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "designer", fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<Packages> packages;
 
-    @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "partner", fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<ThumbnailImage> thumbnailImages;

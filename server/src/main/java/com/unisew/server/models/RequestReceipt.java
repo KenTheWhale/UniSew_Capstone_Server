@@ -26,7 +26,7 @@ public class RequestReceipt {
 
     @ManyToOne
     @JoinColumn(name = "`package_id`")
-    Packages packages;
+    Packages pkg;
 
     @Column(name = "`acceptance_deadline`")
     LocalDate acceptanceDeadline;
