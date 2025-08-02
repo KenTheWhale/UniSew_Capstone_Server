@@ -64,12 +64,12 @@ public class DesignServiceImpl implements DesignService {
                     DesignItem.builder()
                             .fabric(fabric)
                             .designRequest(designRequest)
-                            .category(DesignItemCategory.valueOf(item.getCategory().toUpperCase()))
+                            .category(DesignItemCategory.valueOf(item.getItemCategory().toUpperCase()))
                             .color(item.getColor())
                             .gender(Gender.valueOf(item.getGender().toUpperCase()))
                             .logoPosition(item.getLogoPosition())
                             .note(item.getNote())
-                            .type(DesignItemType.valueOf(item.getClothType().toUpperCase()))
+                            .type(DesignItemType.valueOf(item.getItemType().toUpperCase()))
                             .build());
 
             if (item.getDesignType().equalsIgnoreCase("UPLOAD")){

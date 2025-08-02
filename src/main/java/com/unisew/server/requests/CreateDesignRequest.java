@@ -23,8 +23,8 @@ public class CreateDesignRequest {
     public static class Item {
         String designType;
         String gender;
-        String clothType;
-        String category;
+        String itemType;
+        String itemCategory;
         Integer fabricId;
         String logoPosition;
         String color;
