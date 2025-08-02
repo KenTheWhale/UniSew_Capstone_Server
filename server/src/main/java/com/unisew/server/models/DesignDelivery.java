@@ -46,7 +46,7 @@ public class DesignDelivery {
 
     String note;
 
-    @OneToOne(mappedBy = "schoolDesign", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "designDelivery", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     SchoolDesign schoolDesign;
