@@ -23,7 +23,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +45,7 @@ public class DesignServiceImpl implements DesignService {
         String errorMessage = CreateDesignValidation.validate(createDesignRequest);
 
         if (!errorMessage.isEmpty()) {
-            ResponseBuilder.build(HttpStatus.BAD_REQUEST,errorMessage, null);
+            ResponseBuilder.build(HttpStatus.BAD_REQUEST, errorMessage, null);
         }
 
         DesignRequest designRequest = DesignRequest.builder()
@@ -55,7 +57,7 @@ public class DesignServiceImpl implements DesignService {
                 .build();
 
         designRequestRepo.save(designRequest);
-        for (CreateDesignRequest.Item item : createDesignRequest.getDesignItem()){
+        for (CreateDesignRequest.Item item : createDesignRequest.getDesignItem()) {
 
             Fabric fabric = fabricRepo.findById(item.getFabricId()).orElse(null);
 
@@ -72,14 +74,14 @@ public class DesignServiceImpl implements DesignService {
                             .type(DesignItemType.valueOf(item.getClothType().toUpperCase()))
                             .build());
 
-            if (item.getDesignType().equalsIgnoreCase("UPLOAD")){
+            if (item.getDesignType().equalsIgnoreCase("UPLOAD")) {
                 createSampleImageByItem(newDesignItem, item.getUploadImage());
             }
 
         }
 
 
-        return ResponseBuilder.build(HttpStatus.CREATED,"create design request successfully",null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "create design request successfully", null);
     }
 
     //-----------------------------------FABRIC---------------------------------------//
@@ -120,11 +122,11 @@ public class DesignServiceImpl implements DesignService {
 
         }
 
-        return ResponseBuilder.build(HttpStatus.OK,"list fabrics", response);
+        return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
     }
 
 
-    private Map<String, Object> mapFabric(Fabric fabric){
+    private Map<String, Object> mapFabric(Fabric fabric) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", fabric.getId());
         map.put("name", fabric.getName());

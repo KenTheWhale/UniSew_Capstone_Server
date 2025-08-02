@@ -1,6 +1,5 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.models.DesignRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
