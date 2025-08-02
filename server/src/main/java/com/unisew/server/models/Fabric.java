@@ -1,5 +1,7 @@
 package com.unisew.server.models;
 
+import com.unisew.server.enums.ClothCategory;
+import com.unisew.server.enums.ClothType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,9 +25,17 @@ public class Fabric {
 
     String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "`cloth_type`")
+    ClothType clothType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "`cloth_category`")
+    ClothCategory clothCategory;
+
     @OneToMany(mappedBy = "fabric", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<SchoolDesign> schoolDesigns;
+    List<DesignRequest> designRequests;
 
 }
