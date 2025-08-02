@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum Gender{
+public enum Gender {
 
     BOY("boy"),
     GIRL("girl");
