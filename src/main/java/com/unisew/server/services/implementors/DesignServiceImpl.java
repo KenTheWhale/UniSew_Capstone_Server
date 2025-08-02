@@ -66,12 +66,12 @@ public class DesignServiceImpl implements DesignService {
                     DesignItem.builder()
                             .fabric(fabric)
                             .designRequest(designRequest)
-                            .category(DesignItemCategory.valueOf(item.getCategory().toUpperCase()))
+                            .category(DesignItemCategory.valueOf(item.getItemCategory().toUpperCase()))
                             .color(item.getColor())
                             .gender(Gender.valueOf(item.getGender().toUpperCase()))
                             .logoPosition(item.getLogoPosition())
                             .note(item.getNote())
-                            .type(DesignItemType.valueOf(item.getClothType().toUpperCase()))
+                            .type(DesignItemType.valueOf(item.getItemType().toUpperCase()))
                             .build());
 
             if (item.getDesignType().equalsIgnoreCase("UPLOAD")) {
@@ -84,6 +84,65 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "create design request successfully", null);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> viewListDesignRequests() {
+
+        List<DesignRequest> designRequests = designRequestRepo.findAll();
+
+        return getResponseObjectResponseEntity(designRequests);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(int customerId) {
+
+        List<DesignRequest> designRequests = designRequestRepo.findAllBySchool_Id(customerId);
+
+        return getResponseObjectResponseEntity(designRequests);
+    }
+
+    private ResponseEntity<ResponseObject> getResponseObjectResponseEntity(List<DesignRequest> designRequests) {
+        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
+                designRequest -> {
+                    Map<String, Object> designRequestMap = new HashMap<>();
+                    designRequestMap.put("id", designRequest.getId());
+                    designRequestMap.put("name", designRequest.getName());
+                    designRequestMap.put("creationDate", designRequest.getCreationDate());
+                    designRequestMap.put("numberOfItem", designRequest.getDesignItems().size());
+
+                    List<DesignItem> designItems = designRequest.getDesignItems();
+
+                    List<Map<String,Object>> itemMaps = designItems.stream()
+                            .map(
+                                    designItem -> {
+                                        Map<String, Object> itemMap = new HashMap<>();
+                                        itemMap.put("id", designItem.getId());
+                                        itemMap.put("itemType", designItem.getType());
+                                        itemMap.put("itemCategory", designItem.getCategory());
+                                        itemMap.put("gender", designItem.getGender());
+
+                                        Map<String, Object> fabricMap = new HashMap<>();
+                                        fabricMap.put("fabricId", designItem.getFabric().getId());
+                                        fabricMap.put("fabricName", designItem.getFabric().getName());
+                                        fabricMap.put("fabricCategory", designItem.getFabric().getDesignItemCategory().toString());
+                                        fabricMap.put("fabricType", designItem.getFabric().getDesignItemType().toString());
+
+
+                                        itemMap.put("fabric", fabricMap);
+                                        itemMap.put("color", designItem.getColor());
+                                        itemMap.put("logoPosition", designItem.getLogoPosition());
+                                        itemMap.put("note", designItem.getNote());
+                                        return itemMap;
+                                    }
+                            ).toList();
+                    designRequestMap.put("listItemDesign", itemMaps);
+
+                    return designRequestMap;
+                }
+        ).toList();
+
+        return ResponseBuilder.build(HttpStatus.OK,"list design requests successfully",designRequestMaps);
+    }
+
     //-----------------------------------FABRIC---------------------------------------//
     @Override
     public ResponseEntity<ResponseObject> getAllFabric() {
@@ -94,7 +153,7 @@ public class DesignServiceImpl implements DesignService {
 
         for (DesignItemCategory category : DesignItemCategory.values()) {
             List<Fabric> categoryFabric = fabrics.stream()
-                    .filter(fabric -> fabric.getItemCategory().equals(category))
+                    .filter(fabric -> fabric.getDesignItemCategory().equals(category))
                     .toList();
 
             Map<String, Object> categoryMap = new HashMap<>();

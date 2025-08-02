@@ -33,7 +33,7 @@ public class DesignRequest {
     @JoinColumn(name = "`template_id`")
     SchoolDesign template;
 
-    int packageId;
+    Integer packageId;
 
     String name;
 
