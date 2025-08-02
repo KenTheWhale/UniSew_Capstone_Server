@@ -1,7 +1,12 @@
 package com.unisew.server.models;
 
+import com.unisew.server.enums.ClothCategory;
+import com.unisew.server.enums.ClothType;
+import com.unisew.server.enums.Gender;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,7 +23,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -26,33 +30,37 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`design_draft`")
+@Table(name = "`design_item`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DesignDraft {
+public class DesignItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String description;
-
-    @Column(name = "`design_date`")
-    LocalDate designDate;
-
-    @Column(name = "`final`")
-    boolean isFinal;
-
     @ManyToOne
-    @JoinColumn(name = "`cloth_id`")
-    Cloth cloth;
+    @JoinColumn(name = "`request_id`")
+    DesignRequest designRequest;
 
-    @OneToMany(mappedBy = "designDraft")
+    @Enumerated(EnumType.STRING)
+    ClothType type;
+
+    @Enumerated(EnumType.STRING)
+    ClothCategory category;
+
+    @Column(name = "`logo_position`")
+    String logoPosition;
+
+    String color;
+
+    String note;
+
+    @Enumerated(EnumType.STRING)
+    Gender gender;
+
+    @OneToMany(mappedBy = "designItem")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<DraftImage> draftImages;
+    List<SampleImage> sampleImages;
 
-    @OneToMany(mappedBy = "designDraft")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<RevisionRequest> revisionRequests;
 }

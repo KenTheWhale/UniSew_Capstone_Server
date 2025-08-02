@@ -13,7 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -54,38 +53,11 @@ public class Account {
     @OneToOne(mappedBy = "account", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    Profile profile;
+    Customer customer;
 
     @OneToOne(mappedBy = "account", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Wallet wallet;
-
-    @OneToMany(mappedBy = "school", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<DesignRequest> schoolDesignRequests;
-
-    @OneToMany(mappedBy = "school")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Order> schoolOrders;
-
-    @OneToMany(mappedBy = "garment")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Order> garmentOrders;
-
-    @OneToMany(mappedBy = "sender")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Transaction> senderTransactions;
-
-    @OneToMany(mappedBy = "receiver")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Transaction> receiverTransactions;
-
-
 
 }

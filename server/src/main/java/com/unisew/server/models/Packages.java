@@ -36,6 +36,10 @@ public class Packages {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
+    @ManyToOne
+    @JoinColumn(name = "`designer_id`")
+    Partner designer;
+
     String name;
 
     @Column(name = "`headerContent`")
@@ -52,10 +56,6 @@ public class Packages {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @ManyToOne
-    @JoinColumn(name = "`designer_id`")
-    Designer designer;
-
     @OneToMany(mappedBy = "pkg")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -64,5 +64,5 @@ public class Packages {
     @OneToMany(mappedBy = "pkg")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<DesignRequest> designRequests;
+    List<RequestReceipt> requestReceipts;
 }
