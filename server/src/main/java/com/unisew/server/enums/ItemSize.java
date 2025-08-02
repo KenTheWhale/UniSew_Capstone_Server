@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ClothSize {
+public enum ItemSize {
 
     MALE_SHIRT_S("shirt", "S", "male", 0, 0, 0, 0),
     MALE_SHIRT_M("shirt", "M", "male", 0, 0, 0, 0),

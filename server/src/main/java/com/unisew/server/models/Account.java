@@ -60,4 +60,6 @@ public class Account {
     @EqualsAndHashCode.Exclude
     Wallet wallet;
 
+    @Column(name = "`google_refresh`")
+    String googleRefresh;
 }
