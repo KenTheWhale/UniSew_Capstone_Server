@@ -101,8 +101,5 @@ public class DesignRequest {
     @EqualsAndHashCode.Exclude
     List<DesignComment> designComments;
 
-    @ManyToOne
-    @JoinColumn(name = "`fabric_id`")
-    Fabric fabric;
 
 }

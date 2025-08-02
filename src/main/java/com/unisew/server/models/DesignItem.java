@@ -1,7 +1,7 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.ClothCategory;
-import com.unisew.server.enums.ClothType;
+import com.unisew.server.enums.DesignItemCategory;
+import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,10 +43,10 @@ public class DesignItem {
     DesignRequest designRequest;
 
     @Enumerated(EnumType.STRING)
-    ClothType type;
+    DesignItemType type;
 
     @Enumerated(EnumType.STRING)
-    ClothCategory category;
+    DesignItemCategory category;
 
     @Column(name = "`logo_position`")
     String logoPosition;
@@ -63,4 +63,7 @@ public class DesignItem {
     @EqualsAndHashCode.Exclude
     List<SampleImage> sampleImages;
 
+    @ManyToOne
+    @JoinColumn(name = "`fabric_id`")
+    Fabric fabric;
 }

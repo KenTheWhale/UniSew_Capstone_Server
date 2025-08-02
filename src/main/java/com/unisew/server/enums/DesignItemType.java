@@ -5,10 +5,11 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ClothCategory {
+public enum DesignItemType {
 
-    REGULAR("regular"),
-    PHYSICAL("pe"),;
+    PANTS("pants"),
+    SHIRT("shirt"),
+    SKIRT("skirt");
 
     private final String value;
 }

@@ -14,7 +14,6 @@ import java.util.List;
 public class CreateDesignRequest {
     String designName;
     String logoImage;
-    Integer schoolId;
     List<Item> designItem;
 
     @Data
@@ -22,8 +21,9 @@ public class CreateDesignRequest {
     @NoArgsConstructor
     @Builder
     public static class Item {
+        String designType;
         String gender;
-        String type;
+        String clothType;
         String category;
         Integer fabricId;
         String logoPosition;
