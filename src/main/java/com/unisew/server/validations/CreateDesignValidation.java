@@ -1,6 +1,6 @@
 package com.unisew.server.validations;
 
-import com.unisew.server.enums.ItemType;
+import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
 import com.unisew.server.requests.CreateDesignRequest;
 
@@ -11,9 +11,9 @@ public class CreateDesignValidation {
     public static String validate(CreateDesignRequest createDesignRequest) {
 
         Set<String> validTypes = Set.of(
-                ItemType.SHIRT.getValue(),
-                ItemType.PANTS.getValue(),
-                ItemType.SKIRT.getValue()
+                DesignItemType.SHIRT.getValue(),
+                DesignItemType.PANTS.getValue(),
+                DesignItemType.SKIRT.getValue()
         );
 
         Set<String> validDesignTypes = Set.of("upload", "new", "template");
@@ -48,7 +48,7 @@ public class CreateDesignValidation {
                 return "Gender must be 'boy' or 'girl'";
             }
 
-            if (!item.getClothType().equalsIgnoreCase(ItemType.PANTS.getValue())) {
+            if (!item.getClothType().equalsIgnoreCase(DesignItemType.PANTS.getValue())) {
                 return "ClothType must be 'pants' or 'pants'";
             }
 

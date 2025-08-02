@@ -1,7 +1,7 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.ItemCategory;
-import com.unisew.server.enums.ItemType;
+import com.unisew.server.enums.DesignItemCategory;
+import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,10 +43,10 @@ public class DesignItem {
     DesignRequest designRequest;
 
     @Enumerated(EnumType.STRING)
-    ItemType type;
+    DesignItemType type;
 
     @Enumerated(EnumType.STRING)
-    ItemCategory category;
+    DesignItemCategory category;
 
     @Column(name = "`logo_position`")
     String logoPosition;

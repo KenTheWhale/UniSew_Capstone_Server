@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ItemCategory {
+public enum DesignItemCategory {
 
     REGULAR("regular"),
     PHYSICAL("pe"),;

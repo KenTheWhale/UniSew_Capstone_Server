@@ -1,7 +1,7 @@
 package com.unisew.server.services.implementors;
 
-import com.unisew.server.enums.ItemCategory;
-import com.unisew.server.enums.ItemType;
+import com.unisew.server.enums.DesignItemCategory;
+import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.DesignItem;
@@ -64,12 +64,12 @@ public class DesignServiceImpl implements DesignService {
                     DesignItem.builder()
                             .fabric(fabric)
                             .designRequest(designRequest)
-                            .category(ItemCategory.valueOf(item.getCategory().toUpperCase()))
+                            .category(DesignItemCategory.valueOf(item.getCategory().toUpperCase()))
                             .color(item.getColor())
                             .gender(Gender.valueOf(item.getGender().toUpperCase()))
                             .logoPosition(item.getLogoPosition())
                             .note(item.getNote())
-                            .type(ItemType.valueOf(item.getClothType().toUpperCase()))
+                            .type(DesignItemType.valueOf(item.getClothType().toUpperCase()))
                             .build());
 
             if (item.getDesignType().equalsIgnoreCase("UPLOAD")){
@@ -90,7 +90,7 @@ public class DesignServiceImpl implements DesignService {
 
         Map<String, Object> response = new HashMap<>();
 
-        for (ItemCategory category : ItemCategory.values()) {
+        for (DesignItemCategory category : DesignItemCategory.values()) {
             List<Fabric> categoryFabric = fabrics.stream()
                     .filter(fabric -> fabric.getItemCategory().equals(category))
                     .toList();
@@ -98,17 +98,17 @@ public class DesignServiceImpl implements DesignService {
             Map<String, Object> categoryMap = new HashMap<>();
 
             List<Map<String, Object>> shirts = categoryFabric.stream()
-                    .filter(f -> f.getItemType().equals(ItemType.SHIRT))
+                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SHIRT))
                     .map(this::mapFabric)
                     .toList();
 
             List<Map<String, Object>> pants = categoryFabric.stream()
-                    .filter(f -> f.getItemType().equals(ItemType.PANTS))
+                    .filter(f -> f.getDesignItemType().equals(DesignItemType.PANTS))
                     .map(this::mapFabric)
                     .toList();
 
             List<Map<String, Object>> skirts = categoryFabric.stream()
-                    .filter(f -> f.getItemType().equals(ItemType.SKIRT))
+                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SKIRT))
                     .map(this::mapFabric)
                     .toList();
 

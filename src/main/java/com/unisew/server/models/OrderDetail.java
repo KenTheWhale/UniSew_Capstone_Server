@@ -1,6 +1,6 @@
 package com.unisew.server.models;
 
-import com.unisew.server.enums.ItemSize;
+import com.unisew.server.enums.DesignItemSize;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -26,7 +26,7 @@ public class OrderDetail {
     int deliveryItemId;
 
     @Enumerated(EnumType.STRING)
-    ItemSize size;
+    DesignItemSize size;
 
     int quantity;
 

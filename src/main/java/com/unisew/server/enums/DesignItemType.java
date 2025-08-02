@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ItemType {
+public enum DesignItemType {
 
     PANTS("pants"),
     SHIRT("shirt"),
