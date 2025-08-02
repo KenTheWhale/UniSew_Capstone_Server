@@ -117,98 +117,98 @@ public class ServerApplication {
                             Fabric.builder().name("Cotton fabric")
                                     .description("Soft, breathable cotton for school shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
                             Fabric.builder().name("Oxford fabric")
                                     .description("Durable and slightly textured oxford for shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
                             Fabric.builder().name("Poplin fabric")
                                     .description("Smooth and lightweight poplin for shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
                             Fabric.builder().name("Poly-cotton blend")
                                     .description("Blend of polyester and cotton for shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
 
                             Fabric.builder().name("Gabardine")
                                     .description("Tightly woven, durable fabric for trousers")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
                             Fabric.builder().name("Twill fabric")
                                     .description("Diagonal weave twill for school pants")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
                             Fabric.builder().name("Lightweight khaki fabric")
                                     .description("Light and breathable khaki for pants")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
 
                             Fabric.builder().name("Wool blend")
                                     .description("Soft and warm wool blend for skirts")
                                     .designItemType(DesignItemType.SKIRT)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
                             Fabric.builder().name("Soft twill")
                                     .description("Soft and flexible twill fabric for skirts")
                                     .designItemType(DesignItemType.SKIRT)
-                                    .itemCategory(DesignItemCategory.REGULAR)
+                                    .designItemCategory(DesignItemCategory.REGULAR)
                                     .build(),
 
                             // Sports / PE Uniform
                             Fabric.builder().name("Stretch cotton")
                                     .description("Elastic and comfortable cotton for PE T-shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
                             Fabric.builder().name("Breathable polyester")
                                     .description("Quick-dry and breathable polyester for PE shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
                             Fabric.builder().name("Poly-spandex blend")
                                     .description("Flexible poly-spandex blend for PE shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
                             Fabric.builder().name("Sports mesh fabric")
                                     .description("Breathable mesh fabric for PE T-shirts")
                                     .designItemType(DesignItemType.SHIRT)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
 
                             Fabric.builder().name("Poly-cotton jersey")
                                     .description("Soft jersey for sports shorts and sweatpants")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
                             Fabric.builder().name("French terry")
                                     .description("Comfortable French terry for sweatpants")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
                             Fabric.builder().name("Stretch athletic fabric")
                                     .description("Flexible fabric for sports pants and shorts")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
 
                             Fabric.builder().name("Poly-spandex blend")
                                     .description("Stretch fabric for sports pants")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build(),
                             Fabric.builder().name("Breathable athletic fabric")
                                     .description("Light and breathable fabric for PE pants")
                                     .designItemType(DesignItemType.PANTS)
-                                    .itemCategory(DesignItemCategory.PHYSICAL)
+                                    .designItemCategory(DesignItemCategory.PHYSICAL)
                                     .build()
                     );
 

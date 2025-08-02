@@ -92,7 +92,7 @@ public class DesignServiceImpl implements DesignService {
 
         for (DesignItemCategory category : DesignItemCategory.values()) {
             List<Fabric> categoryFabric = fabrics.stream()
-                    .filter(fabric -> fabric.getItemCategory().equals(category))
+                    .filter(fabric -> fabric.getDesignItemCategory().equals(category))
                     .toList();
 
             Map<String, Object> categoryMap = new HashMap<>();
