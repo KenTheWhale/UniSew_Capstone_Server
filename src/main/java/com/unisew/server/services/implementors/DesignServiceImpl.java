@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -35,6 +36,7 @@ public class DesignServiceImpl implements DesignService {
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> createDesignRequest(CreateDesignRequest createDesignRequest) {
 
         String errorMessage = CreateDesignValidation.validate(createDesignRequest);
@@ -76,7 +78,7 @@ public class DesignServiceImpl implements DesignService {
         }
 
 
-        return ResponseBuilder.build(HttpStatus.CREATED, "create design request successfully", null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "Create successfully", null);
     }
 
     @Override

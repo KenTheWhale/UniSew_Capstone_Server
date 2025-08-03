@@ -4,6 +4,7 @@ import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/design")
+@Tag(name = "Design")
 public class DesignController {
 
     private final DesignService designService;
