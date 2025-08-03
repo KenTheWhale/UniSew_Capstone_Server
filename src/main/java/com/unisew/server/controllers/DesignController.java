@@ -1,5 +1,6 @@
 package com.unisew.server.controllers;
 
+import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
@@ -37,6 +38,24 @@ public class DesignController {
         return designService.getListDesignRequestByCustomerId(customerId);
     }
 
+    @PostMapping("/packages/{packageId}/{designRequestId}")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> pickPackageRequest(@PathVariable int packageId, @PathVariable int designRequestId) {
+        return designService.pickPackage(packageId, designRequestId);
+    }
+
+    //------------------RECEIPT---------------------------//
+    @GetMapping("/list/receipt/{designRequestId}")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getListReceipt(@PathVariable int designRequestId) {
+        return designService.getListReceipt(designRequestId);
+    }
+
+    @PostMapping("/receipt/package/")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> addPackageToReceipt(@RequestBody AddPackageToReceiptRequest request) {
+        return designService.addPackageToReceipt(request);
+    }
     //-------------------FABRICS----------------------------//
     @GetMapping("/fabrics")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
