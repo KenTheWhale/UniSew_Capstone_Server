@@ -4,14 +4,9 @@ import com.unisew.server.enums.DesignItemCategory;
 import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.DesignItem;
-import com.unisew.server.models.DesignRequest;
-import com.unisew.server.models.Fabric;
-import com.unisew.server.models.SampleImage;
-import com.unisew.server.repositories.DesignItemRepo;
-import com.unisew.server.repositories.DesignRequestRepo;
-import com.unisew.server.repositories.FabricRepo;
-import com.unisew.server.repositories.SampleImageRepo;
+import com.unisew.server.models.*;
+import com.unisew.server.repositories.*;
+import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
@@ -23,9 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +28,8 @@ public class DesignServiceImpl implements DesignService {
     private final FabricRepo fabricRepo;
     private final SampleImageRepo sampleImageRepo;
     private final DesignItemRepo designItemRepo;
+    private final PackagesRepo packagesRepo;
+    private final RequestReceiptRepo requestReceiptRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -100,48 +95,35 @@ public class DesignServiceImpl implements DesignService {
         return getResponseObjectResponseEntity(designRequests);
     }
 
-    private ResponseEntity<ResponseObject> getResponseObjectResponseEntity(List<DesignRequest> designRequests) {
-        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
-                designRequest -> {
-                    Map<String, Object> designRequestMap = new HashMap<>();
-                    designRequestMap.put("id", designRequest.getId());
-                    designRequestMap.put("name", designRequest.getName());
-                    designRequestMap.put("creationDate", designRequest.getCreationDate());
-                    designRequestMap.put("numberOfItem", designRequest.getDesignItems().size());
+    @Override
+    public ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId) {
 
-                    List<DesignItem> designItems = designRequest.getDesignItems();
+        Packages packages = packagesRepo.findById(packageId).orElse(null);
 
-                    List<Map<String,Object>> itemMaps = designItems.stream()
-                            .map(
-                                    designItem -> {
-                                        Map<String, Object> itemMap = new HashMap<>();
-                                        itemMap.put("id", designItem.getId());
-                                        itemMap.put("itemType", designItem.getType());
-                                        itemMap.put("itemCategory", designItem.getCategory());
-                                        itemMap.put("gender", designItem.getGender());
+        DesignRequest designRequest = designRequestRepo.findById(designRequestId).orElse(null);
 
-                                        Map<String, Object> fabricMap = new HashMap<>();
-                                        fabricMap.put("fabricId", designItem.getFabric().getId());
-                                        fabricMap.put("fabricName", designItem.getFabric().getName());
-                                        fabricMap.put("fabricCategory", designItem.getFabric().getDesignItemCategory().toString());
-                                        fabricMap.put("fabricType", designItem.getFabric().getDesignItemType().toString());
+        if (packages == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+        }
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already exists for this request", null);
+        }
 
+        designRequest.setPackageId(packageId);
+        designRequest.setPackagePrice(packages.getFee());
+        designRequest.setPackageName(packages.getName());
+        designRequest.setHeaderContent(packages.getHeaderContent());
+        designRequest.setPackageDeliveryWithin(packages.getDeliveryDuration());
+        designRequest.setRevisionTime(packages.getRevisionTime());
+        designRequest.setStatus(Status.DESIGN_REQUEST_PENDING);
+        designRequestRepo.save(designRequest);
 
-                                        itemMap.put("fabric", fabricMap);
-                                        itemMap.put("color", designItem.getColor());
-                                        itemMap.put("logoPosition", designItem.getLogoPosition());
-                                        itemMap.put("note", designItem.getNote());
-                                        return itemMap;
-                                    }
-                            ).toList();
-                    designRequestMap.put("listItemDesign", itemMaps);
-
-                    return designRequestMap;
-                }
-        ).toList();
-
-        return ResponseBuilder.build(HttpStatus.OK,"list design requests successfully",designRequestMaps);
+        return ResponseBuilder.build(HttpStatus.OK, "pick package successfully", null);
     }
+
 
     //-----------------------------------FABRIC---------------------------------------//
     @Override
@@ -184,6 +166,83 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
     }
 
+    //----------------------------------RequestReceipt---------------------------//
+
+    @Override
+    public ResponseEntity<ResponseObject> getListReceipt(int designRequestId) {
+        List<RequestReceipt> receipts = requestReceiptRepo.findAllByDesignRequest_Id(designRequestId);
+
+        Map<String, Map<String, Object>> designerMap = new LinkedHashMap<>();
+
+        for (RequestReceipt r : receipts) {
+
+            Integer designerId = r.getPkg().getDesigner().getId();
+            String designerName = r.getPkg().getDesigner().getCustomer().getName();
+
+            if (!designerMap.containsKey(designerName)) {
+                Map<String, Object> designerObj = new HashMap<>();
+                designerObj.put("designerId", designerId);
+                designerObj.put("designerName", designerName);
+                designerObj.put("packages", new ArrayList<Map<String, Object>>());
+                designerMap.put(designerName, designerObj);
+            }
+
+            Map<String, Object> designerObj = designerMap.get(designerName);
+            List<Map<String, Object>> packages = (List<Map<String, Object>>) designerObj.get("packages");
+
+            Map<String, Object> pkgObj = new HashMap<>();
+            pkgObj.put("id", r.getPkg().getId());
+            pkgObj.put("name", r.getPkg().getName());
+            pkgObj.put("pkgHeaderContent",r.getPkg().getHeaderContent());
+            pkgObj.put("pkgDuration", r.getPkg().getDeliveryDuration());
+            pkgObj.put("pkgRevisionTime", r.getPkg().getRevisionTime());
+            pkgObj.put("pkgFee", r.getPkg().getFee());
+
+
+            packages.add(pkgObj);
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>(designerMap.values());
+
+        return ResponseBuilder.build(HttpStatus.OK, "list grouped receipt", result);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request) {
+
+        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
+
+        if (packages == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+        }
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+
+        List<RequestReceipt> requestReceiptList = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
+
+        boolean alreadyExists = requestReceiptList.stream()
+                .anyMatch(r -> r.getPkg().getId().equals(request.getPackageId()));
+
+        if (alreadyExists) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already added to receipt for this request", null);
+        }
+
+        RequestReceipt requestReceipt = RequestReceipt.builder()
+                .pkg(packages)
+                .designRequest(designRequest)
+                .acceptanceDeadline(request.getAcceptanceDeadline())
+                .status(Status.RECEIPT_PENDING)
+                .build();
+        requestReceiptRepo.save(requestReceipt);
+
+        return ResponseBuilder.build(HttpStatus.OK, "package added to receipt successfully", null);
+    }
+
+
+    //-----------------------PRIVATE-------------------------//
 
     private Map<String, Object> mapFabric(Fabric fabric) {
         Map<String, Object> map = new HashMap<>();
@@ -202,6 +261,57 @@ public class DesignServiceImpl implements DesignService {
                             .build());
         }
     }
+
+    private ResponseEntity<ResponseObject> getResponseObjectResponseEntity(List<DesignRequest> designRequests) {
+        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
+                designRequest -> {
+                    Map<String, Object> designRequestMap = new HashMap<>();
+                    designRequestMap.put("id", designRequest.getId());
+                    designRequestMap.put("name", designRequest.getName());
+                    designRequestMap.put("creationDate", designRequest.getCreationDate());
+                    designRequestMap.put("status",designRequest.getStatus().getValue());
+                    designRequestMap.put("pkgId", designRequest.getPackageId() != null ? designRequest.getPackageId() : "N/A");
+                    designRequestMap.put("pkgName", designRequest.getPackageName() != null ? designRequest.getPackageName() : "N/A");
+                    designRequestMap.put("pkgHeaderContent", designRequest.getHeaderContent() != null ? designRequest.getHeaderContent() : "N/A");
+                    designRequestMap.put("pkgDuration", designRequest.getPackageDeliveryWithin() != null ? designRequest.getPackageDeliveryWithin() : "N/A");
+                    designRequestMap.put("pkgRevisionTime", designRequest.getRevisionTime() != null ? designRequest.getRevisionTime() : "N/A");
+                    designRequestMap.put("pkgFee", designRequest.getPackagePrice());
+                    designRequestMap.put("numberOfItem", designRequest.getDesignItems().size());
+
+                    List<DesignItem> designItems = designRequest.getDesignItems();
+
+                    List<Map<String,Object>> itemMaps = designItems.stream()
+                            .map(
+                                    designItem -> {
+                                        Map<String, Object> itemMap = new HashMap<>();
+                                        itemMap.put("id", designItem.getId());
+                                        itemMap.put("itemType", designItem.getType());
+                                        itemMap.put("itemCategory", designItem.getCategory());
+                                        itemMap.put("gender", designItem.getGender());
+
+                                        Map<String, Object> fabricMap = new HashMap<>();
+                                        fabricMap.put("fabricId", designItem.getFabric().getId());
+                                        fabricMap.put("fabricName", designItem.getFabric().getName());
+                                        fabricMap.put("fabricCategory", designItem.getFabric().getDesignItemCategory().toString());
+                                        fabricMap.put("fabricType", designItem.getFabric().getDesignItemType().toString());
+
+
+                                        itemMap.put("fabric", fabricMap);
+                                        itemMap.put("color", designItem.getColor());
+                                        itemMap.put("logoPosition", designItem.getLogoPosition());
+                                        itemMap.put("note", designItem.getNote());
+                                        return itemMap;
+                                    }
+                            ).toList();
+                    designRequestMap.put("listItemDesign", itemMaps);
+
+                    return designRequestMap;
+                }
+        ).toList();
+
+        return ResponseBuilder.build(HttpStatus.OK,"list design requests successfully",designRequestMaps);
+    }
+
 
 
 }

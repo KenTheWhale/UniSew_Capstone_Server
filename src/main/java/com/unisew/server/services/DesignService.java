@@ -1,5 +1,6 @@
 package com.unisew.server.services;
 
+import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,13 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(int customerId);
 
+    ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId);
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
+    //--------------------------------Receipt----------------------------------------//
+    ResponseEntity<ResponseObject> getListReceipt(int designRequestId);
+
+    ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request);
 }

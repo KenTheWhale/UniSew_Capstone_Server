@@ -55,8 +55,8 @@ public class DesignRequest {
     @Column(name = "`package_header_content`")
     String headerContent;
 
-    @Column(name = "`package_delivery_date`")
-    LocalDate deliveryDate;
+    @Column(name = "`package_delivery_Within`")
+    Integer packageDeliveryWithin;
 
     @Column(name = "`revision_time`")
     Integer revisionTime;
