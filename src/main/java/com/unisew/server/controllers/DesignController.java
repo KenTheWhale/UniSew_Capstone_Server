@@ -35,6 +35,13 @@ public class DesignController {
         return designService.getListDesignRequestByCustomerId(customerId);
     }
 
+    @PostMapping("/packages/{packageId}/{designRequestId}")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> pickPackageRequest(@PathVariable int packageId, @PathVariable int designRequestId) {
+        return designService.pickPackage(packageId, designRequestId);
+    }
+
+    @
     //-------------------FABRICS----------------------------//
     @GetMapping("/fabrics")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")

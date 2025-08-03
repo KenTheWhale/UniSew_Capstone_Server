@@ -12,6 +12,8 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(int customerId);
 
+    ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId);
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 

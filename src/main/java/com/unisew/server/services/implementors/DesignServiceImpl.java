@@ -4,14 +4,8 @@ import com.unisew.server.enums.DesignItemCategory;
 import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.DesignItem;
-import com.unisew.server.models.DesignRequest;
-import com.unisew.server.models.Fabric;
-import com.unisew.server.models.SampleImage;
-import com.unisew.server.repositories.DesignItemRepo;
-import com.unisew.server.repositories.DesignRequestRepo;
-import com.unisew.server.repositories.FabricRepo;
-import com.unisew.server.repositories.SampleImageRepo;
+import com.unisew.server.models.*;
+import com.unisew.server.repositories.*;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
@@ -35,6 +29,7 @@ public class DesignServiceImpl implements DesignService {
     private final FabricRepo fabricRepo;
     private final SampleImageRepo sampleImageRepo;
     private final DesignItemRepo designItemRepo;
+    private final PackagesRepo packagesRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -100,6 +95,94 @@ public class DesignServiceImpl implements DesignService {
         return getResponseObjectResponseEntity(designRequests);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId) {
+
+        Packages packages = packagesRepo.findById(packageId).orElse(null);
+
+        DesignRequest designRequest = designRequestRepo.findById(designRequestId).orElse(null);
+
+        if (packages == null) {
+            ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+        }
+        if (designRequest == null) {
+            ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+
+        assert designRequest != null;
+        assert packages != null;
+        designRequest.setPackageId(packageId);
+        designRequest.setPackagePrice(packages.getFee());
+        designRequest.setPackageName(packages.getName());
+        designRequest.setHeaderContent(packages.getHeaderContent());
+        designRequest.setRevisionTime(packages.getRevisionTime());
+        designRequestRepo.save(designRequest);
+
+        return ResponseBuilder.build(HttpStatus.OK, "pick package successfully", null);
+    }
+
+
+    //-----------------------------------FABRIC---------------------------------------//
+    @Override
+    public ResponseEntity<ResponseObject> getAllFabric() {
+
+        List<Fabric> fabrics = fabricRepo.findAll();
+
+        Map<String, Object> response = new HashMap<>();
+
+        for (DesignItemCategory category : DesignItemCategory.values()) {
+            List<Fabric> categoryFabric = fabrics.stream()
+                    .filter(fabric -> fabric.getDesignItemCategory().equals(category))
+                    .toList();
+
+            Map<String, Object> categoryMap = new HashMap<>();
+
+            List<Map<String, Object>> shirts = categoryFabric.stream()
+                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SHIRT))
+                    .map(this::mapFabric)
+                    .toList();
+
+            List<Map<String, Object>> pants = categoryFabric.stream()
+                    .filter(f -> f.getDesignItemType().equals(DesignItemType.PANTS))
+                    .map(this::mapFabric)
+                    .toList();
+
+            List<Map<String, Object>> skirts = categoryFabric.stream()
+                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SKIRT))
+                    .map(this::mapFabric)
+                    .toList();
+
+            categoryMap.put("shirts", shirts);
+            categoryMap.put("pants", pants);
+            categoryMap.put("skirts", skirts);
+
+            response.put(category.name().toLowerCase(), categoryMap);
+
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
+    }
+
+    //-----------------------PRIVATE-------------------------//
+
+    private Map<String, Object> mapFabric(Fabric fabric) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", fabric.getId());
+        map.put("name", fabric.getName());
+        map.put("description", fabric.getDescription());
+        return map;
+    }
+
+    private void createSampleImageByItem(DesignItem designItem, List<CreateDesignRequest.Item.Image> images) {
+        for (CreateDesignRequest.Item.Image image : images) {
+            sampleImageRepo.save(
+                    SampleImage.builder()
+                            .imageUrl(image.getUrl())
+                            .designItem(designItem)
+                            .build());
+        }
+    }
+
     private ResponseEntity<ResponseObject> getResponseObjectResponseEntity(List<DesignRequest> designRequests) {
         List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
                 designRequest -> {
@@ -143,65 +226,6 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK,"list design requests successfully",designRequestMaps);
     }
 
-    //-----------------------------------FABRIC---------------------------------------//
-    @Override
-    public ResponseEntity<ResponseObject> getAllFabric() {
-
-        List<Fabric> fabrics = fabricRepo.findAll();
-
-        Map<String, Object> response = new HashMap<>();
-
-        for (DesignItemCategory category : DesignItemCategory.values()) {
-            List<Fabric> categoryFabric = fabrics.stream()
-                    .filter(fabric -> fabric.getDesignItemCategory().equals(category))
-                    .toList();
-
-            Map<String, Object> categoryMap = new HashMap<>();
-
-            List<Map<String, Object>> shirts = categoryFabric.stream()
-                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SHIRT))
-                    .map(this::mapFabric)
-                    .toList();
-
-            List<Map<String, Object>> pants = categoryFabric.stream()
-                    .filter(f -> f.getDesignItemType().equals(DesignItemType.PANTS))
-                    .map(this::mapFabric)
-                    .toList();
-
-            List<Map<String, Object>> skirts = categoryFabric.stream()
-                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SKIRT))
-                    .map(this::mapFabric)
-                    .toList();
-
-            categoryMap.put("shirts", shirts);
-            categoryMap.put("pants", pants);
-            categoryMap.put("skirts", skirts);
-
-            response.put(category.name().toLowerCase(), categoryMap);
-
-        }
-
-        return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
-    }
-
-
-    private Map<String, Object> mapFabric(Fabric fabric) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", fabric.getId());
-        map.put("name", fabric.getName());
-        map.put("description", fabric.getDescription());
-        return map;
-    }
-
-    private void createSampleImageByItem(DesignItem designItem, List<CreateDesignRequest.Item.Image> images) {
-        for (CreateDesignRequest.Item.Image image : images) {
-            sampleImageRepo.save(
-                    SampleImage.builder()
-                            .imageUrl(image.getUrl())
-                            .designItem(designItem)
-                            .build());
-        }
-    }
 
 
 }
