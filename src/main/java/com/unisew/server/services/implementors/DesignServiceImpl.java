@@ -6,6 +6,7 @@ import com.unisew.server.enums.Gender;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
+import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
@@ -17,9 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +29,7 @@ public class DesignServiceImpl implements DesignService {
     private final SampleImageRepo sampleImageRepo;
     private final DesignItemRepo designItemRepo;
     private final PackagesRepo packagesRepo;
+    private final RequestReceiptRepo requestReceiptRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -103,19 +103,22 @@ public class DesignServiceImpl implements DesignService {
         DesignRequest designRequest = designRequestRepo.findById(designRequestId).orElse(null);
 
         if (packages == null) {
-            ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
         }
         if (designRequest == null) {
-            ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already exists for this request", null);
         }
 
-        assert designRequest != null;
-        assert packages != null;
         designRequest.setPackageId(packageId);
         designRequest.setPackagePrice(packages.getFee());
         designRequest.setPackageName(packages.getName());
         designRequest.setHeaderContent(packages.getHeaderContent());
+        designRequest.setPackageDeliveryWithin(packages.getDeliveryDuration());
         designRequest.setRevisionTime(packages.getRevisionTime());
+        designRequest.setStatus(Status.DESIGN_REQUEST_PENDING);
         designRequestRepo.save(designRequest);
 
         return ResponseBuilder.build(HttpStatus.OK, "pick package successfully", null);
@@ -163,6 +166,82 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
     }
 
+    //----------------------------------RequestReceipt---------------------------//
+
+    @Override
+    public ResponseEntity<ResponseObject> getListReceipt(int designRequestId) {
+        List<RequestReceipt> receipts = requestReceiptRepo.findAllByDesignRequest_Id(designRequestId);
+
+        Map<String, Map<String, Object>> designerMap = new LinkedHashMap<>();
+
+        for (RequestReceipt r : receipts) {
+
+            Integer designerId = r.getPkg().getDesigner().getId();
+            String designerName = r.getPkg().getDesigner().getCustomer().getName();
+
+            if (!designerMap.containsKey(designerName)) {
+                Map<String, Object> designerObj = new HashMap<>();
+                designerObj.put("designerId", designerId);
+                designerObj.put("designerName", designerName);
+                designerObj.put("packages", new ArrayList<Map<String, Object>>());
+                designerMap.put(designerName, designerObj);
+            }
+
+            Map<String, Object> designerObj = designerMap.get(designerName);
+            List<Map<String, Object>> packages = (List<Map<String, Object>>) designerObj.get("packages");
+
+            Map<String, Object> pkgObj = new HashMap<>();
+            pkgObj.put("id", r.getPkg().getId());
+            pkgObj.put("name", r.getPkg().getName());
+            pkgObj.put("pkgHeaderContent",r.getPkg().getHeaderContent());
+            pkgObj.put("pkgDuration", r.getPkg().getDeliveryDuration());
+            pkgObj.put("pkgRevisionTime", r.getPkg().getRevisionTime());
+            pkgObj.put("pkgFee", r.getPkg().getFee());
+
+
+            packages.add(pkgObj);
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>(designerMap.values());
+
+        return ResponseBuilder.build(HttpStatus.OK, "list grouped receipt", result);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request) {
+
+        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
+
+        if (packages == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+        }
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+
+        List<RequestReceipt> requestReceiptList = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
+
+        boolean alreadyExists = requestReceiptList.stream()
+                .anyMatch(r -> r.getPkg().getId().equals(request.getPackageId()));
+
+        if (alreadyExists) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already added to receipt for this request", null);
+        }
+
+        RequestReceipt requestReceipt = RequestReceipt.builder()
+                .pkg(packages)
+                .designRequest(designRequest)
+                .acceptanceDeadline(request.getAcceptanceDeadline())
+                .status(Status.RECEIPT_PENDING)
+                .build();
+        requestReceiptRepo.save(requestReceipt);
+
+        return ResponseBuilder.build(HttpStatus.OK, "package added to receipt successfully", null);
+    }
+
+
     //-----------------------PRIVATE-------------------------//
 
     private Map<String, Object> mapFabric(Fabric fabric) {
@@ -190,6 +269,13 @@ public class DesignServiceImpl implements DesignService {
                     designRequestMap.put("id", designRequest.getId());
                     designRequestMap.put("name", designRequest.getName());
                     designRequestMap.put("creationDate", designRequest.getCreationDate());
+                    designRequestMap.put("status",designRequest.getStatus().getValue());
+                    designRequestMap.put("pkgId", designRequest.getPackageId() != null ? designRequest.getPackageId() : "N/A");
+                    designRequestMap.put("pkgName", designRequest.getPackageName() != null ? designRequest.getPackageName() : "N/A");
+                    designRequestMap.put("pkgHeaderContent", designRequest.getHeaderContent() != null ? designRequest.getHeaderContent() : "N/A");
+                    designRequestMap.put("pkgDuration", designRequest.getPackageDeliveryWithin() != null ? designRequest.getPackageDeliveryWithin() : "N/A");
+                    designRequestMap.put("pkgRevisionTime", designRequest.getRevisionTime() != null ? designRequest.getRevisionTime() : "N/A");
+                    designRequestMap.put("pkgFee", designRequest.getPackagePrice());
                     designRequestMap.put("numberOfItem", designRequest.getDesignItems().size());
 
                     List<DesignItem> designItems = designRequest.getDesignItems();

@@ -18,7 +18,11 @@ public enum Status {
     //DESIGN
     DESIGN_REQUEST_CREATED("created"),
     DESIGN_REQUEST_PENDING("pending"),
-    DESIGN_REQUEST_APPROVE("approve");
+    DESIGN_REQUEST_APPROVE("approve"),
+    //RECEIPT
+    RECEIPT_PENDING("pending"),
+    RECEIPT_APPROVED("approved"),
+    RECEIPT_REJECTED("rejected");
 
     private final String value;
 }
