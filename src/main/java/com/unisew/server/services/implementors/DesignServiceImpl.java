@@ -6,10 +6,7 @@ import com.unisew.server.enums.Gender;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
-import com.unisew.server.requests.AddPackageToReceiptRequest;
-import com.unisew.server.requests.CreateDesignRequest;
-import com.unisew.server.requests.CreateNewDeliveryRequest;
-import com.unisew.server.requests.CreateRevisionRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import com.unisew.server.services.JWTService;
@@ -442,6 +439,78 @@ public class DesignServiceImpl implements DesignService {
                         .body(mapList)
                         .build()
         );
+    }
+
+    //-----------------------REVISION_REQUEST-------------------------//
+    @Override
+    public ResponseEntity<ResponseObject> getListDesignComment(int designRequestId) {
+
+        List<DesignComment> designComments = designCommentRepo.findAllByDesignRequest_Id(designRequestId);
+
+
+        List<Map<String, Object>> mapList = designComments.stream()
+                .map(
+                        comment -> {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("senderId", comment.getSenderId());
+                            map.put("senderRole", comment.getSenderRole());
+                            map.put("content", comment.getContent());
+                            map.put("createdAt", comment.getCreationDate());
+                            return map;
+                        }
+                ).toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ResponseObject.builder()
+                        .message("List of Design Comments")
+                        .body(mapList)
+                        .build()
+        );
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest) {
+
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+
+        if(account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        DesignRequest designRequest = designRequestRepo.findById(sendCommentRequest.getRequestId()).orElse(null);
+        if (designRequest == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ResponseObject.builder()
+                            .message("Can not find design request")
+                            .build()
+            );
+        }
+
+        List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(designRequest.getId());
+
+        boolean isFinal = deliveries.stream().anyMatch(delivery ->
+                schoolDesignRepo.existsByCustomer_IdAndDesignDelivery_Id(
+                        designRequest.getSchool().getId(),
+                        delivery.getId()
+                )
+        );
+
+        if (isFinal) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST,
+                    "This request has a final delivery. No more comments allowed.", null);
+        }
+
+        DesignComment comment = DesignComment.builder()
+                .designRequest(designRequest)
+                .content(sendCommentRequest.getComment())
+                .creationDate(LocalDateTime.now())
+                .senderId(account.getId())
+                .senderRole(account.getRole().getValue())
+                .build();
+
+        designCommentRepo.save(comment);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Comment sent", null);
     }
 
 
