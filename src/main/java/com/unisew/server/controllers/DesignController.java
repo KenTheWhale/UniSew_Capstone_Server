@@ -3,6 +3,7 @@ package com.unisew.server.controllers;
 import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.requests.CreateNewDeliveryRequest;
+import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -57,7 +58,7 @@ public class DesignController {
     public ResponseEntity<ResponseObject> addPackageToReceipt(@RequestBody AddPackageToReceiptRequest request) {
         return designService.addPackageToReceipt(request);
     }
-    //-------------------DesignDelivery---------------------//
+    //-------------------DESIGN_DELIVERY---------------------//
 
     @GetMapping("/deliveries/{designRequestId}")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
@@ -76,5 +77,18 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListFabrics() {
         return designService.getAllFabric();
+    }
+
+    //-------------------REVISION_REQUEST----------------------------//
+    @PostMapping("/revision")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> createNewRevision(@RequestBody CreateRevisionRequest request) {
+        return designService.createRevisionRequest(request);
+    }
+
+    @GetMapping("/list-revision/{requestId}")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(@PathVariable int requestId) {
+        return designService.getAllUnUsedRevisionRequest(requestId);
     }
 }

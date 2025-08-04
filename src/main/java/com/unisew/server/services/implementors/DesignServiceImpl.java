@@ -9,6 +9,7 @@ import com.unisew.server.repositories.*;
 import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.requests.CreateNewDeliveryRequest;
+import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import com.unisew.server.utils.ResponseBuilder;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,8 @@ public class DesignServiceImpl implements DesignService {
     private final RevisionRequestRepo revisionRequestRepo;
     private final DeliveryItemRepo deliveryItemRepo;
     private final DesignCommentRepo designCommentRepo;
+    private final SchoolDesignRepo schoolDesignRepo;
+    private final CustomerRepo customerRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -329,6 +333,97 @@ public class DesignServiceImpl implements DesignService {
         designCommentRepo.save(designComment);
 
         return ResponseBuilder.build(HttpStatus.CREATED, "delivery has been created", null);
+    }
+
+
+    //-----------------------REVISION_REQUEST-------------------------//
+
+    @Override
+    public ResponseEntity<ResponseObject> createRevisionRequest(CreateRevisionRequest request) {
+
+        DesignDelivery designDelivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
+
+
+
+        if (designDelivery == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No delivery found to create a revision", null);
+        }
+
+        Customer customer = customerRepo.findById(designDelivery.getDesignRequest().getSchool().getId()).orElse(null);
+
+        boolean exitSchoolDesign = schoolDesignRepo.existsByCustomer_IdAndDesignDelivery_Id(designDelivery.getDesignRequest().getSchool().getId(), designDelivery.getId());
+
+        if (exitSchoolDesign) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This delivery already final", null);
+        }
+
+        RevisionRequest revisionRequest = RevisionRequest.builder()
+                .designDelivery(designDelivery)
+                .requestDate(LocalDate.now())
+                .note(request.getNote())
+                .build();
+
+        assert customer != null;
+        DesignComment designComment = DesignComment.builder()
+                .content(" School  "  + customer.getName() + "has sent a revision request " )
+                .designRequest(designDelivery.getDesignRequest())
+                .creationDate(LocalDateTime.now())
+                .senderId(0)
+                .senderRole("system")
+                .build();
+
+        designCommentRepo.save(designComment);
+
+        revisionRequestRepo.save(revisionRequest);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "revision request has been created", null);
+    }
+
+
+    @Override
+    public ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(int requestId) {
+
+        List<DesignDelivery> designDeliveryList = designDeliveryRepo.findAllByDesignRequest_Id(requestId);
+
+        List<RevisionRequest> revisionRequestList = revisionRequestRepo.findAllByDesignDelivery_DesignRequest_Id(requestId);
+
+        if (revisionRequestList.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ResponseObject.builder()
+                            .message("No revision request for this request")
+                            .build()
+            );
+        }
+
+        Set<Integer> usedRevisionIds = designDeliveryList.stream()
+                .map(DesignDelivery::getRevisionRequest)
+                .filter(Objects::nonNull)
+                .map(RevisionRequest::getId)
+                .collect(Collectors.toSet());
+
+
+        List<RevisionRequest> unusedRevisionRequests = revisionRequestList.stream()
+                .filter(rev -> !usedRevisionIds.contains(rev.getId()))
+                .toList();
+
+        List<Map<String, Object>> mapList = unusedRevisionRequests.stream()
+                .map(
+                        revisionRequest -> {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("id", revisionRequest.getId());
+                            map.put("deliveryId", revisionRequest.getDesignDelivery().getId());
+                            map.put("requestDate", revisionRequest.getRequestDate());
+                            map.put("note", revisionRequest.getNote());
+                            return map;
+                        }
+                ).toList();
+
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("List revision request not completed")
+                        .body(mapList)
+                        .build()
+        );
     }
 
 
