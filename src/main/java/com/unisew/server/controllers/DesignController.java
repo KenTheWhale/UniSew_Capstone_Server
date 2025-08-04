@@ -1,9 +1,6 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.requests.AddPackageToReceiptRequest;
-import com.unisew.server.requests.CreateDesignRequest;
-import com.unisew.server.requests.CreateNewDeliveryRequest;
-import com.unisew.server.requests.CreateRevisionRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -97,4 +94,18 @@ public class DesignController {
     public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(@PathVariable int requestId) {
         return designService.getAllUnUsedRevisionRequest(requestId);
     }
+    //-------------------DESIGN_COMMENT----------------------------//
+    @GetMapping("/list-comment/{requestId}")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListComment(@PathVariable int requestId) {
+        return designService.getListDesignComment(requestId);
+    }
+
+    @PostMapping("/comment")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> sendComment(@RequestBody SendCommentRequest request, HttpServletRequest httpRequest) {
+        return designService.sendComment(httpRequest, request);
+    }
+
+    //-------------------SCHOOL_DESIGN----------------------------//
 }

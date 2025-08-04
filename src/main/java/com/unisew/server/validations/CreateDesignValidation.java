@@ -52,7 +52,7 @@ public class CreateDesignValidation {
                 return "ClothType must be 'shirt', 'pants' or 'skirt'";
             }
 
-            if (item.getLogoPosition() == null || item.getLogoPosition().isEmpty()) {
+            if ( item.getItemType().equalsIgnoreCase(DesignItemType.SHIRT.getValue()) && (item.getLogoPosition() == null || item.getLogoPosition().isEmpty())) {
                 return "Logo position is required";
             }
 
