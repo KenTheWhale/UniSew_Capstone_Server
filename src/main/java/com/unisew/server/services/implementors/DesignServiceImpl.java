@@ -151,6 +151,32 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK, "pick package successfully", null);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> updateRequestByDeadline(int requestId, String type) {
+
+        DesignRequest designRequest = designRequestRepo.findById(requestId).orElse(null);
+
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "request not found", null);
+        }
+
+        if(!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not cancel or re find request", null);
+        }
+
+        if(type.equalsIgnoreCase("refind")){
+            designRequest.setCreationDate(LocalDate.now());
+            designRequestRepo.save(designRequest);
+            return ResponseBuilder.build(HttpStatus.OK, "Continue looking for designer for your request", null);
+        }
+        if(type.equalsIgnoreCase("cancel")){
+            designRequest.setStatus(Status.DESIGN_REQUEST_CANCEL);
+            designRequestRepo.save(designRequest);
+            return ResponseBuilder.build(HttpStatus.OK, "Your request has been cancelled", null);
+        }
+        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "type must be cancel or refind", null);
+    }
+
 
     //-----------------------------------FABRIC---------------------------------------//
     @Override

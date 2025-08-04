@@ -15,6 +15,9 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId);
 
+    ResponseEntity<ResponseObject> updateRequestByDeadline(int requestId, String type);
+
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
@@ -36,4 +39,5 @@ public interface DesignService {
     ResponseEntity<ResponseObject> getListDesignComment(int designRequestId);
 
     ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest);
+
 }
