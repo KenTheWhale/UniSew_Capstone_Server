@@ -12,8 +12,11 @@ import com.unisew.server.requests.CreateNewDeliveryRequest;
 import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
+import com.unisew.server.services.JWTService;
+import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.CreateDesignValidation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +38,8 @@ public class DesignServiceImpl implements DesignService {
     private final DesignItemRepo designItemRepo;
     private final PackagesRepo packagesRepo;
     private final RequestReceiptRepo requestReceiptRepo;
+    private final JWTService jwtService;
+    private final AccountRepo accountRepo;
     private final DesignDeliveryRepo designDeliveryRepo;
     private final RevisionRequestRepo revisionRequestRepo;
     private final DeliveryItemRepo deliveryItemRepo;
@@ -47,15 +52,22 @@ public class DesignServiceImpl implements DesignService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> createDesignRequest(CreateDesignRequest createDesignRequest) {
+    public ResponseEntity<ResponseObject> createDesignRequest(CreateDesignRequest createDesignRequest, HttpServletRequest httpRequest) {
 
         String errorMessage = CreateDesignValidation.validate(createDesignRequest);
 
         if (!errorMessage.isEmpty()) {
-            ResponseBuilder.build(HttpStatus.BAD_REQUEST, errorMessage, null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, errorMessage, null);
+        }
+
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
         DesignRequest designRequest = DesignRequest.builder()
+                .school(account.getCustomer())
                 .creationDate(LocalDate.now())
                 .logoImage(createDesignRequest.getLogoImage())
                 .name(createDesignRequest.getDesignName())
@@ -92,7 +104,7 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewListDesignRequests() {
+    public ResponseEntity<ResponseObject> viewListDesignRequest() {
 
         List<DesignRequest> designRequests = designRequestRepo.findAll();
 
@@ -100,9 +112,15 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(int customerId) {
+    public ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request) {
 
-        List<DesignRequest> designRequests = designRequestRepo.findAllBySchool_Id(customerId);
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+
+        if(account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<DesignRequest> designRequests = designRequestRepo.findAllBySchool_Id(account.getCustomer().getId());
 
         return getResponseObjectResponseEntity(designRequests);
     }
