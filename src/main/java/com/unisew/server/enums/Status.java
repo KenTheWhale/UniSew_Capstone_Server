@@ -19,6 +19,7 @@ public enum Status {
     DESIGN_REQUEST_CREATED("created"),
     DESIGN_REQUEST_PENDING("pending"),
     DESIGN_REQUEST_APPROVE("approve"),
+    DESIGN_REQUEST_CANCEL("cancel"),
     //RECEIPT
     RECEIPT_PENDING("pending"),
     RECEIPT_APPROVED("approved"),

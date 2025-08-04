@@ -8,12 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,6 +42,12 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> pickPackageRequest(@PathVariable int packageId, @PathVariable int designRequestId) {
         return designService.pickPackage(packageId, designRequestId);
+    }
+
+    @PutMapping("/request/deadline/{requestId}/{type}")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> updateRequestByDeadline(@PathVariable int requestId,@PathVariable String type){
+        return designService.updateRequestByDeadline(requestId ,type);
     }
 
     //------------------RECEIPT---------------------------//
