@@ -38,23 +38,29 @@ public class DesignController {
         return designService.getListDesignRequestByCustomer(request);
     }
 
-    @PostMapping("/packages/{packageId}/{designRequestId}")
+    @PostMapping("/packages")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> pickPackageRequest(@PathVariable int packageId, @PathVariable int designRequestId) {
-        return designService.pickPackage(packageId, designRequestId);
+    public ResponseEntity<ResponseObject> pickPackageRequest(@RequestBody PickPackageRequest request) {
+        return designService.pickPackage(request);
     }
 
-    @PutMapping("/request/deadline/{requestId}/{type}")
+    @PutMapping("/request/deadline")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> updateRequestByDeadline(@PathVariable int requestId,@PathVariable String type){
-        return designService.updateRequestByDeadline(requestId ,type);
+    public ResponseEntity<ResponseObject> updateRequestByDeadline(@RequestBody UpdateRequestByDeadline request){
+        return designService.updateRequestByDeadline(request);
+    }
+
+    @PostMapping("/request/duplicate")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> duplicateRequest(@RequestBody DuplicateRequest request){
+        return designService.duplicateRequest(request);
     }
 
     //------------------RECEIPT---------------------------//
-    @GetMapping("/list/receipt/{designRequestId}")
+    @GetMapping("/list/receipt")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListReceipt(@PathVariable int designRequestId) {
-        return designService.getListReceipt(designRequestId);
+    public ResponseEntity<ResponseObject> getListReceipt(@RequestBody GetListReceiptRequest request) {
+        return designService.getListReceipt(request);
     }
 
     @PostMapping("/receipt/package/")
@@ -64,10 +70,10 @@ public class DesignController {
     }
     //-------------------DESIGN_DELIVERY---------------------//
 
-    @GetMapping("/deliveries/{designRequestId}")
+    @GetMapping("/deliveries")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getListDeliveries(@PathVariable int designRequestId) {
-        return designService.getListDeliveries(designRequestId);
+    public ResponseEntity<ResponseObject> getListDeliveries(@RequestBody GetListDeliveryRequest request) {
+        return designService.getListDeliveries(request);
     }
 
     @PostMapping("/delivery")
@@ -92,14 +98,14 @@ public class DesignController {
 
     @GetMapping("/list-revision/{requestId}")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(@PathVariable int requestId) {
-        return designService.getAllUnUsedRevisionRequest(requestId);
+    public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(GetUnUseListRevisionRequest request) {
+        return designService.getAllUnUsedRevisionRequest(request);
     }
     //-------------------DESIGN_COMMENT----------------------------//
     @GetMapping("/list-comment/{requestId}")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getListComment(@PathVariable int requestId) {
-        return designService.getListDesignComment(requestId);
+    public ResponseEntity<ResponseObject> getListComment(@RequestBody GetListCommentRequest request) {
+        return designService.getListDesignComment(request);
     }
 
     @PostMapping("/comment")

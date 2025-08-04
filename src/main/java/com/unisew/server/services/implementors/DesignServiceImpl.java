@@ -113,7 +113,7 @@ public class DesignServiceImpl implements DesignService {
 
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
-        if(account == null) {
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
@@ -123,11 +123,11 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId) {
+    public ResponseEntity<ResponseObject> pickPackage(PickPackageRequest request) {
 
-        Packages packages = packagesRepo.findById(packageId).orElse(null);
+        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
 
-        DesignRequest designRequest = designRequestRepo.findById(designRequestId).orElse(null);
+        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
 
         if (packages == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
@@ -139,7 +139,7 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already exists for this request", null);
         }
 
-        designRequest.setPackageId(packageId);
+        designRequest.setPackageId(request.getPackageId());
         designRequest.setPackagePrice(packages.getFee());
         designRequest.setPackageName(packages.getName());
         designRequest.setHeaderContent(packages.getHeaderContent());
@@ -152,29 +152,71 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> updateRequestByDeadline(int requestId, String type) {
+    public ResponseEntity<ResponseObject> updateRequestByDeadline(UpdateRequestByDeadline request) {
 
-        DesignRequest designRequest = designRequestRepo.findById(requestId).orElse(null);
+        DesignRequest designRequest = designRequestRepo.findById(request.getRequestId()).orElse(null);
 
         if (designRequest == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "request not found", null);
         }
 
-        if(!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not cancel or re find request", null);
         }
 
-        if(type.equalsIgnoreCase("refind")){
+        if (request.getType().equalsIgnoreCase("refind")) {
             designRequest.setCreationDate(LocalDate.now());
             designRequestRepo.save(designRequest);
             return ResponseBuilder.build(HttpStatus.OK, "Continue looking for designer for your request", null);
         }
-        if(type.equalsIgnoreCase("cancel")){
+        if (request.getType().equalsIgnoreCase("cancel")) {
             designRequest.setStatus(Status.DESIGN_REQUEST_CANCEL);
             designRequestRepo.save(designRequest);
             return ResponseBuilder.build(HttpStatus.OK, "Your request has been cancelled", null);
         }
         return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "type must be cancel or refind", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request) {
+
+        DesignRequest oldDesign = designRequestRepo.findById(request.getId()).orElse(null);
+        if (oldDesign == null ) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Old design not found", null);
+        }
+
+        if (!oldDesign.getStatus().equals(Status.DESIGN_REQUEST_CANCEL)){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Old design are not canceled", null);
+        }
+
+        DesignRequest newDesign = DesignRequest.builder()
+                .name(oldDesign.getName())
+                .school(oldDesign.getSchool())
+                .logoImage(oldDesign.getLogoImage())
+                .creationDate(LocalDate.now())
+                .status(Status.DESIGN_REQUEST_CREATED)
+                .privacy(oldDesign.isPrivacy())
+                .build();
+
+
+        List<DesignItem> newItems = oldDesign.getDesignItems().stream()
+                .map(item -> DesignItem.builder()
+                        .designRequest(newDesign)
+                        .fabric(item.getFabric())
+                        .category(item.getCategory())
+                        .color(item.getColor())
+                        .gender(item.getGender())
+                        .logoPosition(item.getLogoPosition())
+                        .note(item.getNote())
+                        .type(item.getType())
+                        .build())
+                .toList();
+
+        newDesign.setDesignItems(newItems);
+
+        designRequestRepo.save(newDesign);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Design duplicated successfully", null);
     }
 
 
@@ -222,8 +264,8 @@ public class DesignServiceImpl implements DesignService {
     //----------------------------------RequestReceipt---------------------------//
 
     @Override
-    public ResponseEntity<ResponseObject> getListReceipt(int designRequestId) {
-        List<RequestReceipt> receipts = requestReceiptRepo.findAllByDesignRequest_Id(designRequestId);
+    public ResponseEntity<ResponseObject> getListReceipt(GetListReceiptRequest request) {
+        List<RequestReceipt> receipts = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
 
         Map<String, Map<String, Object>> designerMap = new LinkedHashMap<>();
 
@@ -246,7 +288,7 @@ public class DesignServiceImpl implements DesignService {
             Map<String, Object> pkgObj = new HashMap<>();
             pkgObj.put("id", r.getPkg().getId());
             pkgObj.put("name", r.getPkg().getName());
-            pkgObj.put("pkgHeaderContent",r.getPkg().getHeaderContent());
+            pkgObj.put("pkgHeaderContent", r.getPkg().getHeaderContent());
             pkgObj.put("pkgDuration", r.getPkg().getDeliveryDuration());
             pkgObj.put("pkgRevisionTime", r.getPkg().getRevisionTime());
             pkgObj.put("pkgFee", r.getPkg().getFee());
@@ -296,19 +338,19 @@ public class DesignServiceImpl implements DesignService {
 
     //---------------------------------DESIGN_DELIVERY--------------------------------//
     @Override
-    public ResponseEntity<ResponseObject> getListDeliveries(int designRequestId) {
+    public ResponseEntity<ResponseObject> getListDeliveries(GetListDeliveryRequest request) {
 
-        List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(designRequestId);
+        List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
 
-        List<Map<String,Object>> deliveriesMap = deliveries.stream().map(
+        List<Map<String, Object>> deliveriesMap = deliveries.stream().map(
                 designDelivery -> {
                     Map<String, Object> delivery = new HashMap<>();
                     delivery.put("id", designDelivery.getId());
                     delivery.put("code", designDelivery.getCode());
-                    delivery.put("isRevision",designDelivery.isRevision());
+                    delivery.put("isRevision", designDelivery.isRevision());
                     delivery.put("submitDate", designDelivery.getSubmitDate());
                     delivery.put("note", designDelivery.getNote());
-                    List<Map<String,Object>> revisionMap = designDelivery.getRevisionRequests().stream().map(
+                    List<Map<String, Object>> revisionMap = designDelivery.getRevisionRequests().stream().map(
                             revisionRequest -> {
                                 Map<String, Object> revision = new HashMap<>();
                                 revision.put("id", revisionRequest.getId());
@@ -352,7 +394,7 @@ public class DesignServiceImpl implements DesignService {
 
         designDeliveryRepo.save(delivery);
 
-        for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()){
+        for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()) {
             DeliveryItem deliveryItem = DeliveryItem.builder()
                     .baseLogoHeight(i.getLogoHeight())
                     .baseLogoWidth(i.getLogoWidth())
@@ -385,7 +427,6 @@ public class DesignServiceImpl implements DesignService {
         DesignDelivery designDelivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
 
 
-
         if (designDelivery == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No delivery found to create a revision", null);
         }
@@ -406,7 +447,7 @@ public class DesignServiceImpl implements DesignService {
 
         assert customer != null;
         DesignComment designComment = DesignComment.builder()
-                .content(" School  "  + customer.getName() + "has sent a revision request " )
+                .content(" School  " + customer.getName() + "has sent a revision request ")
                 .designRequest(designDelivery.getDesignRequest())
                 .creationDate(LocalDateTime.now())
                 .senderId(0)
@@ -422,11 +463,11 @@ public class DesignServiceImpl implements DesignService {
 
 
     @Override
-    public ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(int requestId) {
+    public ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(GetUnUseListRevisionRequest request) {
 
-        List<DesignDelivery> designDeliveryList = designDeliveryRepo.findAllByDesignRequest_Id(requestId);
+        List<DesignDelivery> designDeliveryList = designDeliveryRepo.findAllByDesignRequest_Id(request.getRequestId());
 
-        List<RevisionRequest> revisionRequestList = revisionRequestRepo.findAllByDesignDelivery_DesignRequest_Id(requestId);
+        List<RevisionRequest> revisionRequestList = revisionRequestRepo.findAllByDesignDelivery_DesignRequest_Id(request.getRequestId());
 
         if (revisionRequestList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
@@ -469,9 +510,9 @@ public class DesignServiceImpl implements DesignService {
 
     //-----------------------REVISION_REQUEST-------------------------//
     @Override
-    public ResponseEntity<ResponseObject> getListDesignComment(int designRequestId) {
+    public ResponseEntity<ResponseObject> getListDesignComment(GetListCommentRequest request) {
 
-        List<DesignComment> designComments = designCommentRepo.findAllByDesignRequest_Id(designRequestId);
+        List<DesignComment> designComments = designCommentRepo.findAllByDesignRequest_Id(request.getRequestId());
 
 
         List<Map<String, Object>> mapList = designComments.stream()
@@ -499,7 +540,7 @@ public class DesignServiceImpl implements DesignService {
 
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
-        if(account == null) {
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
@@ -567,7 +608,7 @@ public class DesignServiceImpl implements DesignService {
                     designRequestMap.put("id", designRequest.getId());
                     designRequestMap.put("name", designRequest.getName());
                     designRequestMap.put("creationDate", designRequest.getCreationDate());
-                    designRequestMap.put("status",designRequest.getStatus().getValue());
+                    designRequestMap.put("status", designRequest.getStatus().getValue());
                     designRequestMap.put("pkgId", designRequest.getPackageId() != null ? designRequest.getPackageId() : "N/A");
                     designRequestMap.put("pkgName", designRequest.getPackageName() != null ? designRequest.getPackageName() : "N/A");
                     designRequestMap.put("pkgHeaderContent", designRequest.getHeaderContent() != null ? designRequest.getHeaderContent() : "N/A");
@@ -578,7 +619,7 @@ public class DesignServiceImpl implements DesignService {
 
                     List<DesignItem> designItems = designRequest.getDesignItems();
 
-                    List<Map<String,Object>> itemMaps = designItems.stream()
+                    List<Map<String, Object>> itemMaps = designItems.stream()
                             .map(
                                     designItem -> {
                                         Map<String, Object> itemMap = new HashMap<>();
@@ -607,9 +648,8 @@ public class DesignServiceImpl implements DesignService {
                 }
         ).toList();
 
-        return ResponseBuilder.build(HttpStatus.OK,"list design requests successfully",designRequestMaps);
+        return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
-
 
 
 }
