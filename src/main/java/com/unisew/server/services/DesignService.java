@@ -2,6 +2,7 @@ package com.unisew.server.services;
 
 import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
+import com.unisew.server.requests.CreateNewDeliveryRequest;
 import com.unisew.server.responses.ResponseObject;
 import org.springframework.http.ResponseEntity;
 
@@ -22,4 +23,8 @@ public interface DesignService {
     ResponseEntity<ResponseObject> getListReceipt(int designRequestId);
 
     ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request);
+
+    ResponseEntity<ResponseObject> getListDeliveries(int designRequestId);
+
+    ResponseEntity<ResponseObject> createNewDelivery(CreateNewDeliveryRequest request);
 }

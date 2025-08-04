@@ -2,6 +2,7 @@ package com.unisew.server.controllers;
 
 import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
+import com.unisew.server.requests.CreateNewDeliveryRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,6 +57,20 @@ public class DesignController {
     public ResponseEntity<ResponseObject> addPackageToReceipt(@RequestBody AddPackageToReceiptRequest request) {
         return designService.addPackageToReceipt(request);
     }
+    //-------------------DesignDelivery---------------------//
+
+    @GetMapping("/deliveries/{designRequestId}")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListDeliveries(@PathVariable int designRequestId) {
+        return designService.getListDeliveries(designRequestId);
+    }
+
+    @PostMapping("/delivery")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> createNewDelivery(@RequestBody CreateNewDeliveryRequest request){
+        return designService.createNewDelivery(request);
+    }
+
     //-------------------FABRICS----------------------------//
     @GetMapping("/fabrics")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")

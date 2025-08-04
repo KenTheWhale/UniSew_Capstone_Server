@@ -8,6 +8,7 @@ import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
 import com.unisew.server.requests.AddPackageToReceiptRequest;
 import com.unisew.server.requests.CreateDesignRequest;
+import com.unisew.server.requests.CreateNewDeliveryRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import com.unisew.server.utils.ResponseBuilder;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -31,6 +33,10 @@ public class DesignServiceImpl implements DesignService {
     private final DesignItemRepo designItemRepo;
     private final PackagesRepo packagesRepo;
     private final RequestReceiptRepo requestReceiptRepo;
+    private final DesignDeliveryRepo designDeliveryRepo;
+    private final RevisionRequestRepo revisionRequestRepo;
+    private final DeliveryItemRepo deliveryItemRepo;
+    private final DesignCommentRepo designCommentRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -241,6 +247,88 @@ public class DesignServiceImpl implements DesignService {
         requestReceiptRepo.save(requestReceipt);
 
         return ResponseBuilder.build(HttpStatus.OK, "package added to receipt successfully", null);
+    }
+
+    //---------------------------------DESIGN_DELIVERY--------------------------------//
+    @Override
+    public ResponseEntity<ResponseObject> getListDeliveries(int designRequestId) {
+
+        List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(designRequestId);
+
+        List<Map<String,Object>> deliveriesMap = deliveries.stream().map(
+                designDelivery -> {
+                    Map<String, Object> delivery = new HashMap<>();
+                    delivery.put("id", designDelivery.getId());
+                    delivery.put("code", designDelivery.getCode());
+                    delivery.put("isRevision",designDelivery.isRevision());
+                    delivery.put("submitDate", designDelivery.getSubmitDate());
+                    delivery.put("note", designDelivery.getNote());
+                    List<Map<String,Object>> revisionMap = designDelivery.getRevisionRequests().stream().map(
+                            revisionRequest -> {
+                                Map<String, Object> revision = new HashMap<>();
+                                revision.put("id", revisionRequest.getId());
+                                revision.put("requestDate", revisionRequest.getRequestDate());
+                                revision.put("note", revisionRequest.getNote());
+                                return revision;
+                            }
+                    ).toList();
+                    delivery.put("revisionRequests", revisionMap);
+                    return delivery;
+                }
+        ).toList();
+
+        return ResponseBuilder.build(HttpStatus.OK, "list deliveries", deliveriesMap);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> createNewDelivery(CreateNewDeliveryRequest request) {
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
+
+        RevisionRequest revisionRequest = revisionRequestRepo.findById(request.getRevisionId()).orElse(null);
+
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+
+
+        Optional<DesignDelivery> latestDelivery = designDeliveryRepo.findTopByDesignRequest_IdOrderByCodeDesc(request.getDesignRequestId());
+        int nextDeliveryCode = latestDelivery.map(d -> d.getCode() + 1).orElse(1);
+
+
+        DesignDelivery delivery = DesignDelivery.builder()
+                .code(nextDeliveryCode)
+                .revision(request.isRevision())
+                .designRequest(designRequest)
+                .revisionRequest(revisionRequest)
+                .submitDate(LocalDate.now())
+                .note(request.getNote())
+                .build();
+
+        designDeliveryRepo.save(delivery);
+
+        for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()){
+            DeliveryItem deliveryItem = DeliveryItem.builder()
+                    .baseLogoHeight(i.getLogoHeight())
+                    .baseLogoWidth(i.getLogoWidth())
+                    .designDelivery(delivery)
+                    .designItemId(i.getDesignItemId())
+                    .backImageUrl(i.getBackUrl())
+                    .frontImageUrl(i.getFrontUrl())
+                    .build();
+            deliveryItemRepo.save(deliveryItem);
+        }
+
+        DesignComment designComment = DesignComment.builder()
+                .content("Designer has submit new delivery. Delivery Code: " + delivery.getCode())
+                .designRequest(designRequest)
+                .creationDate(LocalDateTime.now())
+                .senderId(0)
+                .senderRole("system")
+                .build();
+        designCommentRepo.save(designComment);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "delivery has been created", null);
     }
 
 
