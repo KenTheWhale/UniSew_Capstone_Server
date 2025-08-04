@@ -13,31 +13,33 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request);
 
-    ResponseEntity<ResponseObject> pickPackage(int packageId, int designRequestId);
+    ResponseEntity<ResponseObject> pickPackage(PickPackageRequest request);
 
-    ResponseEntity<ResponseObject> updateRequestByDeadline(int requestId, String type);
+    ResponseEntity<ResponseObject> updateRequestByDeadline(UpdateRequestByDeadline request);
 
+    ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request);
 
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
     //--------------------------------RECEIPT----------------------------------------//
-    ResponseEntity<ResponseObject> getListReceipt(int designRequestId);
+    ResponseEntity<ResponseObject> getListReceipt(GetListReceiptRequest request);
 
     ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request);
 
-    ResponseEntity<ResponseObject> getListDeliveries(int designRequestId);
+    ResponseEntity<ResponseObject> getListDeliveries(GetListDeliveryRequest request);
 
     ResponseEntity<ResponseObject> createNewDelivery(CreateNewDeliveryRequest request);
 
     //--------------------------------REVISION_REQUEST----------------------------------------//
     ResponseEntity<ResponseObject> createRevisionRequest(CreateRevisionRequest request);
 
-    ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(int requestId);
+    ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(GetUnUseListRevisionRequest request);
 
     //--------------------------------DESIGN_COMMENT----------------------------------------//
-    ResponseEntity<ResponseObject> getListDesignComment(int designRequestId);
+    ResponseEntity<ResponseObject> getListDesignComment(GetListCommentRequest request);
 
     ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest);
+
 
 }
