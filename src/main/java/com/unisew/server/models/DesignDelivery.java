@@ -33,8 +33,6 @@ public class DesignDelivery {
     @JoinColumn(name = "`revision_id`")
     RevisionRequest revisionRequest;
 
-    @Column(name = "`file_url`")
-    String fileUrl;
 
     int code;
 
