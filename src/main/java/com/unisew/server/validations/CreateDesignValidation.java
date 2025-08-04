@@ -48,9 +48,9 @@ public class CreateDesignValidation {
                 return "Gender must be 'boy' or 'girl'";
             }
 
-            if (!item.getItemType().equalsIgnoreCase(DesignItemType.PANTS.getValue())) {
-                return "ClothType must be 'pants' or 'pants'";
-            }
+//            if (!item.getItemType().equalsIgnoreCase(DesignItemType.PANTS.getValue())) {
+//                return "ClothType must be 'pants' or 'pants'";
+//            }
 
             if (!validTypes.contains(item.getItemType().toLowerCase())) {
                 return "ClothType must be 'shirt', 'pants' or 'skirt'";

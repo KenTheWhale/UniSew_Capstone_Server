@@ -5,10 +5,16 @@ import com.unisew.server.requests.CreateDesignRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,20 +28,20 @@ public class DesignController {
 
     @PostMapping("/request")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> createNewRequest(@RequestBody CreateDesignRequest request) {
-        return designService.createDesignRequest(request);
+    public ResponseEntity<ResponseObject> createNewRequest(@RequestBody CreateDesignRequest request, HttpServletRequest httpRequest) {
+        return designService.createDesignRequest(request, httpRequest);
     }
 
-    @GetMapping("/list-request")
-    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    @GetMapping("/pending/request")
+    @PreAuthorize("hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListDesignRequest() {
-        return designService.viewListDesignRequests();
+        return designService.viewListDesignRequest();
     }
 
-    @GetMapping("/list-request/{customerId}")
+    @PostMapping("/school/request")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListDesignRequestByCustomerId(@PathVariable int customerId) {
-        return designService.getListDesignRequestByCustomerId(customerId);
+    public ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request) {
+        return designService.getListDesignRequestByCustomer(request);
     }
 
     @PostMapping("/packages/{packageId}/{designRequestId}")
