@@ -278,6 +278,12 @@ public class DesignServiceImpl implements DesignService {
                 Map<String, Object> designerObj = new HashMap<>();
                 designerObj.put("designerId", designerId);
                 designerObj.put("designerName", designerName);
+                designerObj.put("rating", r.getPkg().getDesigner().getRating());
+                designerObj.put("email", r.getPkg().getDesigner().getCustomer().getAccount().getEmail());
+                designerObj.put("phone", r.getPkg().getDesigner().getCustomer().getPhone());
+                designerObj.put("completeProject", schoolDesignRepo.findAllByCustomer_Account_Id(r.getPkg().getDesigner().getCustomer().getAccount().getId()).size());
+                designerObj.put("acceptance", r.getAcceptanceDeadline());
+                designerObj.put("status", r.getStatus());
                 designerObj.put("packages", new ArrayList<Map<String, Object>>());
                 designerMap.put(designerName, designerObj);
             }
