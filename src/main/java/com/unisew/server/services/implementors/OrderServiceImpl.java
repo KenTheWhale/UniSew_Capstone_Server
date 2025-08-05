@@ -1,0 +1,236 @@
+package com.unisew.server.services.implementors;
+
+import com.unisew.server.enums.DesignItemSize;
+import com.unisew.server.enums.Status;
+import com.unisew.server.models.*;
+import com.unisew.server.repositories.*;
+import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.responses.ResponseObject;
+import com.unisew.server.services.JWTService;
+import com.unisew.server.services.OrderService;
+import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.ResponseBuilder;
+import com.unisew.server.validations.ApproveQuotationValidation;
+import com.unisew.server.validations.OrderValidation;
+import com.unisew.server.validations.QuotationValidation;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class OrderServiceImpl implements OrderService {
+
+    OrderRepo orderRepo;
+
+    PartnerRepo partnerRepo;
+
+    SchoolDesignRepo schoolDesignRepo;
+
+    OrderDetailRepo orderDetailRepo;
+
+    QuotationRepo quotationRepo;
+
+    JWTService jwtService;
+
+    AccountRepo accountRepo;
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request) {
+        String error = OrderValidation.validate(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.OK, error, null);
+        }
+
+        SchoolDesign schoolDesign = schoolDesignRepo.findById(request.getSchoolDesignId())
+                .orElse(null);
+        if (schoolDesign == null) {
+            return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);
+        }
+
+        Partner garment = partnerRepo.findById(request.getGarmentId())
+                .orElse(null);
+        if (garment == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Garment not found", null);
+        }
+
+        Order order = Order.builder()
+                .schoolDesign(schoolDesign)
+                .garmentId(garment.getId())
+                .garmentName(garment.getCustomer().getName())
+                .deadline(request.getDeadline())
+                .price(0)
+                .serviceFee(0)
+                .orderDate(LocalDate.now())
+                .note(request.getNote())
+                .status(Status.ORDER_PENDING)
+                .build();
+
+        order = orderRepo.save(order);
+
+        List<OrderDetail> orderDetailEntities = new ArrayList<>();
+        if (request.getOrderDetails() != null) {
+            for (CreateOrderRequest.OrderItem item : request.getOrderDetails()) {
+                OrderDetail detail = OrderDetail.builder()
+                        .order(order)
+                        .deliveryItemId(item.getDeliveryItemId())
+                        .size(DesignItemSize.valueOf(item.getSize()))
+                        .quantity(item.getQuantity())
+                        .build();
+                orderDetailEntities.add(detail);
+            }
+            orderDetailRepo.saveAll(orderDetailEntities);
+        }
+
+        order.setOrderDetails(orderDetailEntities);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Order created successfully!", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewOrder() {
+        List<Order> orders = orderRepo.findAll();
+        if (orders.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No orders found", null);
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "Orders found", buildOrder(orders));
+    }
+
+    private List<Map<String, Object>> buildOrder(List<Order> orders) {
+        return orders.stream()
+                .filter(order -> order.getStatus().equals(Status.ORDER_PENDING))
+                .map(order -> {
+                    Map<String, Object> orderMap = new HashMap<>();
+                    orderMap.put("id", order.getId());
+                    orderMap.put("schoolName", order.getSchoolDesign().getCustomer().getName());
+                    orderMap.put("garmentId", order.getGarmentId());
+                    orderMap.put("garmentName", order.getGarmentName());
+                    orderMap.put("deadline", order.getDeadline());
+                    orderMap.put("price", order.getPrice());
+                    orderMap.put("serviceFee", order.getServiceFee());
+                    orderMap.put("orderDate", order.getOrderDate());
+                    orderMap.put("note", order.getNote());
+                    orderMap.put("status", order.getStatus().name());
+                    orderMap.put("orderDetails", buildOrderDetail(order.getOrderDetails()));
+                    return orderMap;
+                })
+                .toList();
+    }
+
+    private List<Map<String, Object>> buildOrderDetail(List<OrderDetail> orderDetails) {
+        return orderDetails.stream()
+                .map(orderDetail -> {
+                            Map<String, Object> detailMap = new HashMap<>();
+                            detailMap.put("id", orderDetail.getId());
+                            detailMap.put("deliveryItemId", orderDetail.getDeliveryItemId());
+                            detailMap.put("size", orderDetail.getSize().name());
+                            detailMap.put("quantity", orderDetail.getQuantity());
+                            return detailMap;
+                        }
+                )
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request) {
+        String error = QuotationValidation.validate(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.OK, error, null);
+        }
+
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Order not found", null);
+        }
+
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        Quotation quotation = Quotation.builder()
+                .order(order)
+                .garment(account.getCustomer().getPartner())
+                .earlyDeliveryDate(request.getEarlyDeliveryDate())
+                .acceptanceDeadline(request.getAcceptanceDeadline())
+                .price(request.getPrice())
+                .note(request.getNote())
+                .status(Status.QUOTATION_PENDING)
+                .build();
+
+        quotationRepo.save(quotation);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Quotation created successfully!", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
+        Quotation quotation = quotationRepo.findById(quotationId).orElse(null);
+        String error = ApproveQuotationValidation.validate(quotation);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+
+        quotation.setStatus(Status.QUOTATION_APPROVED);
+        quotationRepo.save(quotation);
+
+        List<Quotation> otherQuotations = quotationRepo.findAllByOrder_Id(quotation.getOrder().getId());
+        for (Quotation q : otherQuotations) {
+            if (!q.getId().equals(quotationId) && q.getStatus() == Status.QUOTATION_PENDING) {
+                q.setStatus(Status.QUOTATION_REJECTED);
+                quotationRepo.save(q);
+            }
+        }
+
+        Order order = quotation.getOrder();
+        order.setStatus(Status.ORDER_APPROVED);
+        orderRepo.save(order);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewQuotation(int orderId) {
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        List<Quotation> quotations = order.getQuotations();
+
+        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(q -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", q.getId());
+            map.put("garmentId", q.getGarment().getId());
+            map.put("garmentName", q.getGarment().getCustomer().getName());
+            map.put("earlyDeliveryDate", q.getEarlyDeliveryDate());
+            map.put("acceptanceDeadline", q.getAcceptanceDeadline());
+            map.put("price", q.getPrice());
+            map.put("note", q.getNote());
+            map.put("status", q.getStatus());
+            return map;
+        }).toList()
+                : new ArrayList<>();
+
+        return ResponseBuilder.build(HttpStatus.OK, "List of quotations", data);
+    }
+
+
+}
