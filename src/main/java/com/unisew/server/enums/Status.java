@@ -33,7 +33,14 @@ public enum Status {
     //RECEIPT
     RECEIPT_PENDING("pending"),
     RECEIPT_APPROVED("approved"),
-    RECEIPT_REJECTED("rejected");
+    RECEIPT_REJECTED("rejected"),
+
+    //ORDER
+    ORDER_PENDING("pending"),
+    ORDER_APPROVED("approved"),
+    ORDER_REJECTED("rejected"),
+    ORDER_COMPLETED("completed");
+
 
     private final String value;
 }
