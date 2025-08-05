@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -12,6 +13,6 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddPackageToReceiptRequest {
     int designRequestId;
-    int packageId;
+    List<Integer> packageId;
     LocalDate acceptanceDeadline;
 }
