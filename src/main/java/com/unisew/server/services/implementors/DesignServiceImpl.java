@@ -655,6 +655,109 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Design finished", null);
     }
 
+
+    //-----------------------PACKAGE-------------------------//
+
+    @Override
+    public ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<Packages> packagesList = packagesRepo.findAllByDesigner_Customer_Account_Id(account.getId());
+
+        List<Map<String, Object>> packageMap = packagesList.stream().map(
+                packages -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("deliveryDuration", packages.getDeliveryDuration());
+                    map.put("designer", packages.getDesigner().getId());
+                    map.put("id", packages.getId());
+                    map.put("revisionTime", packages.getRevisionTime());
+                    map.put("fee", packages.getFee());
+                    map.put("headerContent", packages.getHeaderContent());
+                    map.put("name", packages.getName());
+                    map.put("status", packages.getStatus());
+                    return map;
+                }
+        ).toList();
+        return ResponseBuilder.build(HttpStatus.OK, "List of Packages", packageMap);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, CreatePackagesRequest request) {
+
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<Packages> designerPackages = packagesRepo
+                .findAllByDesigner_Customer_Account_Id(account.getId())
+                .stream()
+                .filter(pkg -> pkg.getStatus() == Status.PACKAGE_ACTIVE || pkg.getStatus() == Status.PACKAGE_INACTIVE)
+                .toList();
+
+        if (designerPackages.size() >= 5) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You can only create up to 5 active/inactive packages", null);
+        }
+
+        Status statusKey = null;
+
+        if(request.getStatus().equalsIgnoreCase("active")) {
+            statusKey = Status.PACKAGE_ACTIVE;
+        }
+        if(request.getStatus().equalsIgnoreCase("inactive")) {
+            statusKey = Status.PACKAGE_INACTIVE;
+        }
+        if (request.getStatus().equalsIgnoreCase("delete")) {
+            statusKey = Status.PACKAGE_DELETE;
+        }
+
+        Packages packages = Packages.builder()
+                .deliveryDuration(request.getDeliveryDuration())
+                .designer(account.getCustomer().getPartner())
+                .revisionTime(request.getRevisionTime())
+                .fee(request.getFee())
+                .headerContent(request.getHeaderContent())
+                .name(request.getName())
+                .status(statusKey)
+                .build();
+
+        packagesRepo.save(packages);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Package created", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> changePackageStatus(ChangePackageStatusRequest request) {
+
+        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
+        if (packages == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Package not found", null);
+        }
+
+        Status statusKey = null;
+
+        if(request.getStatus().equalsIgnoreCase("active")) {
+            statusKey = Status.PACKAGE_ACTIVE;
+        }
+        if(request.getStatus().equalsIgnoreCase("inactive")) {
+            statusKey = Status.PACKAGE_INACTIVE;
+        }
+
+        assert statusKey != null;
+        if (!request.getStatus().equalsIgnoreCase("active")
+                && !request.getStatus().equalsIgnoreCase("inactive")) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Only can change to active or inactive", null);
+        }
+
+        packages.setStatus(statusKey);
+        packagesRepo.save(packages);
+        return ResponseBuilder.build(HttpStatus.OK, "Package changed", null);
+    }
+
+
     //-----------------------PRIVATE-------------------------//
 
     private Map<String, Object> mapFabric(Fabric fabric) {

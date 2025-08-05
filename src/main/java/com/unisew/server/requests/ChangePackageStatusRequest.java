@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreatePartnerAccountRequestRequest {
-    String encryptedData;
+public class ChangePackageStatusRequest {
+    int packageId;
+    String status;
 }

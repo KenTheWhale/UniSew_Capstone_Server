@@ -46,4 +46,12 @@ public interface DesignService {
     ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, GetListSchoolDesignRequest request);
 
     ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, MakeDesignFinalRequest request);
+
+    //--------------------------------PACKAGE----------------------------------------//
+    ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, CreatePackagesRequest request);
+
+
+    ResponseEntity<ResponseObject> changePackageStatus(ChangePackageStatusRequest request);
 }
