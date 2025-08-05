@@ -638,9 +638,19 @@ public class DesignServiceImpl implements DesignService {
                                         fabricMap.put("fabricName", designItem.getFabric().getName());
                                         fabricMap.put("fabricCategory", designItem.getFabric().getDesignItemCategory().toString());
                                         fabricMap.put("fabricType", designItem.getFabric().getDesignItemType().toString());
-
-
                                         itemMap.put("fabric", fabricMap);
+
+                                        List<SampleImage> sampleImages = designItem.getSampleImages();
+
+                                        List<Map<String, Object>> imageMap = sampleImages.stream().map(
+                                                sampleImage -> {
+                                                    Map<String,Object> image = new HashMap<>();
+                                                    image.put("id", sampleImage.getId());
+                                                    image.put("url", sampleImage.getImageUrl());
+                                                    return image;
+                                                }
+                                        ).toList();
+                                        itemMap.put("images", imageMap);
                                         itemMap.put("color", designItem.getColor());
                                         itemMap.put("logoPosition", designItem.getLogoPosition());
                                         itemMap.put("note", designItem.getNote());

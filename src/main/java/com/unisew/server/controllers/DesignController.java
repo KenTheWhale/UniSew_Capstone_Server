@@ -57,7 +57,7 @@ public class DesignController {
     }
 
     //------------------RECEIPT---------------------------//
-    @GetMapping("/list/receipt")
+    @PostMapping("/list/receipt")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> getListReceipt(@RequestBody GetListReceiptRequest request) {
         return designService.getListReceipt(request);
@@ -70,7 +70,7 @@ public class DesignController {
     }
     //-------------------DESIGN_DELIVERY---------------------//
 
-    @GetMapping("/deliveries")
+    @PostMapping("/deliveries")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListDeliveries(@RequestBody GetListDeliveryRequest request) {
         return designService.getListDeliveries(request);
@@ -102,7 +102,7 @@ public class DesignController {
         return designService.getAllUnUsedRevisionRequest(request);
     }
     //-------------------DESIGN_COMMENT----------------------------//
-    @GetMapping("/list-comment/{requestId}")
+    @PostMapping("/list-comment/{requestId}")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListComment(@RequestBody GetListCommentRequest request) {
         return designService.getListDesignComment(request);
