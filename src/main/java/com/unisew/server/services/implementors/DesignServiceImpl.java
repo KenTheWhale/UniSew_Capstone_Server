@@ -278,6 +278,12 @@ public class DesignServiceImpl implements DesignService {
                 Map<String, Object> designerObj = new HashMap<>();
                 designerObj.put("designerId", designerId);
                 designerObj.put("designerName", designerName);
+                designerObj.put("rating", r.getPkg().getDesigner().getRating());
+                designerObj.put("email", r.getPkg().getDesigner().getCustomer().getAccount().getEmail());
+                designerObj.put("phone", r.getPkg().getDesigner().getCustomer().getPhone());
+                designerObj.put("completeProject", schoolDesignRepo.findAllByCustomer_Account_Id(r.getPkg().getDesigner().getCustomer().getAccount().getId()).size());
+                designerObj.put("acceptance", r.getAcceptanceDeadline());
+                designerObj.put("status", r.getStatus());
                 designerObj.put("packages", new ArrayList<Map<String, Object>>());
                 designerMap.put(designerName, designerObj);
             }
@@ -305,35 +311,41 @@ public class DesignServiceImpl implements DesignService {
     @Override
     public ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request) {
 
-        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
 
         DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
 
-        if (packages == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
-        }
         if (designRequest == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
         }
 
         List<RequestReceipt> requestReceiptList = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
 
-        boolean alreadyExists = requestReceiptList.stream()
-                .anyMatch(r -> r.getPkg().getId().equals(request.getPackageId()));
+        List<Integer> addedPackages = new ArrayList<>();
+        List<Integer> skippedPackages = new ArrayList<>();
 
-        if (alreadyExists) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already added to receipt for this request", null);
+        for (Integer pkgId : request.getPackageId()){
+            Packages packages = packagesRepo.findById(pkgId).orElse(null);
+            if (packages == null) {
+                skippedPackages.add(pkgId);
+            }
+            boolean alreadyExists = requestReceiptList.stream()
+                    .anyMatch(r -> r.getPkg().getId().equals(pkgId));
+
+            if (alreadyExists) {
+                skippedPackages.add(pkgId);
+            }
+            RequestReceipt requestReceipt = RequestReceipt.builder()
+                    .pkg(packages)
+                    .designRequest(designRequest)
+                    .acceptanceDeadline(request.getAcceptanceDeadline())
+                    .status(Status.RECEIPT_PENDING)
+                    .build();
+
+            requestReceiptRepo.save(requestReceipt);
+            addedPackages.add(pkgId);
         }
 
-        RequestReceipt requestReceipt = RequestReceipt.builder()
-                .pkg(packages)
-                .designRequest(designRequest)
-                .acceptanceDeadline(request.getAcceptanceDeadline())
-                .status(Status.RECEIPT_PENDING)
-                .build();
-        requestReceiptRepo.save(requestReceipt);
-
-        return ResponseBuilder.build(HttpStatus.OK, "package added to receipt successfully", null);
+        return ResponseBuilder.build(HttpStatus.OK, "PackageIds " + addedPackages + " add successfully, packageIds" + skippedPackages + " cannot add", null);
     }
 
     //---------------------------------DESIGN_DELIVERY--------------------------------//
