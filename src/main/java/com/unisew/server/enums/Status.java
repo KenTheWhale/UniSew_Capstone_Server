@@ -23,6 +23,7 @@ public enum Status {
     PACKAGE_ACTIVE("active"),
     PACKAGE_INACTIVE("inactive"),
     PACKAGE_DELETE("delete"),
+    PACKAGE_PENDING_DELETE("pending delete"),
 
     //DESIGN
     DESIGN_REQUEST_CREATED("created"),
