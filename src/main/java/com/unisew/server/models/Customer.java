@@ -30,6 +30,9 @@ public class Customer {
 
     String name;
 
+    @Column(name = "`business_name`")
+    String businessName;
+
     String phone;
 
     String avatar;

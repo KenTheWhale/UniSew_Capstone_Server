@@ -1,5 +1,6 @@
 package com.unisew.server.controllers;
 
+import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,9 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -24,5 +23,10 @@ public class AccountController {
     @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
     public ResponseEntity<ResponseObject> logout(HttpServletRequest request, HttpServletResponse response) {
         return accountService.logout(request, response);
+    }
+
+    @PutMapping("/data/customer")
+    public ResponseEntity<ResponseObject> updateCustomerBasicData(@RequestBody UpdateCustomerBasicDataRequest request, HttpServletRequest httpRequest) {
+        return accountService.updateCustomerBasicData(request, httpRequest);
     }
 }

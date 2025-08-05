@@ -606,16 +606,21 @@ public class DesignServiceImpl implements DesignService {
                 designRequest -> {
                     Map<String, Object> designRequestMap = new HashMap<>();
                     designRequestMap.put("id", designRequest.getId());
+                    designRequestMap.put("schoolAdmin", designRequest.getSchool().getName());
+                    designRequestMap.put("school", designRequest.getSchool().getBusinessName());
+                    designRequestMap.put("feedback", null);
+                    designRequestMap.put("template", null);
+                    designRequestMap.put("pkgId", designRequest.getPackageId());
                     designRequestMap.put("name", designRequest.getName());
                     designRequestMap.put("creationDate", designRequest.getCreationDate());
+                    designRequestMap.put("logoImage", designRequest.getLogoImage());
+                    designRequestMap.put("privacy", designRequest.isPrivacy());
                     designRequestMap.put("status", designRequest.getStatus().getValue());
-                    designRequestMap.put("pkgId", designRequest.getPackageId() != null ? designRequest.getPackageId() : "N/A");
-                    designRequestMap.put("pkgName", designRequest.getPackageName() != null ? designRequest.getPackageName() : "N/A");
-                    designRequestMap.put("pkgHeaderContent", designRequest.getHeaderContent() != null ? designRequest.getHeaderContent() : "N/A");
-                    designRequestMap.put("pkgDuration", designRequest.getPackageDeliveryWithin() != null ? designRequest.getPackageDeliveryWithin() : "N/A");
+                    designRequestMap.put("pkgName", designRequest.getPackageName());
+                    designRequestMap.put("pkgHeaderContent", designRequest.getHeaderContent());
+                    designRequestMap.put("pkgDeliveryWithin", designRequest.getPackageDeliveryWithin() != null ? designRequest.getPackageDeliveryWithin() : "N/A");
                     designRequestMap.put("pkgRevisionTime", designRequest.getRevisionTime() != null ? designRequest.getRevisionTime() : "N/A");
                     designRequestMap.put("pkgFee", designRequest.getPackagePrice());
-                    designRequestMap.put("numberOfItem", designRequest.getDesignItems().size());
 
                     List<DesignItem> designItems = designRequest.getDesignItems();
 
