@@ -115,4 +115,15 @@ public class DesignController {
     }
 
     //-------------------SCHOOL_DESIGN----------------------------//
+    @PostMapping("/school-design/list")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, @RequestBody GetListSchoolDesignRequest request){
+        return designService.getListSchoolDesign(httpRequest, request);
+    }
+
+    @PostMapping("/school-design")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, @RequestBody MakeDesignFinalRequest request){
+        return designService.makeDesignFinal(httpRequest, request);
+    }
 }
