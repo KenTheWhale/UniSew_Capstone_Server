@@ -2,23 +2,22 @@ package com.unisew.server.services.implementors;
 
 import com.unisew.server.enums.DesignItemSize;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.Order;
-import com.unisew.server.models.OrderDetail;
-import com.unisew.server.models.Partner;
-import com.unisew.server.models.SchoolDesign;
-import com.unisew.server.repositories.OrderDetailRepo;
-import com.unisew.server.repositories.OrderRepo;
-import com.unisew.server.repositories.PartnerRepo;
-import com.unisew.server.repositories.SchoolDesignRepo;
+import com.unisew.server.models.*;
+import com.unisew.server.repositories.*;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.responses.ResponseObject;
+import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
+import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.OrderValidation;
+import com.unisew.server.validations.QuotationValidation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,6 +42,12 @@ public class OrderServiceImpl implements OrderService {
 
     OrderDetailRepo orderDetailRepo;
 
+    QuotationRepo quotationRepo;
+
+    JWTService jwtService;
+
+    AccountRepo accountRepo;
+
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request) {
@@ -60,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
         Partner garment = partnerRepo.findById(request.getGarmentId())
                 .orElse(null);
         if (garment == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "Garment not found", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Garment not found", null);
         }
 
         Order order = Order.builder()
@@ -142,8 +147,37 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> createQuotation(QuotationRequest request) {
-        return null;
+    @Transactional
+    public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request) {
+        String error = QuotationValidation.validate(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.OK, error, null);
+        }
+
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.OK, "Order not found", null);
+        }
+
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        Quotation quotation = Quotation.builder()
+                .order(order)
+                .garment(account.getCustomer().getPartner())
+                .earlyDeliveryDate(request.getEarlyDeliveryDate())
+                .acceptanceDeadline(request.getAcceptanceDeadline())
+                .price(request.getPrice())
+                .note(request.getNote())
+                .status(Status.QUOTATION_PENDING)
+                .build();
+
+        quotationRepo.save(quotation);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Quotation created successfully!", null);
     }
 
 }

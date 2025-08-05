@@ -5,7 +5,9 @@ import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.OrderService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +32,10 @@ public class OrderController {
     }
 
     @PostMapping("/quotation")
-    public ResponseEntity<ResponseObject> createQuotation(@RequestBody QuotationRequest request) {
-        return orderService.createQuotation(request);
+    public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, @RequestBody QuotationRequest request) {
+        return orderService.createQuotation(httpServletRequest, request);
     }
+
+
+
+}

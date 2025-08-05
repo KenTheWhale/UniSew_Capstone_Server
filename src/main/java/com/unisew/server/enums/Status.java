@@ -39,7 +39,13 @@ public enum Status {
     ORDER_PENDING("pending"),
     ORDER_APPROVED("approved"),
     ORDER_REJECTED("rejected"),
-    ORDER_COMPLETED("completed");
+    ORDER_COMPLETED("completed"),
+
+    //QUOTATION
+    QUOTATION_PENDING("pending"),
+    QUOTATION_APPROVED("approved"),
+    QUOTATION_REJECTED("rejected");
+
 
 
     private final String value;
