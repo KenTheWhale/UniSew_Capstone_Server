@@ -704,14 +704,11 @@ public class DesignServiceImpl implements DesignService {
 
         Status statusKey = null;
 
-        if(request.getStatus().equalsIgnoreCase("active")) {
+        if (request.getStatus().equalsIgnoreCase("active")) {
             statusKey = Status.PACKAGE_ACTIVE;
         }
-        if(request.getStatus().equalsIgnoreCase("inactive")) {
+        if (request.getStatus().equalsIgnoreCase("inactive")) {
             statusKey = Status.PACKAGE_INACTIVE;
-        }
-        if (request.getStatus().equalsIgnoreCase("delete")) {
-            statusKey = Status.PACKAGE_DELETE;
         }
 
         Packages packages = Packages.builder()
@@ -739,17 +736,38 @@ public class DesignServiceImpl implements DesignService {
 
         Status statusKey = null;
 
-        if(request.getStatus().equalsIgnoreCase("active")) {
+        if (request.getStatus().equalsIgnoreCase("active")) {
             statusKey = Status.PACKAGE_ACTIVE;
         }
-        if(request.getStatus().equalsIgnoreCase("inactive")) {
+        if (request.getStatus().equalsIgnoreCase("inactive")) {
             statusKey = Status.PACKAGE_INACTIVE;
+        }
+        if (request.getStatus().equals("delete")) {
+            List<DesignRequest> designRequests = designRequestRepo.findAllByPackageId(packages.getId());
+
+            boolean hasUnfinalRequest = designRequests.stream().anyMatch(dr -> {
+
+                List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(dr.getId());
+
+                return deliveries.stream().anyMatch(delivery -> {
+                    boolean isFinal = schoolDesignRepo.existsByDesignDelivery_Id(delivery.getId());
+                    return !isFinal;
+                });
+            });
+
+            if (hasUnfinalRequest) {
+                statusKey = Status.PACKAGE_PENDING_DELETE;
+            } else {
+                statusKey = Status.PACKAGE_DELETE;
+            }
+
         }
 
         assert statusKey != null;
         if (!request.getStatus().equalsIgnoreCase("active")
-                && !request.getStatus().equalsIgnoreCase("inactive")) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Only can change to active or inactive", null);
+                && !request.getStatus().equalsIgnoreCase("inactive")
+                && !request.getStatus().equalsIgnoreCase("delete")) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Only can change to active or inactive or delete", null);
         }
 
         packages.setStatus(statusKey);
