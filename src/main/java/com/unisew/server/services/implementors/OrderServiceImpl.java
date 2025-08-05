@@ -18,7 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -214,22 +213,21 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        List<Map<String, Object>> data = new ArrayList<>();
         List<Quotation> quotations = order.getQuotations();
-        if (quotations != null && !quotations.isEmpty()) {
-            for (Quotation item : quotations) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", item.getId());
-                map.put("garmentId", item.getGarment().getId());
-                map.put("garmentName", item.getGarment().getCustomer().getName());
-                map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
-                map.put("acceptanceDeadline", item.getAcceptanceDeadline());
-                map.put("price", item.getPrice());
-                map.put("note", item.getNote());
-                map.put("status", item.getStatus());
-                data.add(map);
-            }
-        }
+
+        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(q -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", q.getId());
+            map.put("garmentId", q.getGarment().getId());
+            map.put("garmentName", q.getGarment().getCustomer().getName());
+            map.put("earlyDeliveryDate", q.getEarlyDeliveryDate());
+            map.put("acceptanceDeadline", q.getAcceptanceDeadline());
+            map.put("price", q.getPrice());
+            map.put("note", q.getNote());
+            map.put("status", q.getStatus());
+            return map;
+        }).toList()
+                : new ArrayList<>();
 
         return ResponseBuilder.build(HttpStatus.OK, "List of quotations", data);
     }
