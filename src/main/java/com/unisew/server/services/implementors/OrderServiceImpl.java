@@ -215,16 +215,16 @@ public class OrderServiceImpl implements OrderService {
 
         List<Quotation> quotations = order.getQuotations();
 
-        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(q -> {
+        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(item -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", q.getId());
-            map.put("garmentId", q.getGarment().getId());
-            map.put("garmentName", q.getGarment().getCustomer().getName());
-            map.put("earlyDeliveryDate", q.getEarlyDeliveryDate());
-            map.put("acceptanceDeadline", q.getAcceptanceDeadline());
-            map.put("price", q.getPrice());
-            map.put("note", q.getNote());
-            map.put("status", q.getStatus());
+            map.put("id", item.getId());
+            map.put("garmentId", item.getGarment().getId());
+            map.put("garmentName", item.getGarment().getCustomer().getName());
+            map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
+            map.put("acceptanceDeadline", item.getAcceptanceDeadline());
+            map.put("price", item.getPrice());
+            map.put("note", item.getNote());
+            map.put("status", item.getStatus());
             return map;
         }).toList()
                 : new ArrayList<>();
