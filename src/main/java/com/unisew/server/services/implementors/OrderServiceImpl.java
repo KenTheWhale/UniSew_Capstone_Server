@@ -209,7 +209,29 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseEntity<ResponseObject> viewQuotation(int orderId) {
-        return null;
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        List<Map<String, Object>> data = new ArrayList<>();
+        List<Quotation> quotations = order.getQuotations();
+        if (quotations != null && !quotations.isEmpty()) {
+            for (Quotation item : quotations) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", item.getId());
+                map.put("garmentId", item.getGarment().getId());
+                map.put("garmentName", item.getGarment().getCustomer().getName());
+                map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
+                map.put("acceptanceDeadline", item.getAcceptanceDeadline());
+                map.put("price", item.getPrice());
+                map.put("note", item.getNote());
+                map.put("status", item.getStatus());
+                data.add(map);
+            }
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "List of quotations", data);
     }
 
 
