@@ -9,10 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/order")
@@ -36,6 +33,15 @@ public class OrderController {
         return orderService.createQuotation(httpServletRequest, request);
     }
 
+    @GetMapping("/quotation/{orderId}")
+    public ResponseEntity<ResponseObject> viewQuotation(@PathVariable(name = "orderId") int orderId) {
+        return orderService.viewQuotation(orderId);
+    }
+
+    @GetMapping("/quotation/approval/{quotationId}")
+    public ResponseEntity<ResponseObject> approveQuotation(@PathVariable(name = "quotationId") int quotationId) {
+        return orderService.approveQuotation(quotationId);
+    }
 
 
 }

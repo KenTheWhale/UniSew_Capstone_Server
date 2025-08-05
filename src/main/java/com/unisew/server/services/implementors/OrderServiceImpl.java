@@ -11,6 +11,7 @@ import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.ResponseBuilder;
+import com.unisew.server.validations.ApproveQuotationValidation;
 import com.unisew.server.validations.OrderValidation;
 import com.unisew.server.validations.QuotationValidation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -105,7 +106,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> viewOrder() {
         List<Order> orders = orderRepo.findAll();
         if (orders.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.OK, "No orders found", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No orders found", null);
         }
 
         return ResponseBuilder.build(HttpStatus.OK, "Orders found", buildOrder(orders));
@@ -156,7 +157,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "Order not found", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Order not found", null);
         }
 
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
@@ -179,5 +180,37 @@ public class OrderServiceImpl implements OrderService {
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation created successfully!", null);
     }
+
+    @Override
+    public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
+        Quotation quotation = quotationRepo.findById(quotationId).orElse(null);
+        String error = ApproveQuotationValidation.validate(quotation);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+
+        quotation.setStatus(Status.QUOTATION_APPROVED);
+        quotationRepo.save(quotation);
+
+        List<Quotation> otherQuotations = quotationRepo.findAllByOrder_Id(quotation.getOrder().getId());
+        for (Quotation q : otherQuotations) {
+            if (!q.getId().equals(quotationId) && q.getStatus() == Status.QUOTATION_PENDING) {
+                q.setStatus(Status.QUOTATION_REJECTED);
+                quotationRepo.save(q);
+            }
+        }
+
+        Order order = quotation.getOrder();
+        order.setStatus(Status.ORDER_APPROVED);
+        orderRepo.save(order);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewQuotation(int orderId) {
+        return null;
+    }
+
 
 }
