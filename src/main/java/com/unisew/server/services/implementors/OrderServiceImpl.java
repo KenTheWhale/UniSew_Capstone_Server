@@ -181,6 +181,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
         Quotation quotation = quotationRepo.findById(quotationId).orElse(null);
         String error = ApproveQuotationValidation.validate(quotation);
@@ -192,15 +193,20 @@ public class OrderServiceImpl implements OrderService {
         quotationRepo.save(quotation);
 
         List<Quotation> otherQuotations = quotationRepo.findAllByOrder_Id(quotation.getOrder().getId());
-        for (Quotation q : otherQuotations) {
-            if (!q.getId().equals(quotationId) && q.getStatus() == Status.QUOTATION_PENDING) {
-                q.setStatus(Status.QUOTATION_REJECTED);
-                quotationRepo.save(q);
+        for (Quotation item : otherQuotations) {
+            if (!item.getId().equals(quotationId) && item.getStatus() == Status.QUOTATION_PENDING) {
+                item.setStatus(Status.QUOTATION_REJECTED);
+                quotationRepo.save(item);
             }
         }
 
         Order order = quotation.getOrder();
         order.setStatus(Status.ORDER_APPROVED);
+        order.setGarmentId(quotation.getGarment().getId());
+        order.setGarmentName(quotation.getGarment().getCustomer().getName());
+        order.setPrice(quotation.getPrice());
+        order.setServiceFee(quotation.getPrice() * 5 / 100);
+        order.setNote(order.getNote() + "&&" + quotation.getNote());
         orderRepo.save(order);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
