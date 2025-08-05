@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreatePackagesRequest {
-    Integer deliveryDuration;
+    int deliveryDuration;
     int revisionTime;
     long fee;
     String headerContent;

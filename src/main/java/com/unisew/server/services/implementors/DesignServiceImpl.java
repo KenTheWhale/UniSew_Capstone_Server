@@ -677,7 +677,7 @@ public class DesignServiceImpl implements DesignService {
                     map.put("fee", packages.getFee());
                     map.put("headerContent", packages.getHeaderContent());
                     map.put("name", packages.getName());
-                    map.put("status", packages.getStatus());
+                    map.put("status", packages.getStatus().getValue());
                     return map;
                 }
         ).toList();
