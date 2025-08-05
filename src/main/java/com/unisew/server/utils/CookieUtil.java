@@ -36,6 +36,7 @@ public class CookieUtil {
 
         Cookie checkCookie = new Cookie("check", "true");
         checkCookie.setPath("/");
+        checkCookie.setMaxAge((int) (refreshExp / 1000));
         response.addCookie(checkCookie);
     }
 
@@ -50,6 +51,11 @@ public class CookieUtil {
         refresh.setPath("/");
         refresh.setMaxAge(0);
         response.addCookie(refresh);
+
+        Cookie checkCookie = new Cookie("check", null);
+        checkCookie.setPath("/");
+        checkCookie.setMaxAge(0);
+        response.addCookie(checkCookie);
     }
 
     public static Account extractAccountFromCookie(HttpServletRequest request, JWTService jwtService, AccountRepo accountRepo) {

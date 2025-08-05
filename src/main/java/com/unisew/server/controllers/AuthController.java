@@ -1,5 +1,7 @@
 package com.unisew.server.controllers;
 
+import com.unisew.server.requests.CreatePartnerAccountRequestRequest;
+import com.unisew.server.requests.EncryptPartnerDataRequest;
 import com.unisew.server.requests.LoginRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AuthService;
@@ -29,5 +31,15 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ResponseObject> refresh(HttpServletRequest request, HttpServletResponse response) {
         return authService.refresh(request, response);
+    }
+
+    @PostMapping("/partner/data/encrypt")
+    public ResponseEntity<ResponseObject> encryptPartnerData(@RequestBody EncryptPartnerDataRequest request){
+        return authService.encryptPartnerData(request);
+    }
+
+    @PostMapping("/partner/register")
+    public ResponseEntity<ResponseObject> createPartnerAccountRequest(@RequestBody CreatePartnerAccountRequestRequest request){
+        return authService.createPartnerAccountRequest(request);
     }
 }
