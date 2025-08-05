@@ -181,11 +181,11 @@ public class DesignServiceImpl implements DesignService {
     public ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request) {
 
         DesignRequest oldDesign = designRequestRepo.findById(request.getId()).orElse(null);
-        if (oldDesign == null ) {
+        if (oldDesign == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Old design not found", null);
         }
 
-        if (!oldDesign.getStatus().equals(Status.DESIGN_REQUEST_CANCEL)){
+        if (!oldDesign.getStatus().equals(Status.DESIGN_REQUEST_CANCEL)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Old design are not canceled", null);
         }
 
@@ -580,6 +580,183 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Comment sent", null);
     }
 
+    //-----------------------SCHOOL_DESIGN-------------------------//
+
+    @Override
+    public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, GetListSchoolDesignRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<SchoolDesign> schoolDesigns = schoolDesignRepo.findAllByCustomer_Account_Id(account.getId());
+
+        List<Map<String, Object>> mapList = schoolDesigns.stream().map(
+                schoolDesign -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", schoolDesign.getId());
+
+                    Map<String, Object> deliveryMap = new HashMap<>();
+                    deliveryMap.put("deliveryId", schoolDesign.getDesignDelivery().getId());
+                    deliveryMap.put("deliveryCode", schoolDesign.getDesignDelivery().getCode());
+
+                    List<Map<String, Object>> itemList = schoolDesign.getDesignDelivery().getDeliveryItems()
+                            .stream().map(
+                                    deliveryItem -> {
+                                        Map<String, Object> item = new HashMap<>();
+                                        item.put("id", deliveryItem.getId());
+                                        item.put("baseWidth", deliveryItem.getBaseLogoWidth());
+                                        item.put("baseHeight", deliveryItem.getBaseLogoHeight());
+                                        item.put("backUrl", deliveryItem.getBackImageUrl());
+                                        item.put("frontUrl", deliveryItem.getFrontImageUrl());
+
+                                        DesignItem designItem = designItemRepo.findById(deliveryItem.getDesignItemId()).orElse(null);
+                                        assert designItem != null;
+                                        item.put("itemType", designItem.getType().getValue());
+                                        item.put("fabric", designItem.getFabric().getName());
+                                        item.put("category", designItem.getCategory().getValue());
+                                        item.put("gender", designItem.getGender().getValue());
+                                        item.put("logoPosition", designItem.getLogoPosition());
+                                        return item;
+                                    }
+                            ).toList();
+                    deliveryMap.put("items", itemList);
+                    map.put("delivery", deliveryMap);
+                    return map;
+                }
+        ).toList();
+        return ResponseBuilder.build(HttpStatus.OK, "List of School Designs", mapList);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, MakeDesignFinalRequest request) {
+
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        DesignDelivery designDelivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
+
+        if (designDelivery == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No design delivery found", null);
+        }
+
+        SchoolDesign schoolDesign = SchoolDesign.builder()
+                .designDelivery(designDelivery)
+                .customer(account.getCustomer())
+                .build();
+
+        schoolDesignRepo.save(schoolDesign);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Design finished", null);
+    }
+
+
+    //-----------------------PACKAGE-------------------------//
+
+    @Override
+    public ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<Packages> packagesList = packagesRepo.findAllByDesigner_Customer_Account_Id(account.getId());
+
+        List<Map<String, Object>> packageMap = packagesList.stream().map(
+                packages -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("deliveryDuration", packages.getDeliveryDuration());
+                    map.put("designer", packages.getDesigner().getId());
+                    map.put("id", packages.getId());
+                    map.put("revisionTime", packages.getRevisionTime());
+                    map.put("fee", packages.getFee());
+                    map.put("headerContent", packages.getHeaderContent());
+                    map.put("name", packages.getName());
+                    map.put("status", packages.getStatus());
+                    return map;
+                }
+        ).toList();
+        return ResponseBuilder.build(HttpStatus.OK, "List of Packages", packageMap);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, CreatePackagesRequest request) {
+
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<Packages> designerPackages = packagesRepo
+                .findAllByDesigner_Customer_Account_Id(account.getId())
+                .stream()
+                .filter(pkg -> pkg.getStatus() == Status.PACKAGE_ACTIVE || pkg.getStatus() == Status.PACKAGE_INACTIVE)
+                .toList();
+
+        if (designerPackages.size() >= 5) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You can only create up to 5 active/inactive packages", null);
+        }
+
+        Status statusKey = null;
+
+        if(request.getStatus().equalsIgnoreCase("active")) {
+            statusKey = Status.PACKAGE_ACTIVE;
+        }
+        if(request.getStatus().equalsIgnoreCase("inactive")) {
+            statusKey = Status.PACKAGE_INACTIVE;
+        }
+        if (request.getStatus().equalsIgnoreCase("delete")) {
+            statusKey = Status.PACKAGE_DELETE;
+        }
+
+        Packages packages = Packages.builder()
+                .deliveryDuration(request.getDeliveryDuration())
+                .designer(account.getCustomer().getPartner())
+                .revisionTime(request.getRevisionTime())
+                .fee(request.getFee())
+                .headerContent(request.getHeaderContent())
+                .name(request.getName())
+                .status(statusKey)
+                .build();
+
+        packagesRepo.save(packages);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Package created", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> changePackageStatus(ChangePackageStatusRequest request) {
+
+        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
+        if (packages == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Package not found", null);
+        }
+
+        Status statusKey = null;
+
+        if(request.getStatus().equalsIgnoreCase("active")) {
+            statusKey = Status.PACKAGE_ACTIVE;
+        }
+        if(request.getStatus().equalsIgnoreCase("inactive")) {
+            statusKey = Status.PACKAGE_INACTIVE;
+        }
+
+        assert statusKey != null;
+        if (!request.getStatus().equalsIgnoreCase("active")
+                && !request.getStatus().equalsIgnoreCase("inactive")) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Only can change to active or inactive", null);
+        }
+
+        packages.setStatus(statusKey);
+        packagesRepo.save(packages);
+        return ResponseBuilder.build(HttpStatus.OK, "Package changed", null);
+    }
+
 
     //-----------------------PRIVATE-------------------------//
 
@@ -644,7 +821,7 @@ public class DesignServiceImpl implements DesignService {
 
                                         List<Map<String, Object>> imageMap = sampleImages.stream().map(
                                                 sampleImage -> {
-                                                    Map<String,Object> image = new HashMap<>();
+                                                    Map<String, Object> image = new HashMap<>();
                                                     image.put("id", sampleImage.getId());
                                                     image.put("url", sampleImage.getImageUrl());
                                                     return image;
@@ -665,6 +842,5 @@ public class DesignServiceImpl implements DesignService {
 
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
-
 
 }

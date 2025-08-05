@@ -38,7 +38,7 @@ public class DesignController {
         return designService.getListDesignRequestByCustomer(request);
     }
 
-    @PostMapping("/packages")
+    @PostMapping("/pick-packages")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> pickPackageRequest(@RequestBody PickPackageRequest request) {
         return designService.pickPackage(request);
@@ -115,4 +115,34 @@ public class DesignController {
     }
 
     //-------------------SCHOOL_DESIGN----------------------------//
+    @PostMapping("/school-design/list")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, @RequestBody GetListSchoolDesignRequest request){
+        return designService.getListSchoolDesign(httpRequest, request);
+    }
+
+    @PostMapping("/school-design")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, @RequestBody MakeDesignFinalRequest request){
+        return designService.makeDesignFinal(httpRequest, request);
+    }
+
+    //-------------------PACKAGE----------------------------//
+    @PostMapping("/package-list")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest){
+        return designService.getListPackage(httpRequest);
+    }
+
+    @PostMapping("/new-package")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, @RequestBody CreatePackagesRequest request){
+        return designService.createPackages(httpRequest, request);
+    }
+
+    @PutMapping("/packages/status")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> changePackageStatus(@RequestBody ChangePackageStatusRequest request){
+        return designService.changePackageStatus(request);
+    }
 }
