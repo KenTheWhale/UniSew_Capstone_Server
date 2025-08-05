@@ -74,6 +74,10 @@ public class AuthServiceImpl implements AuthService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This email is requested to be a partner", null);
         }
 
+        if(request.getEmail() == null || request.getEmail().isEmpty()){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Email is required", null);
+        }
+
         if (account == null) {
             return register(request, response);
         }
