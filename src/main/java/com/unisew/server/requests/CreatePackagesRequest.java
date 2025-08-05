@@ -8,6 +8,11 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreatePartnerAccountRequestRequest {
-    String encryptedData;
+public class CreatePackagesRequest {
+    Integer deliveryDuration;
+    int revisionTime;
+    long fee;
+    String headerContent;
+    String name;
+    String status;
 }

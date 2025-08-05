@@ -21,7 +21,8 @@ public enum Status {
 
     //PACKAGES
     PACKAGE_ACTIVE("active"),
-    PACKAGE_UN_ACTIVE("un-active"),
+    PACKAGE_INACTIVE("inactive"),
+    PACKAGE_DELETE("delete"),
 
     //DESIGN
     DESIGN_REQUEST_CREATED("created"),
