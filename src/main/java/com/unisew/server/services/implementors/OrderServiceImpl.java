@@ -11,6 +11,7 @@ import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SchoolDesignRepo;
 import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.OrderService;
 import com.unisew.server.utils.ResponseBuilder;
@@ -25,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -92,4 +95,55 @@ public class OrderServiceImpl implements OrderService {
 
         return ResponseBuilder.build(HttpStatus.OK, "Order created successfully!", null);
     }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewOrder() {
+        List<Order> orders = orderRepo.findAll();
+        if (orders.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.OK, "No orders found", null);
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "Orders found", buildOrder(orders));
+    }
+
+    private List<Map<String, Object>> buildOrder(List<Order> orders) {
+        return orders.stream()
+                .filter(order -> order.getStatus().equals(Status.ORDER_PENDING))
+                .map(order -> {
+                    Map<String, Object> orderMap = new HashMap<>();
+                    orderMap.put("id", order.getId());
+                    orderMap.put("schoolName", order.getSchoolDesign().getCustomer().getName());
+                    orderMap.put("garmentId", order.getGarmentId());
+                    orderMap.put("garmentName", order.getGarmentName());
+                    orderMap.put("deadline", order.getDeadline());
+                    orderMap.put("price", order.getPrice());
+                    orderMap.put("serviceFee", order.getServiceFee());
+                    orderMap.put("orderDate", order.getOrderDate());
+                    orderMap.put("note", order.getNote());
+                    orderMap.put("status", order.getStatus().name());
+                    orderMap.put("orderDetails", buildOrderDetail(order.getOrderDetails()));
+                    return orderMap;
+                })
+                .toList();
+    }
+
+    private List<Map<String, Object>> buildOrderDetail(List<OrderDetail> orderDetails) {
+        return orderDetails.stream()
+                .map(orderDetail -> {
+                            Map<String, Object> detailMap = new HashMap<>();
+                            detailMap.put("id", orderDetail.getId());
+                            detailMap.put("deliveryItemId", orderDetail.getDeliveryItemId());
+                            detailMap.put("size", orderDetail.getSize().name());
+                            detailMap.put("quantity", orderDetail.getQuantity());
+                            return detailMap;
+                        }
+                )
+                .toList();
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> createQuotation(QuotationRequest request) {
+        return null;
+    }
+
 }
