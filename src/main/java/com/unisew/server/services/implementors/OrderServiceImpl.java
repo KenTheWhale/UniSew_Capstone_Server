@@ -181,6 +181,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
         GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(quotationId).orElse(null);
         String error = ApproveQuotationValidation.validate(garmentQuotation);
@@ -192,15 +193,20 @@ public class OrderServiceImpl implements OrderService {
         garmentQuotationRepo.save(garmentQuotation);
 
         List<GarmentQuotation> otherGarmentQuotations = garmentQuotationRepo.findAllByOrder_Id(garmentQuotation.getOrder().getId());
-        for (GarmentQuotation q : otherGarmentQuotations) {
-            if (!q.getId().equals(quotationId) && q.getStatus() == Status.GARMENT_QUOTATION_PENDING) {
-                q.setStatus(Status.GARMENT_QUOTATION_REJECTED);
-                garmentQuotationRepo.save(q);
+        for (GarmentQuotation item : otherGarmentQuotations) {
+            if (!item.getId().equals(quotationId) && item.getStatus() == Status.GARMENT_QUOTATION_PENDING) {
+                item.setStatus(Status.GARMENT_QUOTATION_REJECTED);
+                garmentQuotationRepo.save(item);
             }
         }
 
         Order order = garmentQuotation.getOrder();
         order.setStatus(Status.ORDER_APPROVED);
+        order.setGarmentId(garmentQuotation.getGarment().getId());
+        order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
+        order.setPrice(garmentQuotation.getPrice());
+        order.setServiceFee(garmentQuotation.getPrice() * 5 / 100);
+        order.setNote(order.getNote() + "&&" + garmentQuotation.getNote());
         orderRepo.save(order);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
@@ -215,16 +221,16 @@ public class OrderServiceImpl implements OrderService {
 
         List<GarmentQuotation> garmentQuotations = order.getGarmentQuotations();
 
-        List<Map<String, Object>> data = (garmentQuotations != null) ? garmentQuotations.stream().map(q -> {
+        List<Map<String, Object>> data = (garmentQuotations != null) ? garmentQuotations.stream().map(item -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", q.getId());
-            map.put("garmentId", q.getGarment().getId());
-            map.put("garmentName", q.getGarment().getCustomer().getName());
-            map.put("earlyDeliveryDate", q.getEarlyDeliveryDate());
-            map.put("acceptanceDeadline", q.getAcceptanceDeadline());
-            map.put("price", q.getPrice());
-            map.put("note", q.getNote());
-            map.put("status", q.getStatus());
+            map.put("id", item.getId());
+            map.put("garmentId", item.getGarment().getId());
+            map.put("garmentName", item.getGarment().getCustomer().getName());
+            map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
+            map.put("acceptanceDeadline", item.getAcceptanceDeadline());
+            map.put("price", item.getPrice());
+            map.put("note", item.getNote());
+            map.put("status", item.getStatus());
             return map;
         }).toList()
                 : new ArrayList<>();
