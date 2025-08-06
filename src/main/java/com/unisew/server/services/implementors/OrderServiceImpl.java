@@ -181,6 +181,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
         Quotation quotation = quotationRepo.findById(quotationId).orElse(null);
         String error = ApproveQuotationValidation.validate(quotation);
@@ -192,15 +193,20 @@ public class OrderServiceImpl implements OrderService {
         quotationRepo.save(quotation);
 
         List<Quotation> otherQuotations = quotationRepo.findAllByOrder_Id(quotation.getOrder().getId());
-        for (Quotation q : otherQuotations) {
-            if (!q.getId().equals(quotationId) && q.getStatus() == Status.QUOTATION_PENDING) {
-                q.setStatus(Status.QUOTATION_REJECTED);
-                quotationRepo.save(q);
+        for (Quotation item : otherQuotations) {
+            if (!item.getId().equals(quotationId) && item.getStatus() == Status.QUOTATION_PENDING) {
+                item.setStatus(Status.QUOTATION_REJECTED);
+                quotationRepo.save(item);
             }
         }
 
         Order order = quotation.getOrder();
         order.setStatus(Status.ORDER_APPROVED);
+        order.setGarmentId(quotation.getGarment().getId());
+        order.setGarmentName(quotation.getGarment().getCustomer().getName());
+        order.setPrice(quotation.getPrice());
+        order.setServiceFee(quotation.getPrice() * 5 / 100);
+        order.setNote(order.getNote() + "&&" + quotation.getNote());
         orderRepo.save(order);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
@@ -215,16 +221,16 @@ public class OrderServiceImpl implements OrderService {
 
         List<Quotation> quotations = order.getQuotations();
 
-        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(q -> {
+        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(item -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", q.getId());
-            map.put("garmentId", q.getGarment().getId());
-            map.put("garmentName", q.getGarment().getCustomer().getName());
-            map.put("earlyDeliveryDate", q.getEarlyDeliveryDate());
-            map.put("acceptanceDeadline", q.getAcceptanceDeadline());
-            map.put("price", q.getPrice());
-            map.put("note", q.getNote());
-            map.put("status", q.getStatus());
+            map.put("id", item.getId());
+            map.put("garmentId", item.getGarment().getId());
+            map.put("garmentName", item.getGarment().getCustomer().getName());
+            map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
+            map.put("acceptanceDeadline", item.getAcceptanceDeadline());
+            map.put("price", item.getPrice());
+            map.put("note", item.getNote());
+            map.put("status", item.getStatus());
             return map;
         }).toList()
                 : new ArrayList<>();
