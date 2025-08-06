@@ -128,13 +128,13 @@ public class DesignController {
     }
 
     //-------------------PACKAGE----------------------------//
-    @PostMapping("/package-list")
+    @PostMapping("/package/list")
     @PreAuthorize("hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest){
         return designService.getListPackage(httpRequest);
     }
 
-    @PostMapping("/new-package")
+    @PostMapping("/package")
     @PreAuthorize("hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, @RequestBody CreatePackagesRequest request){
         return designService.createPackages(httpRequest, request);

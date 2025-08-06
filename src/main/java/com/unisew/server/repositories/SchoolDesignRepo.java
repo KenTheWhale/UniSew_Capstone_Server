@@ -11,4 +11,6 @@ public interface SchoolDesignRepo extends JpaRepository<SchoolDesign, Integer> {
     List<SchoolDesign> findAllByCustomer_Account_Id(Integer customerAccountId);
     
     boolean existsByDesignDelivery_Id(Integer designDeliveryId);
+
+    List<SchoolDesign> findAllByDesignDelivery_DesignRequest_PackageId(Integer designDeliveryDesignRequestPackageId);
 }

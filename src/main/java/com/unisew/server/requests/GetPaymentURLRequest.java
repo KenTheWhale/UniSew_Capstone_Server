@@ -8,11 +8,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreatePackagesRequest {
-    int deliveryDuration;
-    int revisionTime;
-    long fee;
-    String headerContent;
-    String name;
-    String status;
+public class GetPaymentURLRequest {
+    long amount;
+    String description;
+    String orderType;
+    String returnURL;
 }
