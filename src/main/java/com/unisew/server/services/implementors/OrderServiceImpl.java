@@ -42,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
 
     OrderDetailRepo orderDetailRepo;
 
-    QuotationRepo quotationRepo;
+    GarmentQuotationRepo garmentQuotationRepo;
 
     JWTService jwtService;
 
@@ -165,17 +165,17 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
-        Quotation quotation = Quotation.builder()
+        GarmentQuotation garmentQuotation = GarmentQuotation.builder()
                 .order(order)
                 .garment(account.getCustomer().getPartner())
                 .earlyDeliveryDate(request.getEarlyDeliveryDate())
                 .acceptanceDeadline(request.getAcceptanceDeadline())
                 .price(request.getPrice())
                 .note(request.getNote())
-                .status(Status.QUOTATION_PENDING)
+                .status(Status.GARMENT_QUOTATION_PENDING)
                 .build();
 
-        quotationRepo.save(quotation);
+        garmentQuotationRepo.save(garmentQuotation);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation created successfully!", null);
     }
@@ -183,30 +183,30 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
-        Quotation quotation = quotationRepo.findById(quotationId).orElse(null);
-        String error = ApproveQuotationValidation.validate(quotation);
+        GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(quotationId).orElse(null);
+        String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
-        quotation.setStatus(Status.QUOTATION_APPROVED);
-        quotationRepo.save(quotation);
+        garmentQuotation.setStatus(Status.GARMENT_QUOTATION_APPROVED);
+        garmentQuotationRepo.save(garmentQuotation);
 
-        List<Quotation> otherQuotations = quotationRepo.findAllByOrder_Id(quotation.getOrder().getId());
-        for (Quotation item : otherQuotations) {
-            if (!item.getId().equals(quotationId) && item.getStatus() == Status.QUOTATION_PENDING) {
-                item.setStatus(Status.QUOTATION_REJECTED);
-                quotationRepo.save(item);
+        List<GarmentQuotation> otherGarmentQuotations = garmentQuotationRepo.findAllByOrder_Id(garmentQuotation.getOrder().getId());
+        for (GarmentQuotation item : otherGarmentQuotations) {
+            if (!item.getId().equals(quotationId) && item.getStatus() == Status.GARMENT_QUOTATION_PENDING) {
+                item.setStatus(Status.GARMENT_QUOTATION_REJECTED);
+                garmentQuotationRepo.save(item);
             }
         }
 
-        Order order = quotation.getOrder();
+        Order order = garmentQuotation.getOrder();
         order.setStatus(Status.ORDER_APPROVED);
-        order.setGarmentId(quotation.getGarment().getId());
-        order.setGarmentName(quotation.getGarment().getCustomer().getName());
-        order.setPrice(quotation.getPrice());
-        order.setServiceFee(quotation.getPrice() * 5 / 100);
-        order.setNote(order.getNote() + "&&" + quotation.getNote());
+        order.setGarmentId(garmentQuotation.getGarment().getId());
+        order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
+        order.setPrice(garmentQuotation.getPrice());
+        order.setServiceFee(garmentQuotation.getPrice() * 5 / 100);
+        order.setNote(order.getNote() + "&&" + garmentQuotation.getNote());
         orderRepo.save(order);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
@@ -219,9 +219,9 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        List<Quotation> quotations = order.getQuotations();
+        List<GarmentQuotation> garmentQuotations = order.getGarmentQuotations();
 
-        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(item -> {
+        List<Map<String, Object>> data = (garmentQuotations != null) ? garmentQuotations.stream().map(item -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", item.getId());
             map.put("garmentId", item.getGarment().getId());

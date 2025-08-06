@@ -44,7 +44,7 @@ public class Partner {
     @OneToMany(mappedBy = "designer", fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<Packages> packages;
+    List<DesignQuotation> designQuotations;
 
     @OneToMany(mappedBy = "partner", fetch = FetchType.LAZY)
     @ToString.Exclude
@@ -54,5 +54,5 @@ public class Partner {
     @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<Quotation> quotations;
+    List<GarmentQuotation> garmentQuotations;
 }

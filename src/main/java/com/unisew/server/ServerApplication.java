@@ -41,23 +41,17 @@ public class ServerApplication {
 
     private final OrderDetailRepo orderDetailRepo;
 
-    private final PackagesRepo packagesRepo;
-
-    private final PackageServiceRepo packageServiceRepo;
+    private final DesignQuotationRepo designQuotationRepo;
 
     private final PartnerRepo partnerRepo;
 
-    private final QuotationRepo quotationRepo;
-
-    private final RequestReceiptRepo requestReceiptRepo;
+    private final GarmentQuotationRepo garmentQuotationRepo;
 
     private final RevisionRequestRepo revisionRequestRepo;
 
     private final SampleImageRepo sampleImageRepo;
 
     private final SchoolDesignRepo schoolDesignRepo;
-
-    private final ServiceRepo serviceRepo;
 
     private final ThumbnailImageRepo thumbnailImageRepo;
 
@@ -257,186 +251,20 @@ public class ServerApplication {
                                 }
 
                                 // PACKAGES
-                                if (packagesRepo.count() == 0) {
-                                    List<Packages> packages = List.of(
-                                            Packages.builder()
-                                                    .designer(partner1)
-                                                    .fee(100)
-                                                    .headerContent("this is for test")
-                                                    .name("basic")
-                                                    .deliveryDuration(5)
-                                                    .status(Status.PACKAGE_ACTIVE)
-                                                    .revisionTime(1)
-                                                    .build(),
-                                            Packages.builder()
-                                                    .designer(partner1)
-                                                    .fee(200)
-                                                    .headerContent("this is for test 2")
-                                                    .name("medium")
-                                                    .deliveryDuration(7)
-                                                    .status(Status.PACKAGE_ACTIVE)
-                                                    .revisionTime(1)
-                                                    .build(),
-                                            Packages.builder()
-                                                    .designer(partner1)
-                                                    .fee(300)
-                                                    .headerContent("this is for test 3")
-                                                    .name("vip")
-                                                    .deliveryDuration(9)
-                                                    .status(Status.PACKAGE_ACTIVE)
-                                                    .revisionTime(1)
-                                                    .build()
-                                    );
-                                    packagesRepo.saveAll(packages);
-                                }
+
 
                                 // DESIGN_REQUEST
-                                if (designRequestRepo.count() == 0) {
-                                    DesignRequest request1 = DesignRequest.builder()
-                                            .school(customer1)
-                                            .template(null)
-                                            .packageId(1)
-                                            .name("Design Request 1")
-                                            .creationDate(LocalDate.now())
-                                            .logoImage("logo.png")
-                                            .privacy(false)
-                                            .status(Status.DESIGN_REQUEST_CREATED)
-                                            .packageName("Basic Package")
-                                            .headerContent("Welcome")
-                                            .packageDeliveryWithin(5)
-                                            .revisionTime(2)
-                                            .packagePrice(500_000L)
-                                            .build();
 
-                                    designRequestRepo.save(request1);
+                                //----------------------DESIGN_ITEM--------------------//
 
-                                    // REQUEST_RECEIPT
-                                    if (requestReceiptRepo.count() == 0) {
-                                        RequestReceipt receipt1 = RequestReceipt.builder()
-                                                .designRequest(request1)
-                                                .pkg(packagesRepo.findById(1).orElse(null))
-                                                .acceptanceDeadline(LocalDate.of(2025, 8, 4))
-                                                .status(Status.RECEIPT_PENDING)
-                                                .build();
 
-                                        RequestReceipt receipt2 = RequestReceipt.builder()
-                                                .designRequest(request1)
-                                                .pkg(packagesRepo.findById(2).orElse(null))
-                                                .acceptanceDeadline(LocalDate.of(2025, 8, 4))
-                                                .status(Status.RECEIPT_PENDING)
-                                                .build();
-
-                                        RequestReceipt receipt3 = RequestReceipt.builder()
-                                                .designRequest(request1)
-                                                .pkg(packagesRepo.findById(3).orElse(null))
-                                                .acceptanceDeadline(LocalDate.of(2025, 8, 3))
-                                                .status(Status.RECEIPT_PENDING)
-                                                .build();
-
-                                        requestReceiptRepo.saveAll(List.of(receipt1, receipt2, receipt3));
-                                    }
-                                    //----------------------DESIGN_ITEM--------------------//
-                                    if (designItemRepo.count() == 0) {
-
-                                        Fabric fabric = fabricRepo.findById(1).orElse(null);
-
-                                        DesignItem item1 = DesignItem.builder()
-                                                .designRequest(request1)
-                                                .type(DesignItemType.SHIRT)
-                                                .category(DesignItemCategory.REGULAR)
-                                                .logoPosition("Left Chest")
-                                                .color("#FFFFFF")
-                                                .note("Long Shirt")
-                                                .gender(Gender.BOY)
-                                                .fabric(fabric)
-                                                .build();
-
-                                        DesignItem item2 = DesignItem.builder()
-                                                .designRequest(request1)
-                                                .type(DesignItemType.PANTS)
-                                                .category(DesignItemCategory.REGULAR)
-                                                .logoPosition("")
-                                                .color("#000000")
-                                                .note("Pant for regular")
-                                                .gender(Gender.BOY)
-                                                .fabric(fabric)
-                                                .build();
-
-                                        designItemRepo.saveAll(List.of(item1, item2));
-                                    }
-
-                                }
                             }
                         }
                     }
-
-                }
-                //----------------------DELIVERY_ITEM--------------------//
-                if (deliveryItemRepo.count() == 0) {
-
-                }
-                //----------------------DESIGN_COMMENT--------------------//
-                if (designCommentRepo.count() == 0) {
-
-                }
-                //----------------------DESIGN_DELIVERY--------------------//
-                if (designDeliveryRepo.count() == 0) {
-
-                }
-
-
-
-
-                // Feedback
-                if (feedbackRepo.count() == 0) {
-
-                }
-                // FeedbackImage
-                if (feedbackImageRepo.count() == 0) {
-
-                }
-                // Order
-                if (orderRepo.count() == 0) {
-
-                }
-                // OrderDetail
-                if (orderDetailRepo.count() == 0) {
-
-                }
-                // PackageService
-                if (packageServiceRepo.count() == 0) {
-
-                }
-                // Quotation
-                if (quotationRepo.count() == 0) {
-
-                }
-                // RevisionRequest
-                if (revisionRequestRepo.count() == 0) {
-
-                }
-                // SampleImage
-                if (sampleImageRepo.count() == 0) {
-
-                }
-                // SchoolDesign
-                if (schoolDesignRepo.count() == 0) {
-
-                }
-                // Service
-                if (serviceRepo.count() == 0) {
-
-                }
-                // ThumbnailImage
-                if (thumbnailImageRepo.count() == 0) {
-
-                }
-
-                if (transactionRepo.count() == 0) {
-
                 }
 
             }
+
         };
     }
 

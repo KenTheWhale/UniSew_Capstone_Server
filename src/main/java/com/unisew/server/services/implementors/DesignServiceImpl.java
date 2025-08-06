@@ -11,6 +11,7 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.CreateDesignValidation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,8 +34,7 @@ public class DesignServiceImpl implements DesignService {
     private final FabricRepo fabricRepo;
     private final SampleImageRepo sampleImageRepo;
     private final DesignItemRepo designItemRepo;
-    private final PackagesRepo packagesRepo;
-    private final RequestReceiptRepo requestReceiptRepo;
+    private final DesignQuotationRepo designQuotationRepo;
     private final JWTService jwtService;
     private final AccountRepo accountRepo;
     private final DesignDeliveryRepo designDeliveryRepo;
@@ -46,7 +46,6 @@ public class DesignServiceImpl implements DesignService {
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
-
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> createDesignRequest(CreateDesignRequest createDesignRequest, HttpServletRequest httpRequest) {
@@ -102,15 +101,16 @@ public class DesignServiceImpl implements DesignService {
 
     @Override
     public ResponseEntity<ResponseObject> viewListDesignRequest() {
+        List<DesignRequest> designRequests = designRequestRepo.findAll()
+                .stream()
+                .filter(designRequest -> designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED))
+                .toList();
 
-        List<DesignRequest> designRequests = designRequestRepo.findAll();
-
-        return getResponseObjectResponseEntity(designRequests);
+        return buildDesignRequestResponseForDesigner(designRequests);
     }
 
     @Override
     public ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request) {
-
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
         if (account == null) {
@@ -119,36 +119,7 @@ public class DesignServiceImpl implements DesignService {
 
         List<DesignRequest> designRequests = designRequestRepo.findAllBySchool_Id(account.getCustomer().getId());
 
-        return getResponseObjectResponseEntity(designRequests);
-    }
-
-    @Override
-    public ResponseEntity<ResponseObject> pickPackage(PickPackageRequest request) {
-
-        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
-
-        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
-
-        if (packages == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
-        }
-        if (designRequest == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
-        }
-        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package already exists for this request", null);
-        }
-
-        designRequest.setPackageId(request.getPackageId());
-        designRequest.setPackagePrice(packages.getFee());
-        designRequest.setPackageName(packages.getName());
-        designRequest.setHeaderContent(packages.getHeaderContent());
-        designRequest.setPackageDeliveryWithin(packages.getDeliveryDuration());
-        designRequest.setRevisionTime(packages.getRevisionTime());
-        designRequest.setStatus(Status.DESIGN_REQUEST_PENDING);
-        designRequestRepo.save(designRequest);
-
-        return ResponseBuilder.build(HttpStatus.OK, "pick package successfully", null);
+        return buildDesignRequestResponseForSchool(designRequests);
     }
 
     @Override
@@ -161,7 +132,7 @@ public class DesignServiceImpl implements DesignService {
         }
 
         if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not cancel or re find request", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not cancel or re-find request", null);
         }
 
         if (request.getType().equalsIgnoreCase("refind")) {
@@ -170,11 +141,11 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.OK, "Continue looking for designer for your request", null);
         }
         if (request.getType().equalsIgnoreCase("cancel")) {
-            designRequest.setStatus(Status.DESIGN_REQUEST_CANCEL);
+            designRequest.setStatus(Status.DESIGN_REQUEST_CANCELED);
             designRequestRepo.save(designRequest);
             return ResponseBuilder.build(HttpStatus.OK, "Your request has been cancelled", null);
         }
-        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "type must be cancel or refind", null);
+        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fail to process", null);
     }
 
     @Override
@@ -185,7 +156,7 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Old design not found", null);
         }
 
-        if (!oldDesign.getStatus().equals(Status.DESIGN_REQUEST_CANCEL)) {
+        if (!oldDesign.getStatus().equals(Status.DESIGN_REQUEST_CANCELED)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Old design are not canceled", null);
         }
 
@@ -218,7 +189,6 @@ public class DesignServiceImpl implements DesignService {
 
         return ResponseBuilder.build(HttpStatus.CREATED, "Design duplicated successfully", null);
     }
-
 
     //-----------------------------------FABRIC---------------------------------------//
     @Override
@@ -262,48 +232,48 @@ public class DesignServiceImpl implements DesignService {
     }
 
     //----------------------------------RequestReceipt---------------------------//
-
     @Override
     public ResponseEntity<ResponseObject> getListReceipt(GetListReceiptRequest request) {
-        List<RequestReceipt> receipts = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
-
-        Map<String, Map<String, Object>> designerMap = new LinkedHashMap<>();
-
-        for (RequestReceipt r : receipts) {
-
-            Integer designerId = r.getPkg().getDesigner().getId();
-            String designerName = r.getPkg().getDesigner().getCustomer().getName();
-
-            if (!designerMap.containsKey(designerName)) {
-                Map<String, Object> designerObj = new HashMap<>();
-                designerObj.put("designerId", designerId);
-                designerObj.put("designerName", designerName);
-                designerObj.put("rating", r.getPkg().getDesigner().getRating());
-                designerObj.put("email", r.getPkg().getDesigner().getCustomer().getAccount().getEmail());
-                designerObj.put("phone", r.getPkg().getDesigner().getCustomer().getPhone());
-                designerObj.put("completeProject", schoolDesignRepo.findAllByDesignDelivery_DesignRequest_PackageId(r.getPkg().getId()).size());
-                designerObj.put("acceptance", r.getAcceptanceDeadline());
-                designerObj.put("status", r.getStatus());
-                designerObj.put("packages", new ArrayList<Map<String, Object>>());
-                designerMap.put(designerName, designerObj);
-            }
-
-            Map<String, Object> designerObj = designerMap.get(designerName);
-            List<Map<String, Object>> packages = (List<Map<String, Object>>) designerObj.get("packages");
-
-            Map<String, Object> pkgObj = new HashMap<>();
-            pkgObj.put("id", r.getPkg().getId());
-            pkgObj.put("name", r.getPkg().getName());
-            pkgObj.put("pkgHeaderContent", r.getPkg().getHeaderContent());
-            pkgObj.put("pkgDuration", r.getPkg().getDeliveryDuration());
-            pkgObj.put("pkgRevisionTime", r.getPkg().getRevisionTime());
-            pkgObj.put("pkgFee", r.getPkg().getFee());
-
-
-            packages.add(pkgObj);
-        }
-
-        List<Map<String, Object>> result = new ArrayList<>(designerMap.values());
+//        List<RequestReceipt> receipts = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
+//
+//        Map<String, Map<String, Object>> designerMap = new LinkedHashMap<>();
+//
+//        for (RequestReceipt r : receipts) {
+//
+//            Integer designerId = r.getPkg().getDesigner().getId();
+//            String designerName = r.getPkg().getDesigner().getCustomer().getName();
+//
+//            if (!designerMap.containsKey(designerName)) {
+//                Map<String, Object> designerObj = new HashMap<>();
+//                designerObj.put("designerId", designerId);
+//                designerObj.put("designerName", designerName);
+//                designerObj.put("rating", r.getPkg().getDesigner().getRating());
+//                designerObj.put("email", r.getPkg().getDesigner().getCustomer().getAccount().getEmail());
+//                designerObj.put("phone", r.getPkg().getDesigner().getCustomer().getPhone());
+//                designerObj.put("completeProject", schoolDesignRepo.findAllByDesignDelivery_DesignRequest_PackageId(r.getPkg().getId()).size());
+//                designerObj.put("acceptance", r.getAcceptanceDeadline());
+//                designerObj.put("status", r.getStatus());
+//                designerObj.put("packages", new ArrayList<Map<String, Object>>());
+//                designerMap.put(designerName, designerObj);
+//            }
+//
+//            Map<String, Object> designerObj = designerMap.get(designerName);
+//            List<Map<String, Object>> packages = (List<Map<String, Object>>) designerObj.get("packages");
+//
+//            Map<String, Object> pkgObj = new HashMap<>();
+//            pkgObj.put("id", r.getPkg().getId());
+//            pkgObj.put("name", r.getPkg().getName());
+//            pkgObj.put("pkgHeaderContent", r.getPkg().getHeaderContent());
+//            pkgObj.put("pkgDuration", r.getPkg().getDeliveryDuration());
+//            pkgObj.put("pkgRevisionTime", r.getPkg().getRevisionTime());
+//            pkgObj.put("pkgFee", r.getPkg().getFee());
+//
+//
+//            packages.add(pkgObj);
+//        }
+//
+//        List<Map<String, Object>> result = new ArrayList<>(designerMap.values());
+        List<Map<String, Object>> result = new ArrayList<>();
 
         return ResponseBuilder.build(HttpStatus.OK, "list grouped receipt", result);
     }
@@ -318,30 +288,32 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
         }
 
-        List<RequestReceipt> requestReceiptList = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
+//        List<RequestReceipt> requestReceiptList = requestReceiptRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
+//        List<RequestReceipt> requestReceiptList = null;
 
         List<Integer> addedPackages = new ArrayList<>();
         List<Integer> skippedPackages = new ArrayList<>();
 
-        for (Integer pkgId : request.getPackageId()){
-            Packages packages = packagesRepo.findById(pkgId).orElse(null);
-            if (packages == null) {
+        for (Integer pkgId : request.getPackageId()) {
+            DesignQuotation designQuotation = designQuotationRepo.findById(pkgId).orElse(null);
+            if (designQuotation == null) {
                 skippedPackages.add(pkgId);
             }
-            boolean alreadyExists = requestReceiptList.stream()
-                    .anyMatch(r -> r.getPkg().getId().equals(pkgId));
+//            boolean alreadyExists = requestReceiptList.stream()
+//                    .anyMatch(r -> r.getPkg().getId().equals(pkgId));
+            boolean alreadyExists = true;
 
             if (alreadyExists) {
                 skippedPackages.add(pkgId);
             }
-            RequestReceipt requestReceipt = RequestReceipt.builder()
-                    .pkg(packages)
-                    .designRequest(designRequest)
-                    .acceptanceDeadline(request.getAcceptanceDeadline())
-                    .status(Status.RECEIPT_PENDING)
-                    .build();
+//            RequestReceipt requestReceipt = RequestReceipt.builder()
+//                    .pkg(packages)
+//                    .designRequest(designRequest)
+//                    .acceptanceDeadline(request.getAcceptanceDeadline())
+//                    .status(Status.RECEIPT_PENDING)
+//                    .build();
 
-            requestReceiptRepo.save(requestReceipt);
+//            requestReceiptRepo.save(requestReceipt);
             addedPackages.add(pkgId);
         }
 
@@ -430,9 +402,7 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "delivery has been created", null);
     }
 
-
     //-----------------------REVISION_REQUEST-------------------------//
-
     @Override
     public ResponseEntity<ResponseObject> createRevisionRequest(CreateRevisionRequest request) {
 
@@ -472,7 +442,6 @@ public class DesignServiceImpl implements DesignService {
 
         return ResponseBuilder.build(HttpStatus.CREATED, "revision request has been created", null);
     }
-
 
     @Override
     public ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(GetUnUseListRevisionRequest request) {
@@ -593,7 +562,6 @@ public class DesignServiceImpl implements DesignService {
     }
 
     //-----------------------SCHOOL_DESIGN-------------------------//
-
     @Override
     public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, GetListSchoolDesignRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
@@ -667,129 +635,104 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Design finished", null);
     }
 
+    //-----------------------DESIGN QUOTATION-------------------------//
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request) {
 
-    //-----------------------PACKAGE-------------------------//
+        DesignQuotation designQuotation = designQuotationRepo.findById(request.getDesignQuotationId()).orElse(null);
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
+
+        if (designQuotation == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+        }
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+        }
+        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Package already exists for this request", null);
+        }
+
+        designRequest.setDesignQuotationId(request.getDesignQuotationId());
+        designRequest.setRevisionTime(designQuotation.getRevisionTime() + request.getExtraRevision());
+        designRequest.setStatus(Status.DESIGN_REQUEST_PAID);
+        designRequestRepo.save(designRequest);
+
+        designQuotation.setStatus(Status.DESIGN_QUOTATION_SELECTED);
+        designQuotation = designQuotationRepo.save(designQuotation);
+
+        for(DesignQuotation quotation: designRequest.getDesignQuotations()){
+            if(!Objects.equals(quotation.getId(), designQuotation.getId())){
+                quotation.setStatus(Status.DESIGN_QUOTATION_REJECTED);
+                designQuotationRepo.save(quotation);
+            }
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "Selected Designer", null);
+    }
 
     @Override
-    public ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest) {
+    public ResponseEntity<ResponseObject> getQuotationHistory(HttpServletRequest httpRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
-        List<Packages> packagesList = packagesRepo.findAllByDesigner_Customer_Account_Id(account.getId());
+        List<DesignQuotation> designQuotationList = designQuotationRepo.findAllByDesigner_Customer_Account_Id(account.getId());
 
-        List<Map<String, Object>> packageMap = packagesList.stream().map(
-                packages -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("deliveryDuration", packages.getDeliveryDuration());
-                    map.put("designer", packages.getDesigner().getId());
-                    map.put("id", packages.getId());
-                    map.put("revisionTime", packages.getRevisionTime());
-                    map.put("fee", packages.getFee());
-                    map.put("headerContent", packages.getHeaderContent());
-                    map.put("name", packages.getName());
-                    map.put("status", packages.getStatus().getValue());
-                    return map;
+        List<Map<String, Object>> designQuotation = designQuotationList.stream().map(
+                quotation -> {
+                    List<String> keys = List.of(
+                            "id", "designRequest",
+                            "note", "deliveryWithIn",
+                            "revisionTime", "extraRevisionPrice",
+                            "price", "acceptanceDeadline",
+                            "status"
+                    );
+                    List<Object> values = List.of(
+                            quotation.getId(), buildDesignRequestResponse(quotation.getDesignRequest()),
+                            quotation.getNote(), quotation.getDeliveryWithIn(),
+                            quotation.getRevisionTime(), quotation.getExtraRevisionPrice(),
+                            quotation.getPrice(), quotation.getAcceptanceDeadline(),
+                            quotation.getStatus()
+                    );
+                    return MapUtils.build(keys, values);
                 }
         ).toList();
-        return ResponseBuilder.build(HttpStatus.OK, "List of Packages", packageMap);
+        return ResponseBuilder.build(HttpStatus.OK, "", designQuotation);
     }
 
     @Override
-    public ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, CreatePackagesRequest request) {
+    @Transactional
+    public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpRequest, CreateDesignQuotationRequest request) {
 
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
-        List<Packages> designerPackages = packagesRepo
-                .findAllByDesigner_Customer_Account_Id(account.getId())
-                .stream()
-                .filter(pkg -> pkg.getStatus() == Status.PACKAGE_ACTIVE || pkg.getStatus() == Status.PACKAGE_INACTIVE)
-                .toList();
-
-        if (designerPackages.size() >= 5) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You can only create up to 5 active/inactive packages", null);
+        DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
+        if(designRequest == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design request not found", null);
         }
 
-        Status statusKey = null;
-
-        if (request.getStatus().equalsIgnoreCase("active")) {
-            statusKey = Status.PACKAGE_ACTIVE;
-        }
-        if (request.getStatus().equalsIgnoreCase("inactive")) {
-            statusKey = Status.PACKAGE_INACTIVE;
-        }
-
-        Packages packages = Packages.builder()
-                .deliveryDuration(request.getDeliveryDuration())
+        designQuotationRepo.save(DesignQuotation.builder()
                 .designer(account.getCustomer().getPartner())
+                .designRequest(designRequest)
+                .note(request.getNote())
+                .deliveryWithIn(request.getDeliveryWithIn())
                 .revisionTime(request.getRevisionTime())
-                .fee(request.getFee())
-                .headerContent(request.getHeaderContent())
-                .name(request.getName())
-                .status(statusKey)
-                .build();
+                .extraRevisionPrice(request.getExtraRevisionPrice())
+                .price(request.getPrice())
+                .acceptanceDeadline(request.getAcceptanceDeadline())
+                .status(Status.DESIGN_QUOTATION_PENDING)
+                .build());
 
-        packagesRepo.save(packages);
-
-        return ResponseBuilder.build(HttpStatus.CREATED, "Package created", null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "Design quotation created", null);
     }
-
-    @Override
-    public ResponseEntity<ResponseObject> changePackageStatus(ChangePackageStatusRequest request) {
-
-        Packages packages = packagesRepo.findById(request.getPackageId()).orElse(null);
-        if (packages == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Package not found", null);
-        }
-
-        Status statusKey = null;
-
-        if (request.getStatus().equalsIgnoreCase("active")) {
-            statusKey = Status.PACKAGE_ACTIVE;
-        }
-        if (request.getStatus().equalsIgnoreCase("inactive")) {
-            statusKey = Status.PACKAGE_INACTIVE;
-        }
-        if (request.getStatus().equals("delete")) {
-            List<DesignRequest> designRequests = designRequestRepo.findAllByPackageId(packages.getId());
-
-            boolean hasUnfinalRequest = designRequests.stream().anyMatch(dr -> {
-
-                List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(dr.getId());
-
-                return deliveries.stream().anyMatch(delivery -> {
-                    boolean isFinal = schoolDesignRepo.existsByDesignDelivery_Id(delivery.getId());
-                    return !isFinal;
-                });
-            });
-
-            if (hasUnfinalRequest) {
-                statusKey = Status.PACKAGE_PENDING_DELETE;
-            } else {
-                statusKey = Status.PACKAGE_DELETE;
-            }
-
-        }
-
-        assert statusKey != null;
-        if (!request.getStatus().equalsIgnoreCase("active")
-                && !request.getStatus().equalsIgnoreCase("inactive")
-                && !request.getStatus().equalsIgnoreCase("delete")) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Only can change to active or inactive or delete", null);
-        }
-
-        packages.setStatus(statusKey);
-        packagesRepo.save(packages);
-        return ResponseBuilder.build(HttpStatus.OK, "Package changed", null);
-    }
-
 
     //-----------------------PRIVATE-------------------------//
-
     private Map<String, Object> mapFabric(Fabric fabric) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", fabric.getId());
@@ -808,69 +751,169 @@ public class DesignServiceImpl implements DesignService {
         }
     }
 
-    private ResponseEntity<ResponseObject> getResponseObjectResponseEntity(List<DesignRequest> designRequests) {
+    private ResponseEntity<ResponseObject> buildDesignRequestResponseForDesigner(List<DesignRequest> designRequests) {
+        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
+                this::buildDesignRequestResponse
+        ).toList();
+
+        return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
+    }
+
+    private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(List<DesignRequest> designRequests) {
         List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
                 designRequest -> {
-                    Map<String, Object> designRequestMap = new HashMap<>();
-                    designRequestMap.put("id", designRequest.getId());
-                    designRequestMap.put("schoolAdmin", designRequest.getSchool().getName());
-                    designRequestMap.put("school", designRequest.getSchool().getBusinessName());
-                    designRequestMap.put("feedback", null);
-                    designRequestMap.put("template", null);
-                    designRequestMap.put("pkgId", designRequest.getPackageId());
-                    designRequestMap.put("name", designRequest.getName());
-                    designRequestMap.put("creationDate", designRequest.getCreationDate());
-                    designRequestMap.put("logoImage", designRequest.getLogoImage());
-                    designRequestMap.put("privacy", designRequest.isPrivacy());
-                    designRequestMap.put("status", designRequest.getStatus().getValue());
-                    designRequestMap.put("pkgName", designRequest.getPackageName());
-                    designRequestMap.put("pkgHeaderContent", designRequest.getHeaderContent());
-                    designRequestMap.put("pkgDeliveryWithin", designRequest.getPackageDeliveryWithin() != null ? designRequest.getPackageDeliveryWithin() : "N/A");
-                    designRequestMap.put("pkgRevisionTime", designRequest.getRevisionTime() != null ? designRequest.getRevisionTime() : "N/A");
-                    designRequestMap.put("pkgFee", designRequest.getPackagePrice());
+                    List<String> keys = List.of(
+                            "id", "feedback", "designQuotation",
+                            "name", "creationDate", "logoImage",
+                            "privacy", "status", "items"
+                    );
 
-                    List<DesignItem> designItems = designRequest.getDesignItems();
+                    DesignQuotation quotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
 
-                    List<Map<String, Object>> itemMaps = designItems.stream()
-                            .map(
-                                    designItem -> {
-                                        Map<String, Object> itemMap = new HashMap<>();
-                                        itemMap.put("id", designItem.getId());
-                                        itemMap.put("itemType", designItem.getType());
-                                        itemMap.put("itemCategory", designItem.getCategory());
-                                        itemMap.put("gender", designItem.getGender());
+                    if(quotation == null){
+                        return null;
+                    }
 
-                                        Map<String, Object> fabricMap = new HashMap<>();
-                                        fabricMap.put("fabricId", designItem.getFabric().getId());
-                                        fabricMap.put("fabricName", designItem.getFabric().getName());
-                                        fabricMap.put("fabricCategory", designItem.getFabric().getDesignItemCategory().toString());
-                                        fabricMap.put("fabricType", designItem.getFabric().getDesignItemType().toString());
-                                        itemMap.put("fabric", fabricMap);
+                    List<Object> values = List.of(
+                            designRequest.getId(), buildFeedbackResponse(designRequest.getFeedback()), buildDesignQuotationResponse(quotation),
+                            designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
+                            designRequest.isPrivacy(), designRequest.getStatus().getValue(), buildDesignItemResponse(designRequest.getDesignItems())
+                    );
 
-                                        List<SampleImage> sampleImages = designItem.getSampleImages();
-
-                                        List<Map<String, Object>> imageMap = sampleImages.stream().map(
-                                                sampleImage -> {
-                                                    Map<String, Object> image = new HashMap<>();
-                                                    image.put("id", sampleImage.getId());
-                                                    image.put("url", sampleImage.getImageUrl());
-                                                    return image;
-                                                }
-                                        ).toList();
-                                        itemMap.put("images", imageMap);
-                                        itemMap.put("color", designItem.getColor());
-                                        itemMap.put("logoPosition", designItem.getLogoPosition());
-                                        itemMap.put("note", designItem.getNote());
-                                        return itemMap;
-                                    }
-                            ).toList();
-                    designRequestMap.put("listItemDesign", itemMaps);
-
-                    return designRequestMap;
+                    return MapUtils.build(keys, values);
                 }
         ).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
 
+    private Map<String, Object> buildFeedbackResponse(Feedback feedback) {
+        List<String> keys = List.of("id", "rating", "content", "creationDate", "images");
+        List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(), buildFeedbackImageResponse(feedback.getFeedbackImages()));
+        return MapUtils.build(keys, values);
+    }
+
+    private List<Map<String, Object>> buildFeedbackImageResponse(List<FeedbackImage> images) {
+        return images.stream()
+                .map(image -> {
+                    List<String> keys = List.of("id", "url");
+                    List<Object> values = List.of(image.getId(), image.getImageUrl());
+                    return MapUtils.build(keys, values);
+                }).toList();
+    }
+
+    private List<Map<String, Object>> buildDesignItemResponse(List<DesignItem> items) {
+        return items.stream()
+                .map(item -> {
+                    List<String> keys = List.of(
+                            "id", "type", "category", "logoPosition",
+                            "color", "note", "sampleImages", "fabricId",
+                            "fabricName"
+                    );
+                    List<Object> values = List.of(
+                            item.getId(), item.getType().getValue(), item.getCategory().getValue(), item.getLogoPosition(),
+                            item.getColor(), item.getNote(), buildSampleImageResponse(item.getSampleImages()), item.getFabric().getId(),
+                            item.getFabric().getName()
+                    );
+                    return MapUtils.build(keys, values);
+                }).toList();
+    }
+
+    private List<Map<String, Object>> buildSampleImageResponse(List<SampleImage> images) {
+        return images.stream()
+                .map(image -> {
+                    List<String> keys = List.of("id", "url");
+                    List<Object> values = List.of(image.getId(), image.getImageUrl());
+                    return MapUtils.build(keys, values);
+                })
+                .toList();
+    }
+
+    private Map<String, Object> buildDesignQuotationResponse(DesignQuotation quotation){
+        List<String> keys = List.of(
+                "id", "designer", "note",
+                "deliveryWithIn", "revisionTime",
+                "extraRevisionPrice", "price",
+                "acceptanceDeadline", "status"
+        );
+        List<Object> values = List.of(
+                quotation.getId(), buildDesignerResponse(quotation.getDesigner()), quotation.getNote(),
+                quotation.getDeliveryWithIn(), quotation.getRevisionTime(),
+                quotation.getExtraRevisionPrice(), quotation.getPrice(),
+                quotation.getAcceptanceDeadline(), quotation.getStatus().getValue()
+
+        );
+        return MapUtils.build(keys, values);
+    }
+
+    private Map<String, Object> buildDesignerResponse(Partner designer){
+        List<String> keys = List.of(
+                "id", "customer",
+                "preview",
+                "startTime", "endTime",
+                "rating", "busy", "thumbnails"
+        );
+        List<Object> values = List.of(
+                designer.getId(), buildCustomerResponse(designer.getCustomer()),
+                designer.getInsidePreview(),
+                designer.getStartTime(), designer.getEndTime(),
+                designer.getRating(), designer.isBusy(), buildThumbnailImageResponse(designer.getThumbnailImages())
+        );
+
+        return MapUtils.build(keys, values);
+    }
+
+    private Map<String, Object> buildCustomerResponse(Customer customer){
+        List<String> keys = List.of(
+                "id", "account",
+                "address", "taxCode", "name",
+                "business", "phone", "avatar"
+        );
+        List<Object> values = List.of(
+                customer.getId(), buildAccountResponse(customer.getAccount()),
+                customer.getAddress(), customer.getTaxCode(), customer.getName(),
+                customer.getBusinessName(), customer.getPhone(), customer.getAvatar()
+
+        );
+
+        return MapUtils.build(keys, values);
+    }
+
+    private Map<String, Object> buildAccountResponse(Account account){
+        List<String> keys = List.of(
+                "id", "email", "role",
+                "registerDate", "status"
+        );
+        List<Object> values = List.of(
+                account.getId(), account.getEmail(), account.getRole().getValue(),
+                account.getRegisterDate(), account.getStatus().getValue()
+
+        );
+        return MapUtils.build(keys, values);
+    }
+
+    private Map<String, Object> buildDesignRequestResponse(DesignRequest request){
+        List<String> keys = List.of(
+                "id", "schoolId", "school",
+                "name", "creationDate", "logoImage",
+                "privacy", "status", "items"
+        );
+        List<Object> values = List.of(
+                request.getId(), request.getSchool().getId(), request.getSchool().getBusinessName(),
+                request.getName(), request.getCreationDate(), request.getLogoImage(),
+                request.isPrivacy(), request.getStatus().getValue(), buildDesignItemResponse(request.getDesignItems())
+        );
+
+        return MapUtils.build(keys, values);
+    }
+
+    private List<Map<String, Object>> buildThumbnailImageResponse(List<ThumbnailImage> images){
+        return images.stream()
+                .map(image -> {
+                    List<String> keys = List.of("id", "url");
+                    List<Object> values = List.of(image.getId(), image.getImageUrl());
+                    return MapUtils.build(keys, values);
+                })
+                .toList();
+    }
 }

@@ -52,7 +52,7 @@ public class Order {
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<Quotation> quotations;
+    List<GarmentQuotation> garmentQuotations;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude

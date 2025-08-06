@@ -19,22 +19,17 @@ public enum Status {
     //SERVICE
     SERVICE_ACTIVE("active"),
 
-    //PACKAGES
-    PACKAGE_ACTIVE("active"),
-    PACKAGE_INACTIVE("inactive"),
-    PACKAGE_DELETE("delete"),
-    PACKAGE_PENDING_DELETE("pending delete"),
-
     //DESIGN
     DESIGN_REQUEST_CREATED("created"),
-    DESIGN_REQUEST_PENDING("pending"),
-    DESIGN_REQUEST_APPROVE("approve"),
-    DESIGN_REQUEST_CANCEL("cancel"),
+    DESIGN_REQUEST_PAID("paid"),
+    DESIGN_REQUEST_PROCESSING("processing"),
+    DESIGN_REQUEST_APPROVED("approved"),
+    DESIGN_REQUEST_CANCELED("canceled"),
 
-    //RECEIPT
-    RECEIPT_PENDING("pending"),
-    RECEIPT_APPROVED("approved"),
-    RECEIPT_REJECTED("rejected"),
+    //DESIGN QUOTATION
+    DESIGN_QUOTATION_PENDING("pending"),
+    DESIGN_QUOTATION_SELECTED("selected"),
+    DESIGN_QUOTATION_REJECTED("rejected"),
 
     //ORDER
     ORDER_PENDING("pending"),
@@ -42,10 +37,10 @@ public enum Status {
     ORDER_REJECTED("rejected"),
     ORDER_COMPLETED("completed"),
 
-    //QUOTATION
-    QUOTATION_PENDING("pending"),
-    QUOTATION_APPROVED("approved"),
-    QUOTATION_REJECTED("rejected");
+    //GARMENT QUOTATION
+    GARMENT_QUOTATION_PENDING("pending"),
+    GARMENT_QUOTATION_APPROVED("approved"),
+    GARMENT_QUOTATION_REJECTED("rejected");
 
 
 
