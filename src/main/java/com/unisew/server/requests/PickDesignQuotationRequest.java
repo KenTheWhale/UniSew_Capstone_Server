@@ -8,11 +8,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreatePackagesRequest {
-    int deliveryDuration;
-    int revisionTime;
-    long fee;
-    String headerContent;
-    String name;
-    String status;
+public class PickDesignQuotationRequest {
+    int designQuotationId;
+    int designRequestId;
+    int extraRevision;
 }

@@ -38,12 +38,6 @@ public class DesignController {
         return designService.getListDesignRequestByCustomer(request);
     }
 
-    @PostMapping("/pick-packages")
-    @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> pickPackageRequest(@RequestBody PickPackageRequest request) {
-        return designService.pickPackage(request);
-    }
-
     @PutMapping("/request/deadline")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> updateRequestByDeadline(@RequestBody UpdateRequestByDeadline request){
@@ -127,22 +121,22 @@ public class DesignController {
         return designService.makeDesignFinal(httpRequest, request);
     }
 
-    //-------------------PACKAGE----------------------------//
-    @PostMapping("/package/list")
-    @PreAuthorize("hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest){
-        return designService.getListPackage(httpRequest);
+    //-------------------DESIGN QUOTATION----------------------------//
+    @PostMapping("/pick/quotation")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> pickDesignQuotation(@RequestBody PickDesignQuotationRequest request) {
+        return designService.pickDesignQuotation(request);
     }
 
-    @PostMapping("/package")
+    @PostMapping("/quotation/history")
     @PreAuthorize("hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, @RequestBody CreatePackagesRequest request){
-        return designService.createPackages(httpRequest, request);
+    public ResponseEntity<ResponseObject> getQuotationHistory(HttpServletRequest httpRequest){
+        return designService.getQuotationHistory(httpRequest);
     }
 
-    @PutMapping("/packages/status")
+    @PostMapping("/quotation")
     @PreAuthorize("hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> changePackageStatus(@RequestBody ChangePackageStatusRequest request){
-        return designService.changePackageStatus(request);
+    public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpRequest, @RequestBody CreateDesignQuotationRequest request){
+        return designService.createQuotation(httpRequest, request);
     }
 }

@@ -13,7 +13,7 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request);
 
-    ResponseEntity<ResponseObject> pickPackage(PickPackageRequest request);
+    ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request);
 
     ResponseEntity<ResponseObject> updateRequestByDeadline(UpdateRequestByDeadline request);
 
@@ -41,17 +41,13 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest);
 
-
     //--------------------------------SCHOOL_DESIGN----------------------------------------//
     ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, GetListSchoolDesignRequest request);
 
     ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, MakeDesignFinalRequest request);
 
-    //--------------------------------PACKAGE----------------------------------------//
-    ResponseEntity<ResponseObject> getListPackage(HttpServletRequest httpRequest);
+    //--------------------------------DESIGN QUOTATION----------------------------------------//
+    ResponseEntity<ResponseObject> getQuotationHistory(HttpServletRequest httpRequest);
 
-    ResponseEntity<ResponseObject> createPackages(HttpServletRequest httpRequest, CreatePackagesRequest request);
-
-
-    ResponseEntity<ResponseObject> changePackageStatus(ChangePackageStatusRequest request);
+    ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpRequest, CreateDesignQuotationRequest request);
 }

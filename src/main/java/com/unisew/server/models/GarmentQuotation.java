@@ -6,31 +6,39 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`services`")
+@Table(name = "`quotation`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Services {
+public class GarmentQuotation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String rule;
+    @ManyToOne
+    @JoinColumn(name = "`order_id`")
+    Order order;
 
-    @Column(name = "`creation_date`")
-    LocalDate creationDate;
+    @ManyToOne
+    @JoinColumn(name = "`garment_id`")
+    Partner garment;
+
+    @Column(name = "`early_delivery_date`")
+    LocalDate earlyDeliveryDate;
+
+    @Column(name = "`acceptance_deadline`")
+    LocalDate acceptanceDeadline;
+
+    long price;
+
+    String note;
 
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @OneToMany(mappedBy = "service")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<PackageService> packageServices;
 }

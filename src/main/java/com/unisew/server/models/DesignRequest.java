@@ -33,7 +33,8 @@ public class DesignRequest {
     @JoinColumn(name = "`template_id`")
     SchoolDesign template;
 
-    Integer packageId;
+    @Column(name = "`design_quotation_id`")
+    Integer designQuotationId;
 
     String name;
 
@@ -49,25 +50,8 @@ public class DesignRequest {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @Column(name = "`package_name`")
-    String packageName;
-
-    @Column(name = "`package_header_content`")
-    String headerContent;
-
-    @Column(name = "`package_delivery_within`")
-    Integer packageDeliveryWithin;
-
     @Column(name = "`revision_time`")
     Integer revisionTime;
-
-    @Column(name = "`package_price`")
-    long packagePrice;
-
-    @OneToMany(mappedBy = "designRequest")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<RequestReceipt> requestReceipts;
 
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
@@ -84,5 +68,8 @@ public class DesignRequest {
     @EqualsAndHashCode.Exclude
     List<DesignComment> designComments;
 
-
+    @OneToMany(mappedBy = "designRequest")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<DesignQuotation> designQuotations;
 }

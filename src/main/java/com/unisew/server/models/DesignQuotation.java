@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 @Table(name = "`package`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Packages {
+public class DesignQuotation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,29 +24,27 @@ public class Packages {
     @JoinColumn(name = "`designer_id`")
     Partner designer;
 
-    String name;
+    @ManyToOne
+    @JoinColumn(name = "`request_id`")
+    DesignRequest designRequest;
 
-    @Column(name = "`headerContent`")
-    String headerContent;
+    @Column(name = "`note`")
+    String note;
 
-    @Column(name = "`deliveryDuration`")
-    int deliveryDuration;
+    @Column(name = "`delivery_with_in`")
+    int deliveryWithIn;
 
-    @Column(name = "`revisionTime`")
+    @Column(name = "`revision_time`")
     int revisionTime;
 
-    long fee;
+    @Column(name = "`extra_revision_price`")
+    long extraRevisionPrice;
+
+    long price;
+
+    @Column(name = "`acceptance_deadline`")
+    LocalDate acceptanceDeadline;
 
     @Enumerated(EnumType.STRING)
     Status status;
-
-    @OneToMany(mappedBy = "pkg")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<PackageService> packageServices;
-
-    @OneToMany(mappedBy = "pkg")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<RequestReceipt> requestReceipts;
 }

@@ -42,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
 
     OrderDetailRepo orderDetailRepo;
 
-    QuotationRepo quotationRepo;
+    GarmentQuotationRepo garmentQuotationRepo;
 
     JWTService jwtService;
 
@@ -165,41 +165,41 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
-        Quotation quotation = Quotation.builder()
+        GarmentQuotation garmentQuotation = GarmentQuotation.builder()
                 .order(order)
                 .garment(account.getCustomer().getPartner())
                 .earlyDeliveryDate(request.getEarlyDeliveryDate())
                 .acceptanceDeadline(request.getAcceptanceDeadline())
                 .price(request.getPrice())
                 .note(request.getNote())
-                .status(Status.QUOTATION_PENDING)
+                .status(Status.GARMENT_QUOTATION_PENDING)
                 .build();
 
-        quotationRepo.save(quotation);
+        garmentQuotationRepo.save(garmentQuotation);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation created successfully!", null);
     }
 
     @Override
     public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
-        Quotation quotation = quotationRepo.findById(quotationId).orElse(null);
-        String error = ApproveQuotationValidation.validate(quotation);
+        GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(quotationId).orElse(null);
+        String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
-        quotation.setStatus(Status.QUOTATION_APPROVED);
-        quotationRepo.save(quotation);
+        garmentQuotation.setStatus(Status.GARMENT_QUOTATION_APPROVED);
+        garmentQuotationRepo.save(garmentQuotation);
 
-        List<Quotation> otherQuotations = quotationRepo.findAllByOrder_Id(quotation.getOrder().getId());
-        for (Quotation q : otherQuotations) {
-            if (!q.getId().equals(quotationId) && q.getStatus() == Status.QUOTATION_PENDING) {
-                q.setStatus(Status.QUOTATION_REJECTED);
-                quotationRepo.save(q);
+        List<GarmentQuotation> otherGarmentQuotations = garmentQuotationRepo.findAllByOrder_Id(garmentQuotation.getOrder().getId());
+        for (GarmentQuotation q : otherGarmentQuotations) {
+            if (!q.getId().equals(quotationId) && q.getStatus() == Status.GARMENT_QUOTATION_PENDING) {
+                q.setStatus(Status.GARMENT_QUOTATION_REJECTED);
+                garmentQuotationRepo.save(q);
             }
         }
 
-        Order order = quotation.getOrder();
+        Order order = garmentQuotation.getOrder();
         order.setStatus(Status.ORDER_APPROVED);
         orderRepo.save(order);
 
@@ -213,9 +213,9 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        List<Quotation> quotations = order.getQuotations();
+        List<GarmentQuotation> garmentQuotations = order.getGarmentQuotations();
 
-        List<Map<String, Object>> data = (quotations != null) ? quotations.stream().map(q -> {
+        List<Map<String, Object>> data = (garmentQuotations != null) ? garmentQuotations.stream().map(q -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", q.getId());
             map.put("garmentId", q.getGarment().getId());
