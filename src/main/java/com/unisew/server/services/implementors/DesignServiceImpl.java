@@ -281,7 +281,7 @@ public class DesignServiceImpl implements DesignService {
                 designerObj.put("rating", r.getPkg().getDesigner().getRating());
                 designerObj.put("email", r.getPkg().getDesigner().getCustomer().getAccount().getEmail());
                 designerObj.put("phone", r.getPkg().getDesigner().getCustomer().getPhone());
-                designerObj.put("completeProject", schoolDesignRepo.findAllByCustomer_Account_Id(r.getPkg().getDesigner().getCustomer().getAccount().getId()).size());
+                designerObj.put("completeProject", schoolDesignRepo.findAllByDesignDelivery_DesignRequest_PackageId(r.getPkg().getId()).size());
                 designerObj.put("acceptance", r.getAcceptanceDeadline());
                 designerObj.put("status", r.getStatus());
                 designerObj.put("packages", new ArrayList<Map<String, Object>>());
@@ -345,7 +345,7 @@ public class DesignServiceImpl implements DesignService {
             addedPackages.add(pkgId);
         }
 
-        return ResponseBuilder.build(HttpStatus.OK, "PackageIds " + addedPackages + " add successfully, packageIds" + skippedPackages + " cannot add", null);
+        return ResponseBuilder.build(HttpStatus.OK, "Offer successfully", null);
     }
 
     //---------------------------------DESIGN_DELIVERY--------------------------------//
