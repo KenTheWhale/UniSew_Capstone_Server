@@ -35,17 +35,11 @@ import java.util.Map;
 public class OrderServiceImpl implements OrderService {
 
     OrderRepo orderRepo;
-
     PartnerRepo partnerRepo;
-
     SchoolDesignRepo schoolDesignRepo;
-
     OrderDetailRepo orderDetailRepo;
-
     GarmentQuotationRepo garmentQuotationRepo;
-
     JWTService jwtService;
-
     AccountRepo accountRepo;
 
     @Override
