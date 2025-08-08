@@ -119,16 +119,17 @@ public class ServerApplication {
                                     .phone("0900000001")
                                     .address("Hanoi")
                                     .taxCode("CUST001")
-                                    .avatar(null)
+                                    .avatar("")
                                     .build();
 
                             Customer customer2 = Customer.builder()
                                     .account(customer2Account)
-                                    .name("Tran Thi B")
+                                    .name("Nguyen Thi Designer")
                                     .phone("0900000002")
                                     .address("Ho Chi Minh City")
+                                    .businessName("Inc The Design")
                                     .taxCode("CUST002")
-                                    .avatar(null)
+                                    .avatar("")
                                     .build();
 
                             customerRepo.saveAll(List.of(customer1, customer2));

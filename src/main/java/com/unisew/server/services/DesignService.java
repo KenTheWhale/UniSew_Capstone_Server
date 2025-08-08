@@ -11,7 +11,9 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> viewListDesignRequest();
 
-    ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request);
+    ResponseEntity<ResponseObject> getListDesignRequestBySchool(HttpServletRequest request);
+
+    ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request);
 
@@ -22,10 +24,7 @@ public interface DesignService {
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
-    //--------------------------------RECEIPT----------------------------------------//
-    ResponseEntity<ResponseObject> getListReceipt(GetListReceiptRequest request);
-
-    ResponseEntity<ResponseObject> addPackageToReceipt(AddPackageToReceiptRequest request);
+    //--------------------------------DESIGN DELIVERY----------------------------------------//
 
     ResponseEntity<ResponseObject> getListDeliveries(GetListDeliveryRequest request);
 
