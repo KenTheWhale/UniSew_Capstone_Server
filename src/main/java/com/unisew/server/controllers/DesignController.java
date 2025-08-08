@@ -34,8 +34,14 @@ public class DesignController {
 
     @PostMapping("/school/request")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request) {
-        return designService.getListDesignRequestByCustomer(request);
+    public ResponseEntity<ResponseObject> getListDesignRequestBySchool(HttpServletRequest request) {
+        return designService.getListDesignRequestBySchool(request);
+    }
+
+    @PostMapping("/designer/request")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request) {
+        return designService.getListDesignRequestByDesigner(request);
     }
 
     @PutMapping("/request/deadline")
@@ -48,19 +54,6 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> duplicateRequest(@RequestBody DuplicateRequest request){
         return designService.duplicateRequest(request);
-    }
-
-    //------------------RECEIPT---------------------------//
-    @PostMapping("/list/receipt")
-    @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListReceipt(@RequestBody GetListReceiptRequest request) {
-        return designService.getListReceipt(request);
-    }
-
-    @PostMapping("/receipt/package/")
-    @PreAuthorize("hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> addPackageToReceipt(@RequestBody AddPackageToReceiptRequest request) {
-        return designService.addPackageToReceipt(request);
     }
     //-------------------DESIGN_DELIVERY---------------------//
 

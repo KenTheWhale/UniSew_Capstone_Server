@@ -33,8 +33,7 @@ public class DesignDelivery {
     @JoinColumn(name = "`revision_id`")
     RevisionRequest revisionRequest;
 
-
-    int code;
+    String name;
 
     @Column(name = "`submit_date`")
     LocalDate submitDate;
@@ -43,6 +42,8 @@ public class DesignDelivery {
     boolean revision;
 
     String note;
+
+    int version;
 
     @OneToOne(mappedBy = "designDelivery", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude

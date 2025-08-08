@@ -8,6 +8,4 @@ import java.util.Optional;
 
 public interface DesignDeliveryRepo extends JpaRepository<DesignDelivery, Integer> {
     List<DesignDelivery> findAllByDesignRequest_Id(Integer designRequestId);
-
-    Optional<DesignDelivery> findTopByDesignRequest_IdOrderByCodeDesc(Integer designRequestId);
 }
