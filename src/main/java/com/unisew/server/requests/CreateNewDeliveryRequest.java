@@ -14,7 +14,8 @@ import java.util.List;
 public class CreateNewDeliveryRequest {
     int designRequestId;
     int revisionId;
-    boolean isRevision;
+    String name;
+    boolean revision;
     String note;
     List<DeliveryItems> itemList;
 
