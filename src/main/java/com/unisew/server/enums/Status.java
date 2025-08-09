@@ -22,8 +22,7 @@ public enum Status {
     //DESIGN
     DESIGN_REQUEST_CREATED("created"),
     DESIGN_REQUEST_PAID("paid"),
-    DESIGN_REQUEST_PROCESSING("processing"),
-    DESIGN_REQUEST_APPROVED("approved"),
+    DESIGN_REQUEST_COMPLETED("completed"),
     DESIGN_REQUEST_CANCELED("canceled"),
 
     //DESIGN QUOTATION

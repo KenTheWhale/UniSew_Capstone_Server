@@ -13,6 +13,10 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestBySchool(HttpServletRequest request);
 
+    ResponseEntity<ResponseObject> getDesignRequestDetailForSchool(int id);
+
+    ResponseEntity<ResponseObject> getDesignRequestDetailForDesigner(int id);
+
     ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request);

@@ -124,6 +124,16 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
+    public ResponseEntity<ResponseObject> getDesignRequestDetailForSchool(int id) {
+        DesignRequest designRequest = designRequestRepo.findById(id).orElse(null);
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Not found", null);
+        }
+
+        return buildDesignRequestResponseForSchool(designRequest);
+    }
+
+    @Override
     public ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
@@ -140,6 +150,16 @@ public class DesignServiceImpl implements DesignService {
         }
 
         return buildDesignRequestResponseForDesigner(designRequests);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getDesignRequestDetailForDesigner(int id) {
+        DesignRequest designRequest = designRequestRepo.findById(id).orElse(null);
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Not found", null);
+        }
+
+        return buildDesignRequestResponseForDesigner(designRequest);
     }
 
     @Override
@@ -276,6 +296,7 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> createNewDelivery(CreateNewDeliveryRequest request) {
 
         DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
@@ -286,58 +307,81 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
         }
 
-        DesignDelivery delivery = DesignDelivery.builder()
-                .name("")
-                .revision(request.isRevision())
-                .designRequest(designRequest)
-                .revisionRequest(revisionRequest)
-                .submitDate(LocalDate.now())
-                .note(request.getNote())
-                .build();
-
-        designDeliveryRepo.save(delivery);
-
-        for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()) {
-            DeliveryItem deliveryItem = DeliveryItem.builder()
-                    .baseLogoHeight(i.getLogoHeight())
-                    .baseLogoWidth(i.getLogoWidth())
-                    .designDelivery(delivery)
-                    .designItemId(i.getDesignItemId())
-                    .backImageUrl(i.getBackUrl())
-                    .frontImageUrl(i.getFrontUrl())
-                    .build();
-            deliveryItemRepo.save(deliveryItem);
+        int version = 1;
+        DesignDelivery latestDelivery = designDeliveryRepo.findFirstByDesignRequest_IdOrderByIdDesc(designRequest.getId()).orElse(null);
+        if (latestDelivery != null) {
+            version = latestDelivery.getVersion() + 1;
         }
 
-        DesignComment designComment = DesignComment.builder()
-                .content("Designer has submit new delivery. Delivery Code: ")
-                .designRequest(designRequest)
-                .creationDate(LocalDateTime.now())
-                .senderId(0)
-                .senderRole("system")
-                .build();
-        designCommentRepo.save(designComment);
+        if (request.isRevision() && designRequest.getRevisionTime() < 9999) {
+            designRequest.setRevisionTime(designRequest.getRevisionTime() - 1);
+            designRequest = designRequestRepo.save(designRequest);
+        }
 
-        return ResponseBuilder.build(HttpStatus.CREATED, "delivery has been created", null);
+        DesignDelivery delivery = designDeliveryRepo.save(
+                DesignDelivery.builder()
+                        .designRequest(designRequest)
+                        .revisionRequest(revisionRequest)
+                        .name(request.getName())
+                        .submitDate(LocalDate.now())
+                        .revision(request.isRevision())
+                        .note(request.getNote())
+                        .version(version)
+                        .build()
+        );
+
+        for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()) {
+            deliveryItemRepo.save(
+                    DeliveryItem.builder()
+                            .designDelivery(delivery)
+                            .designItemId(i.getDesignItemId())
+                            .baseLogoHeight(i.getLogoHeight())
+                            .baseLogoWidth(i.getLogoWidth())
+                            .backImageUrl(i.getBackUrl())
+                            .frontImageUrl(i.getFrontUrl())
+                            .build()
+            );
+        }
+//
+//        DesignComment designComment = DesignComment.builder()
+//                .content("Designer has submit new delivery. Delivery Code: ")
+//                .designRequest(designRequest)
+//                .creationDate(LocalDateTime.now())
+//                .senderId(0)
+//                .senderRole("system")
+//                .build();
+//        designCommentRepo.save(designComment);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Upload delivery successfully", null);
     }
 
     //-----------------------REVISION_REQUEST-------------------------//
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> createRevisionRequest(CreateRevisionRequest request) {
 
         DesignDelivery designDelivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
-
 
         if (designDelivery == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No delivery found to create a revision", null);
         }
 
-        Customer customer = customerRepo.findById(designDelivery.getDesignRequest().getSchool().getId()).orElse(null);
+        DesignRequest designRequest = designDelivery.getDesignRequest();
 
-        boolean exitSchoolDesign = schoolDesignRepo.existsByCustomer_IdAndDesignDelivery_Id(designDelivery.getDesignRequest().getSchool().getId(), designDelivery.getId());
+        if (designRequest.getRevisionTime() <= 0) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No more revision time", null);
+        }
 
-        if (exitSchoolDesign) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This delivery already final", null);
+        for (DesignDelivery delivery : designRequest.getDesignDeliveries()) {
+            if (delivery.getSchoolDesign() != null) {
+                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This design request is already completed", null);
+            }
+
+            for (RevisionRequest revisionRequest : delivery.getRevisionRequests()) {
+                if (revisionRequest.getResultDelivery() == null) {
+                    return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "There is at least a revision is proceed", null);
+                }
+            }
         }
 
         RevisionRequest revisionRequest = RevisionRequest.builder()
@@ -345,65 +389,44 @@ public class DesignServiceImpl implements DesignService {
                 .requestDate(LocalDate.now())
                 .note(request.getNote())
                 .build();
+//
+//        assert customer != null;
+//        DesignComment designComment = DesignComment.builder()
+//                .content(" School  " + customer.getName() + "has sent a revision request ")
+//                .designRequest(designDelivery.getDesignRequest())
+//                .creationDate(LocalDateTime.now())
+//                .senderId(0)
+//                .senderRole("system")
+//                .build();
 
-        assert customer != null;
-        DesignComment designComment = DesignComment.builder()
-                .content(" School  " + customer.getName() + "has sent a revision request ")
-                .designRequest(designDelivery.getDesignRequest())
-                .creationDate(LocalDateTime.now())
-                .senderId(0)
-                .senderRole("system")
-                .build();
-
-        designCommentRepo.save(designComment);
+//        designCommentRepo.save(designComment);
 
         revisionRequestRepo.save(revisionRequest);
 
-        return ResponseBuilder.build(HttpStatus.CREATED, "revision request has been created", null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "Revision request sent", null);
     }
 
     @Override
     public ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(GetUnUseListRevisionRequest request) {
-
-        List<DesignDelivery> designDeliveryList = designDeliveryRepo.findAllByDesignRequest_Id(request.getRequestId());
-
-        List<RevisionRequest> revisionRequestList = revisionRequestRepo.findAllByDesignDelivery_DesignRequest_Id(request.getRequestId());
-
-        if (revisionRequestList.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    ResponseObject.builder()
-                            .message("No revision request for this request")
-                            .build()
-            );
-        }
-
-        Set<Integer> usedRevisionIds = designDeliveryList.stream()
-                .map(DesignDelivery::getRevisionRequest)
-                .filter(Objects::nonNull)
-                .map(RevisionRequest::getId)
-                .collect(Collectors.toSet());
-
-
-        List<RevisionRequest> unusedRevisionRequests = revisionRequestList.stream()
-                .filter(rev -> !usedRevisionIds.contains(rev.getId()))
+        List<Map<String, Object>> revisionRequestList = designDeliveryRepo.findAllByDesignRequest_Id(request.getRequestId())
+                .stream()
+                .map(DesignDelivery::getRevisionRequests)
+                .flatMap(List::stream)
+                .filter(revisionRequest -> revisionRequest.getResultDelivery() == null)
+                .map(revisionRequest -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", revisionRequest.getId());
+                    map.put("deliveryId", revisionRequest.getDesignDelivery().getId());
+                    map.put("requestDate", revisionRequest.getRequestDate());
+                    map.put("note", revisionRequest.getNote());
+                    return map;
+                })
                 .toList();
-
-        List<Map<String, Object>> mapList = unusedRevisionRequests.stream()
-                .map(
-                        revisionRequest -> {
-                            Map<String, Object> map = new HashMap<>();
-                            map.put("id", revisionRequest.getId());
-                            map.put("deliveryId", revisionRequest.getDesignDelivery().getId());
-                            map.put("requestDate", revisionRequest.getRequestDate());
-                            map.put("note", revisionRequest.getNote());
-                            return map;
-                        }
-                ).toList();
 
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .message("List revision request not completed")
-                        .body(mapList)
+                        .body(revisionRequestList)
                         .build()
         );
     }
@@ -530,6 +553,7 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, MakeDesignFinalRequest request) {
 
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
@@ -544,12 +568,13 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No design delivery found", null);
         }
 
-        SchoolDesign schoolDesign = SchoolDesign.builder()
+        schoolDesignRepo.save(SchoolDesign.builder()
                 .designDelivery(designDelivery)
                 .customer(account.getCustomer())
-                .build();
+                .build());
 
-        schoolDesignRepo.save(schoolDesign);
+        designDelivery.getDesignRequest().setStatus(Status.DESIGN_REQUEST_COMPLETED);
+        designDeliveryRepo.save(designDelivery);
 
         return ResponseBuilder.build(HttpStatus.CREATED, "Design finished", null);
     }
@@ -588,6 +613,8 @@ public class DesignServiceImpl implements DesignService {
                 designQuotationRepo.save(quotation);
             }
         }
+
+        //Missing transaction and wallet
 
         return ResponseBuilder.build(HttpStatus.OK, "Selected Designer", null);
     }
@@ -637,6 +664,10 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design request not found", null);
         }
 
+        if (designQuotationRepo.existsByDesigner_Customer_Account_IdAndDesignRequest_Id(account.getId(), designRequest.getId())) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You already request to apply this design", null);
+        }
+
         designQuotationRepo.save(DesignQuotation.builder()
                 .designer(account.getCustomer().getPartner())
                 .designRequest(designRequest)
@@ -679,9 +710,15 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
 
+    private ResponseEntity<ResponseObject> buildDesignRequestResponseForDesigner(DesignRequest designRequest) {
+        return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", buildDesignRequestResponse(designRequest));
+    }
+
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(List<DesignRequest> designRequests) {
         List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
                 designRequest -> {
+                    boolean completed = designRequest.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED);
+
                     List<String> keys = List.of(
                             "id",
                             "feedback",
@@ -691,6 +728,19 @@ public class DesignServiceImpl implements DesignService {
                             "privacy", "status", "items",
                             "revisionTime", "price"
                     );
+
+                    if(completed){
+                        keys = List.of(
+                                "id",
+                                "feedback",
+                                "finalDesignQuotation",
+                                "designQuotations",
+                                "name", "creationDate", "logoImage",
+                                "privacy", "status", "items",
+                                "revisionTime", "price",
+                                "resultDelivery"
+                        );
+                    }
 
                     List<Object> values;
 
@@ -730,6 +780,19 @@ public class DesignServiceImpl implements DesignService {
                                     designRequest.isPrivacy(), designRequest.getStatus().getValue(), buildDesignItemListResponse(designRequest.getDesignItems()),
                                     designRequest.getRevisionTime(), designRequest.getPrice()
                             );
+
+                            if(completed){
+                                values = List.of(
+                                        designRequest.getId(),
+                                        feedback != null ? buildFeedbackResponse(feedback) : "",
+                                        buildDesignQuotationResponse(quotation),
+                                        buildDesignQuotationListResponse(designRequest.getDesignQuotations()),
+                                        designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
+                                        designRequest.isPrivacy(), designRequest.getStatus().getValue(), buildDesignItemListResponse(designRequest.getDesignItems()),
+                                        designRequest.getRevisionTime(), designRequest.getPrice(),
+                                        buildResultDeliveryResponse(designRequest)
+                                );
+                            }
                         }
                     }
 
@@ -738,6 +801,61 @@ public class DesignServiceImpl implements DesignService {
         ).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
+    }
+
+    private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(DesignRequest designRequest) {
+        List<String> keys = List.of(
+                "id",
+                "feedback",
+                "finalDesignQuotation",
+                "designQuotations",
+                "name", "creationDate", "logoImage",
+                "privacy", "status", "items",
+                "revisionTime", "price"
+        );
+
+        List<Object> values;
+
+        if (designRequest.getDesignQuotationId() == null) {
+            Feedback feedback = designRequest.getFeedback();
+            values = List.of(
+                    designRequest.getId(),
+                    feedback != null ? buildFeedbackResponse(feedback) : "",
+                    "",
+                    buildDesignQuotationListResponse(designRequest.getDesignQuotations()),
+                    designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
+                    designRequest.isPrivacy(), designRequest.getStatus().getValue(), buildDesignItemListResponse(designRequest.getDesignItems()),
+                    designRequest.getRevisionTime(), designRequest.getPrice()
+            );
+        } else {
+            DesignQuotation quotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
+
+            if (quotation == null) {
+                Feedback feedback = designRequest.getFeedback();
+                values = List.of(
+                        designRequest.getId(),
+                        feedback != null ? buildFeedbackResponse(feedback) : "",
+                        "",
+                        buildDesignQuotationListResponse(designRequest.getDesignQuotations()),
+                        designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
+                        designRequest.isPrivacy(), designRequest.getStatus().getValue(), buildDesignItemListResponse(designRequest.getDesignItems()),
+                        designRequest.getRevisionTime(), designRequest.getPrice()
+                );
+            } else {
+                Feedback feedback = designRequest.getFeedback();
+                values = List.of(
+                        designRequest.getId(),
+                        feedback != null ? buildFeedbackResponse(feedback) : "",
+                        buildDesignQuotationResponse(quotation),
+                        buildDesignQuotationListResponse(designRequest.getDesignQuotations()),
+                        designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
+                        designRequest.isPrivacy(), designRequest.getStatus().getValue(), buildDesignItemListResponse(designRequest.getDesignItems()),
+                        designRequest.getRevisionTime(), designRequest.getPrice()
+                );
+            }
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", MapUtils.build(keys, values));
     }
 
     //-------Feedback---------
@@ -937,4 +1055,31 @@ public class DesignServiceImpl implements DesignService {
         );
         return MapUtils.build(keys, values);
     }
+
+    //-------Result Delivery---------
+    private Map<String, Object> buildResultDeliveryResponse(DesignRequest request) {
+        if (request == null || !request.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED)) return null;
+        SchoolDesign design = schoolDesignRepo.findByDesignDelivery_DesignRequest_Id(request.getId()).orElse(null);
+        assert design != null;
+        DesignDelivery delivery = design.getDesignDelivery();
+
+        List<String> keys = List.of(
+                "id",
+                "name",
+                "submitDate",
+                "note",
+                "items"
+        );
+
+        List<Object> values = List.of(
+                delivery.getId(),
+                delivery.getName(),
+                delivery.getSubmitDate(),
+                delivery.getNote() == null ? "" : delivery.getNote(),
+                buildDeliveryItemListResponse(delivery.getDeliveryItems())
+        );
+
+        return MapUtils.build(keys, values);
+    }
+
 }
