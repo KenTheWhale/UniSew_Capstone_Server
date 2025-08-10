@@ -5,6 +5,7 @@ import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.OrderService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpRequest;
@@ -15,36 +16,37 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
+@Tag(name = "Order")
 public class OrderController {
 
     private final OrderService orderService;
 
     @PostMapping("")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest request) {
         return orderService.createOrder(request);
     }
 
-    @GetMapping("")
-    @PreAuthorize("hasAuthority('GARMENT')")
-    public ResponseEntity<ResponseObject> viewOrder() {
-        return orderService.viewOrder();
+    @PostMapping("/list")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
+        return orderService.viewOrder(request);
     }
 
     @PostMapping("/quotation")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, @RequestBody QuotationRequest request) {
         return orderService.createQuotation(httpServletRequest, request);
     }
 
     @GetMapping("/quotation/{orderId}")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> viewQuotation(@PathVariable(name = "orderId") int orderId) {
         return orderService.viewQuotation(orderId);
     }
 
     @GetMapping("/quotation/approval/{quotationId}")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> approveQuotation(@PathVariable(name = "quotationId") int quotationId) {
         return orderService.approveQuotation(quotationId);
     }

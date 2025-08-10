@@ -10,6 +10,8 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
 import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.EntityResponseBuilder;
+import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.ApproveQuotationValidation;
 import com.unisew.server.validations.OrderValidation;
@@ -41,7 +43,10 @@ public class OrderServiceImpl implements OrderService {
     GarmentQuotationRepo garmentQuotationRepo;
     JWTService jwtService;
     AccountRepo accountRepo;
-    private final DesignDeliveryRepo designDeliveryRepo;
+    DesignDeliveryRepo designDeliveryRepo;
+    DesignItemRepo designItemRepo;
+    DeliveryItemRepo deliveryItemRepo;
+
 
     @Override
     @Transactional
@@ -95,48 +100,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewOrder() {
-        List<Order> orders = orderRepo.findAll();
-        if (orders.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No orders found", null);
-        }
+    public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
-        return ResponseBuilder.build(HttpStatus.OK, "Orders found", buildOrder(orders));
-    }
+        if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
 
-    private List<Map<String, Object>> buildOrder(List<Order> orders) {
-        return orders.stream()
-                .filter(order -> order.getStatus().equals(Status.ORDER_PENDING))
-                .map(order -> {
-                    Map<String, Object> orderMap = new HashMap<>();
-                    orderMap.put("id", order.getId());
-                    orderMap.put("schoolName", order.getSchoolDesign().getCustomer().getName());
-                    orderMap.put("garmentId", order.getGarmentId());
-                    orderMap.put("garmentName", order.getGarmentName());
-                    orderMap.put("deadline", order.getDeadline());
-                    orderMap.put("price", order.getPrice());
-                    orderMap.put("serviceFee", order.getServiceFee());
-                    orderMap.put("orderDate", order.getOrderDate());
-                    orderMap.put("note", order.getNote());
-                    orderMap.put("status", order.getStatus().name());
-                    orderMap.put("orderDetails", buildOrderDetail(order.getOrderDetails()));
-                    return orderMap;
-                })
+        List<Order> orders = account.getCustomer().getSchoolDesigns()
+                .stream()
+                .filter(schoolDesign -> schoolDesign.getOrders() != null && !schoolDesign.getOrders().isEmpty())
+                .map(SchoolDesign::getOrders)
+                .flatMap(List::stream)
                 .toList();
-    }
 
-    private List<Map<String, Object>> buildOrderDetail(List<OrderDetail> orderDetails) {
-        return orderDetails.stream()
-                .map(orderDetail -> {
-                            Map<String, Object> detailMap = new HashMap<>();
-                            detailMap.put("id", orderDetail.getId());
-                            detailMap.put("deliveryItemId", orderDetail.getDeliveryItemId());
-                            detailMap.put("size", orderDetail.getSize().name());
-                            detailMap.put("quantity", orderDetail.getQuantity());
-                            return detailMap;
-                        }
-                )
-                .toList();
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo));
     }
 
     @Override
