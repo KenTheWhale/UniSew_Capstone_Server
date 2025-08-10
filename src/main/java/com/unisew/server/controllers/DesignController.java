@@ -34,8 +34,26 @@ public class DesignController {
 
     @PostMapping("/school/request")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListDesignRequestByCustomer(HttpServletRequest request) {
-        return designService.getListDesignRequestByCustomer(request);
+    public ResponseEntity<ResponseObject> getListDesignRequestBySchool(HttpServletRequest request) {
+        return designService.getListDesignRequestBySchool(request);
+    }
+
+    @GetMapping("/school/request/detail")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getDesignRequestDetailForSchool(@RequestParam int id) {
+        return designService.getDesignRequestDetailForSchool(id);
+    }
+
+    @PostMapping("/designer/request")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request) {
+        return designService.getListDesignRequestByDesigner(request);
+    }
+
+    @GetMapping("/designer/request/detail")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getDesignRequestDetailForDesigner(@RequestParam int id) {
+        return designService.getDesignRequestDetailForDesigner(id);
     }
 
     @PutMapping("/request/deadline")
@@ -48,19 +66,6 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> duplicateRequest(@RequestBody DuplicateRequest request){
         return designService.duplicateRequest(request);
-    }
-
-    //------------------RECEIPT---------------------------//
-    @PostMapping("/list/receipt")
-    @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListReceipt(@RequestBody GetListReceiptRequest request) {
-        return designService.getListReceipt(request);
-    }
-
-    @PostMapping("/receipt/package/")
-    @PreAuthorize("hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> addPackageToReceipt(@RequestBody AddPackageToReceiptRequest request) {
-        return designService.addPackageToReceipt(request);
     }
     //-------------------DESIGN_DELIVERY---------------------//
 
@@ -90,9 +95,9 @@ public class DesignController {
         return designService.createRevisionRequest(request);
     }
 
-    @GetMapping("/list-revision/{requestId}")
+    @PostMapping("/revision/list")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(GetUnUseListRevisionRequest request) {
+    public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(@RequestBody GetUnUseListRevisionRequest request) {
         return designService.getAllUnUsedRevisionRequest(request);
     }
     //-------------------DESIGN_COMMENT----------------------------//
@@ -115,7 +120,7 @@ public class DesignController {
         return designService.getListSchoolDesign(httpRequest, request);
     }
 
-    @PostMapping("/school-design")
+    @PostMapping("/school/request/final")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, @RequestBody MakeDesignFinalRequest request){
         return designService.makeDesignFinal(httpRequest, request);

@@ -44,6 +44,8 @@ public class DesignRequest {
     @Column(name = "`logo_image`")
     String logoImage;
 
+    long price;
+
     @Column(name = "`is_private`")
     boolean privacy;
 
