@@ -11,7 +11,6 @@ import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
-import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.ApproveQuotationValidation;
 import com.unisew.server.validations.OrderValidation;
@@ -188,23 +187,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        List<GarmentQuotation> garmentQuotations = order.getGarmentQuotations();
-
-        List<Map<String, Object>> data = (garmentQuotations != null) ? garmentQuotations.stream().map(item -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", item.getId());
-            map.put("garmentId", item.getGarment().getId());
-            map.put("garmentName", item.getGarment().getCustomer().getName());
-            map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
-            map.put("acceptanceDeadline", item.getAcceptanceDeadline());
-            map.put("price", item.getPrice());
-            map.put("note", item.getNote());
-            map.put("status", item.getStatus());
-            return map;
-        }).toList()
-                : new ArrayList<>();
-
-        return ResponseBuilder.build(HttpStatus.OK, "List of quotations", data);
+        return ResponseBuilder.build(HttpStatus.OK, "List of quotations", EntityResponseBuilder.buildQuotationResponse(order.getGarmentQuotations()));
     }
 
 
