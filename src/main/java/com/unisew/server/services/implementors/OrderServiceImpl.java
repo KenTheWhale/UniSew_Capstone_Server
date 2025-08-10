@@ -10,6 +10,8 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
 import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.EntityResponseBuilder;
+import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.ApproveQuotationValidation;
 import com.unisew.server.validations.OrderValidation;
@@ -41,6 +43,10 @@ public class OrderServiceImpl implements OrderService {
     GarmentQuotationRepo garmentQuotationRepo;
     JWTService jwtService;
     AccountRepo accountRepo;
+    DesignDeliveryRepo designDeliveryRepo;
+    DesignItemRepo designItemRepo;
+    DeliveryItemRepo deliveryItemRepo;
+
 
     @Override
     @Transactional
@@ -50,23 +56,28 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.OK, error, null);
         }
 
-        SchoolDesign schoolDesign = schoolDesignRepo.findByDesignDelivery_Id(request.getDeliveryId())
-                .orElse(null);
-        if (schoolDesign == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);
+        DesignDelivery delivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
+        if (delivery == null || delivery.getSchoolDesign() == null) {
+            return ResponseBuilder.build(HttpStatus.OK, "Invalid request", null);
         }
 
-        Order order = Order.builder()
-                .schoolDesign(schoolDesign)
-                .deadline(request.getDeadline())
-                .price(0)
-                .serviceFee(0)
-                .orderDate(LocalDate.now())
-                .note(request.getNote())
-                .status(Status.ORDER_PENDING)
-                .build();
+        SchoolDesign schoolDesign = delivery.getSchoolDesign();
 
-        order = orderRepo.save(order);
+
+        Order order = orderRepo.save(
+                Order.builder()
+                        .schoolDesign(schoolDesign)
+                        .feedback(null)
+                        .garmentId(null)
+                        .garmentName("")
+                        .deadline(request.getDeadline())
+                        .price(0)
+                        .serviceFee(0)
+                        .orderDate(LocalDate.now())
+                        .note(request.getNote())
+                        .status(Status.ORDER_PENDING)
+                        .build()
+        );
 
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
@@ -83,60 +94,25 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setOrderDetails(orderDetailEntities);
+        orderRepo.save(order);
 
-        orderRepo.save(Order.builder()
-
-                .build()
-        );
-
-        //Tạo Transaction
-
-        return ResponseBuilder.build(HttpStatus.OK, "Order created successfully!", null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "Order created successfully!", null);
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewOrder() {
-        List<Order> orders = orderRepo.findAll();
-        if (orders.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No orders found", null);
-        }
+    public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
-        return ResponseBuilder.build(HttpStatus.OK, "Orders found", buildOrder(orders));
-    }
+        if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
 
-    private List<Map<String, Object>> buildOrder(List<Order> orders) {
-        return orders.stream()
-                .filter(order -> order.getStatus().equals(Status.ORDER_PENDING))
-                .map(order -> {
-                    Map<String, Object> orderMap = new HashMap<>();
-                    orderMap.put("id", order.getId());
-                    orderMap.put("schoolName", order.getSchoolDesign().getCustomer().getName());
-                    orderMap.put("garmentId", order.getGarmentId());
-                    orderMap.put("garmentName", order.getGarmentName());
-                    orderMap.put("deadline", order.getDeadline());
-                    orderMap.put("price", order.getPrice());
-                    orderMap.put("serviceFee", order.getServiceFee());
-                    orderMap.put("orderDate", order.getOrderDate());
-                    orderMap.put("note", order.getNote());
-                    orderMap.put("status", order.getStatus().name());
-                    orderMap.put("orderDetails", buildOrderDetail(order.getOrderDetails()));
-                    return orderMap;
-                })
+        List<Order> orders = account.getCustomer().getSchoolDesigns()
+                .stream()
+                .filter(schoolDesign -> schoolDesign.getOrders() != null && !schoolDesign.getOrders().isEmpty())
+                .map(SchoolDesign::getOrders)
+                .flatMap(List::stream)
                 .toList();
-    }
 
-    private List<Map<String, Object>> buildOrderDetail(List<OrderDetail> orderDetails) {
-        return orderDetails.stream()
-                .map(orderDetail -> {
-                            Map<String, Object> detailMap = new HashMap<>();
-                            detailMap.put("id", orderDetail.getId());
-                            detailMap.put("deliveryItemId", orderDetail.getDeliveryItemId());
-                            detailMap.put("size", orderDetail.getSize().name());
-                            detailMap.put("quantity", orderDetail.getQuantity());
-                            return detailMap;
-                        }
-                )
-                .toList();
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo));
     }
 
     @Override

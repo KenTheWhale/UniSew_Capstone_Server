@@ -11,4 +11,6 @@ public interface AccountService {
     ResponseEntity<ResponseObject> logout(HttpServletRequest request, HttpServletResponse response);
 
     ResponseEntity<ResponseObject> updateCustomerBasicData(UpdateCustomerBasicDataRequest request, HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> getProfile(HttpServletRequest request, String userType);
 }
