@@ -67,7 +67,7 @@ public class DesignServiceImpl implements DesignService {
                 .creationDate(LocalDate.now())
                 .logoImage(createDesignRequest.getLogoImage())
                 .name(createDesignRequest.getDesignName())
-                .status(Status.DESIGN_REQUEST_CREATED)
+                .status(Status.DESIGN_REQUEST_PENDING)
                 .privacy(true)
                 .revisionTime(0)
                 .build();
@@ -104,7 +104,7 @@ public class DesignServiceImpl implements DesignService {
     public ResponseEntity<ResponseObject> viewListDesignRequest() {
         List<DesignRequest> designRequests = designRequestRepo.findAll()
                 .stream()
-                .filter(designRequest -> designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED))
+                .filter(designRequest -> designRequest.getStatus().equals(Status.DESIGN_REQUEST_PENDING))
                 .toList();
 
         return buildDesignRequestResponseForDesigner(designRequests);
@@ -171,7 +171,7 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "request not found", null);
         }
 
-        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_PENDING)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not cancel or re-find request", null);
         }
 
@@ -205,7 +205,7 @@ public class DesignServiceImpl implements DesignService {
                 .school(oldDesign.getSchool())
                 .logoImage(oldDesign.getLogoImage())
                 .creationDate(LocalDate.now())
-                .status(Status.DESIGN_REQUEST_CREATED)
+                .status(Status.DESIGN_REQUEST_PENDING)
                 .privacy(oldDesign.isPrivacy())
                 .build();
 
@@ -594,13 +594,13 @@ public class DesignServiceImpl implements DesignService {
         if (designRequest == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
         }
-        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_CREATED)) {
+        if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_PENDING)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Package already exists for this request", null);
         }
 
         designRequest.setDesignQuotationId(request.getDesignQuotationId());
         designRequest.setRevisionTime(designQuotation.getRevisionTime() + request.getExtraRevision());
-        designRequest.setStatus(Status.DESIGN_REQUEST_PAID);
+        designRequest.setStatus(Status.DESIGN_REQUEST_PROCESSING);
         designRequest.setPrice(designQuotation.getPrice() + designQuotation.getExtraRevisionPrice() * (designRequest.getRevisionTime() - designQuotation.getRevisionTime()));
         designRequestRepo.save(designRequest);
 

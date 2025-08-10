@@ -47,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     JWTService jwtService;
 
     AccountRepo accountRepo;
+    private final DesignDeliveryRepo designDeliveryRepo;
 
     @Override
     @Transactional
@@ -56,31 +57,28 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.OK, error, null);
         }
 
-        SchoolDesign schoolDesign = schoolDesignRepo.findById(request.getSchoolDesignId())
-                .orElse(null);
-        if (schoolDesign == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);
+        DesignDelivery delivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
+        if (delivery == null || delivery.getSchoolDesign() == null) {
+            return ResponseBuilder.build(HttpStatus.OK, "Invalid request", null);
         }
 
-        Partner garment = partnerRepo.findById(request.getGarmentId())
-                .orElse(null);
-        if (garment == null) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Garment not found", null);
-        }
+        SchoolDesign schoolDesign = delivery.getSchoolDesign();
 
-        Order order = Order.builder()
-                .schoolDesign(schoolDesign)
-                .garmentId(garment.getId())
-                .garmentName(garment.getCustomer().getName())
-                .deadline(request.getDeadline())
-                .price(0)
-                .serviceFee(0)
-                .orderDate(LocalDate.now())
-                .note(request.getNote())
-                .status(Status.ORDER_PENDING)
-                .build();
 
-        order = orderRepo.save(order);
+        Order order = orderRepo.save(
+                Order.builder()
+                        .schoolDesign(schoolDesign)
+                        .feedback(null)
+                        .garmentId(null)
+                        .garmentName("")
+                        .deadline(request.getDeadline())
+                        .price(0)
+                        .serviceFee(0)
+                        .orderDate(LocalDate.now())
+                        .note(request.getNote())
+                        .status(Status.ORDER_PENDING)
+                        .build()
+        );
 
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
@@ -97,8 +95,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setOrderDetails(orderDetailEntities);
+        orderRepo.save(order);
 
-        return ResponseBuilder.build(HttpStatus.OK, "Order created successfully!", null);
+        return ResponseBuilder.build(HttpStatus.CREATED, "Order created successfully!", null);
     }
 
     @Override

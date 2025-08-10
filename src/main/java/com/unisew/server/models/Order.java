@@ -29,7 +29,7 @@ public class Order {
     @JoinColumn(name = "`feedback_id`")
     Feedback feedback;
 
-    int garmentId;
+    Integer garmentId;
 
     @Column(name = "`garment_name`")
     String garmentName;

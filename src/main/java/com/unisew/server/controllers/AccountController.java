@@ -26,7 +26,20 @@ public class AccountController {
     }
 
     @PutMapping("/data/customer")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> updateCustomerBasicData(@RequestBody UpdateCustomerBasicDataRequest request, HttpServletRequest httpRequest) {
         return accountService.updateCustomerBasicData(request, httpRequest);
+    }
+
+    @PostMapping("/profile/school")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getSchoolProfile(HttpServletRequest request){
+        return accountService.getProfile(request, "school");
+    }
+
+    @PostMapping("/profile/partner")
+    @PreAuthorize("hasAnyRole('DESIGNER', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getPartnerProfile(HttpServletRequest request){
+        return accountService.getProfile(request, "partner");
     }
 }
