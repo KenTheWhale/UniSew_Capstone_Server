@@ -53,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
         SchoolDesign schoolDesign = schoolDesignRepo.findByDesignDelivery_Id(request.getDeliveryId())
                 .orElse(null);
         if (schoolDesign == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "School Design not found", null);
         }
 
         Order order = Order.builder()
@@ -98,7 +98,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> viewOrder() {
         List<Order> orders = orderRepo.findAll();
         if (orders.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "No orders found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No orders found", null);
         }
 
         return ResponseBuilder.build(HttpStatus.OK, "Orders found", buildOrder(orders));
@@ -149,13 +149,13 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Order not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
 
         if (account == null) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
         GarmentQuotation garmentQuotation = GarmentQuotation.builder()

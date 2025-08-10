@@ -20,31 +20,31 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest request) {
         return orderService.createOrder(request);
     }
 
     @GetMapping("")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('GARMENT') AND hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> viewOrder() {
         return orderService.viewOrder();
     }
 
     @PostMapping("/quotation")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, @RequestBody QuotationRequest request) {
         return orderService.createQuotation(httpServletRequest, request);
     }
 
     @GetMapping("/quotation/{orderId}")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> viewQuotation(@PathVariable(name = "orderId") int orderId) {
         return orderService.viewQuotation(orderId);
     }
 
     @GetMapping("/quotation/approval/{quotationId}")
-    @PreAuthorize("hasAuthority('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> approveQuotation(@PathVariable(name = "quotationId") int quotationId) {
         return orderService.approveQuotation(quotationId);
     }
