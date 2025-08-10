@@ -75,6 +75,31 @@ public class EntityResponseBuilder {
 
     //-------Design Delivery---------
 
+    public static List<Map<String, Object>> buildDesignDeliveryListResponse(List<DesignDelivery> deliveries, DesignItemRepo designItemRepo) {
+        return deliveries.stream().map(delivery -> buildDesignDeliveryResponse(delivery, designItemRepo)).toList();
+    }
+
+    public static Map<String, Object> buildDesignDeliveryResponse(DesignDelivery delivery, DesignItemRepo designItemRepo) {
+        if (delivery == null) return null;
+        List<String> keys = List.of(
+                "id", "name", "note",
+                "revision", "submitDate",
+                "version",
+                "designRequest",
+                "designItems"
+        );
+
+
+        List<Object> values = List.of(
+                delivery.getId(), delivery.getName(), delivery.getNote(),
+                delivery.isRevision(), delivery.getSubmitDate(),
+                delivery.getVersion(),
+                buildDesignRequestResponse(delivery.getDesignRequest()),
+                buildDeliveryItemListResponse(delivery.getDeliveryItems(), designItemRepo)
+        );
+        return MapUtils.build(keys, values);
+    }
+
     //-------Design Item---------
     public static List<Map<String, Object>> buildDesignItemListResponse(List<DesignItem> items) {
         return items.stream().map(EntityResponseBuilder::buildDesignItemResponse).toList();
@@ -140,6 +165,7 @@ public class EntityResponseBuilder {
 
     //-------Feedback---------
     public static Map<String, Object> buildFeedbackResponse(Feedback feedback) {
+        if(feedback == null) return null;
         List<String> keys = List.of("id", "rating", "content", "creationDate", "images");
         List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(), buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         return MapUtils.build(keys, values);
@@ -253,6 +279,19 @@ public class EntityResponseBuilder {
     }
 
     //-------School Design---------
+    public static List<Map<String, Object>> buildSchoolDesignListResponse(List<SchoolDesign> designs, DesignItemRepo designItemRepo) {
+        return designs.stream().map(design -> buildSchoolDesignResponse(design, designItemRepo)).toList();
+    }
+
+    public static Map<String, Object> buildSchoolDesignResponse(SchoolDesign design, DesignItemRepo designItemRepo) {
+        if (design == null) return null;
+        List<String> keys = List.of("id", "school", "delivery");
+        List<Object> values = List.of(
+                design.getId(), buildCustomerResponse(design.getCustomer()),
+                buildDesignDeliveryResponse(design.getDesignDelivery(), designItemRepo)
+        );
+        return MapUtils.build(keys, values);
+    }
 
     //-------Thumbnail Image---------
     public static List<Map<String, Object>> buildThumbnailImageListResponse(List<ThumbnailImage> images) {
