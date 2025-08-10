@@ -64,8 +64,6 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = Order.builder()
                 .schoolDesign(schoolDesign)
-                .garmentId(garment.getId())
-                .garmentName(garment.getCustomer().getName())
                 .deadline(request.getDeadline())
                 .price(0)
                 .serviceFee(0)
@@ -91,6 +89,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setOrderDetails(orderDetailEntities);
+
+        orderRepo.save(Order.builder()
+
+                .build()
+        );
+
+        //Tạo Transaction
 
         return ResponseBuilder.build(HttpStatus.OK, "Order created successfully!", null);
     }
@@ -195,7 +200,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = garmentQuotation.getOrder();
-        order.setStatus(Status.ORDER_APPROVED);
+        order.setStatus(Status.ORDER_PROCESSING);
         order.setGarmentId(garmentQuotation.getGarment().getId());
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
