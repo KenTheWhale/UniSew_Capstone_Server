@@ -35,17 +35,11 @@ import java.util.Map;
 public class OrderServiceImpl implements OrderService {
 
     OrderRepo orderRepo;
-
     PartnerRepo partnerRepo;
-
     SchoolDesignRepo schoolDesignRepo;
-
     OrderDetailRepo orderDetailRepo;
-
     GarmentQuotationRepo garmentQuotationRepo;
-
     JWTService jwtService;
-
     AccountRepo accountRepo;
 
     @Override
@@ -56,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.OK, error, null);
         }
 
-        SchoolDesign schoolDesign = schoolDesignRepo.findById(request.getSchoolDesignId())
+        SchoolDesign schoolDesign = schoolDesignRepo.findByDesignDelivery_Id(request.getDeliveryId())
                 .orElse(null);
         if (schoolDesign == null) {
             return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);
@@ -70,8 +64,6 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = Order.builder()
                 .schoolDesign(schoolDesign)
-                .garmentId(garment.getId())
-                .garmentName(garment.getCustomer().getName())
                 .deadline(request.getDeadline())
                 .price(0)
                 .serviceFee(0)
@@ -97,6 +89,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setOrderDetails(orderDetailEntities);
+
+        orderRepo.save(Order.builder()
+
+                .build()
+        );
+
+        //Tạo Transaction
 
         return ResponseBuilder.build(HttpStatus.OK, "Order created successfully!", null);
     }
@@ -201,7 +200,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = garmentQuotation.getOrder();
-        order.setStatus(Status.ORDER_APPROVED);
+        order.setStatus(Status.ORDER_PROCESSING);
         order.setGarmentId(garmentQuotation.getGarment().getId());
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
