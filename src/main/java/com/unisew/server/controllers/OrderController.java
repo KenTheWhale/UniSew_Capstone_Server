@@ -28,7 +28,7 @@ public class OrderController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
         return orderService.viewOrder(request);
     }
