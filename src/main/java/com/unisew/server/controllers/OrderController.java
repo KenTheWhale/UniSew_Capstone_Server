@@ -5,6 +5,7 @@ import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.OrderService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpRequest;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/order")
 @RequiredArgsConstructor
+@Tag(name = "Order")
 public class OrderController {
 
     private final OrderService orderService;
@@ -25,10 +27,10 @@ public class OrderController {
         return orderService.createOrder(request);
     }
 
-    @GetMapping("")
-    @PreAuthorize("hasRole('GARMENT') AND hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> viewOrder() {
-        return orderService.viewOrder();
+    @PostMapping("/list")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
+        return orderService.viewOrder(request);
     }
 
     @PostMapping("/quotation")

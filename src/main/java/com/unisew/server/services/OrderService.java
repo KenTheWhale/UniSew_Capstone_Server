@@ -12,7 +12,7 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request);
 
-    ResponseEntity<ResponseObject> viewOrder();
+    ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request);
 

@@ -4,11 +4,8 @@ import com.unisew.server.requests.CreateOrderRequest;
 
 public class OrderValidation {
     public static String validate(CreateOrderRequest request) {
-        if (request.getSchoolDesignId() == null || request.getSchoolDesignId() <= 0) {
-            return "Invalid school design ID.";
-        }
-        if (request.getGarmentId() == null || request.getGarmentId() <= 0) {
-            return "Invalid garment ID.";
+        if (request.getDeliveryId() == null || request.getDeliveryId() <= 0) {
+            return "Invalid delivery ID.";
         }
         if (request.getDeadline() == null) {
             return "Deadline cannot be null.";
