@@ -6,6 +6,7 @@ import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.PartnerRepo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -223,6 +224,22 @@ public class EntityResponseBuilder {
     }
 
     //-------Quotation---------
+
+    public static List<Map<String, Object>> buildQuotationResponse(List<GarmentQuotation> garmentQuotations) {
+        return (garmentQuotations != null) ? garmentQuotations.stream().map(item -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", item.getId());
+            map.put("garmentId", item.getGarment().getId());
+            map.put("garmentName", item.getGarment().getCustomer().getName());
+            map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
+            map.put("acceptanceDeadline", item.getAcceptanceDeadline());
+            map.put("price", item.getPrice());
+            map.put("note", item.getNote());
+            map.put("status", item.getStatus());
+            return map;
+        }).toList()
+                : new ArrayList<>();
+    }
 
     //-------Revision Request---------
     public static Map<String, Object> buildRevisionRequestResponse(RevisionRequest request) {
