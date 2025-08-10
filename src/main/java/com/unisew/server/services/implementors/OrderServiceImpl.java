@@ -56,12 +56,6 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);
         }
 
-        Partner garment = partnerRepo.findById(request.getGarmentId())
-                .orElse(null);
-        if (garment == null) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Garment not found", null);
-        }
-
         Order order = Order.builder()
                 .schoolDesign(schoolDesign)
                 .deadline(request.getDeadline())
