@@ -35,17 +35,11 @@ import java.util.Map;
 public class OrderServiceImpl implements OrderService {
 
     OrderRepo orderRepo;
-
     PartnerRepo partnerRepo;
-
     SchoolDesignRepo schoolDesignRepo;
-
     OrderDetailRepo orderDetailRepo;
-
     GarmentQuotationRepo garmentQuotationRepo;
-
     JWTService jwtService;
-
     AccountRepo accountRepo;
     private final DesignDeliveryRepo designDeliveryRepo;
 
@@ -200,7 +194,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = garmentQuotation.getOrder();
-        order.setStatus(Status.ORDER_APPROVED);
+        order.setStatus(Status.ORDER_PROCESSING);
         order.setGarmentId(garmentQuotation.getGarment().getId());
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
