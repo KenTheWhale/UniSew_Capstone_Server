@@ -22,7 +22,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest request) {
         return orderService.createOrder(request);
     }
@@ -40,13 +40,13 @@ public class OrderController {
     }
 
     @GetMapping("/quotation/{orderId}")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> viewQuotation(@PathVariable(name = "orderId") int orderId) {
         return orderService.viewQuotation(orderId);
     }
 
     @GetMapping("/quotation/approval/{quotationId}")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> approveQuotation(@PathVariable(name = "quotationId") int quotationId) {
         return orderService.approveQuotation(quotationId);
     }
