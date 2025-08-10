@@ -50,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.OK, error, null);
         }
 
-        SchoolDesign schoolDesign = schoolDesignRepo.findById(request.getSchoolDesignId())
+        SchoolDesign schoolDesign = schoolDesignRepo.findByDesignDelivery_Id(request.getDeliveryId())
                 .orElse(null);
         if (schoolDesign == null) {
             return ResponseBuilder.build(HttpStatus.OK, "School Design not found", null);

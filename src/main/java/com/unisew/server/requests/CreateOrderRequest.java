@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateOrderRequest {
-    Integer schoolDesignId;
+    Integer deliveryId;
     Integer garmentId;
     LocalDate deadline;
     String note;

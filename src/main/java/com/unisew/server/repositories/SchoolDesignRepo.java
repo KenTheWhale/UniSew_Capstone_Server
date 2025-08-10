@@ -12,4 +12,6 @@ public interface SchoolDesignRepo extends JpaRepository<SchoolDesign, Integer> {
     List<SchoolDesign> findAllByCustomer_Account_Id(Integer customerAccountId);
 
     Optional<SchoolDesign> findByDesignDelivery_DesignRequest_Id(int requestId);
+
+    Optional<SchoolDesign> findByDesignDelivery_Id(int deliveryId);
 }
