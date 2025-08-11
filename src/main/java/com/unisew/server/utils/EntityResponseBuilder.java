@@ -6,10 +6,7 @@ import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.PartnerRepo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EntityResponseBuilder {
 
@@ -83,8 +80,11 @@ public class EntityResponseBuilder {
     public static Map<String, Object> buildDesignDeliveryResponse(DesignDelivery delivery, DesignItemRepo designItemRepo) {
         if (delivery == null) return null;
         List<String> keys = List.of(
-                "id", "name", "note",
-                "revision", "submitDate",
+                "id",
+                "name",
+                "note",
+                "revision",
+                "submitDate",
                 "version",
                 "designRequest",
                 "designItems"
@@ -92,11 +92,14 @@ public class EntityResponseBuilder {
 
 
         List<Object> values = List.of(
-                delivery.getId(), delivery.getName(), delivery.getNote(),
-                delivery.isRevision(), delivery.getSubmitDate(),
+                delivery.getId(),
+                Objects.requireNonNullElse(delivery.getName(), ""),
+                Objects.requireNonNullElse(delivery.getNote(), ""),
+                delivery.isRevision(),
+                delivery.getSubmitDate(),
                 delivery.getVersion(),
-                buildDesignRequestResponse(delivery.getDesignRequest()),
-                buildDeliveryItemListResponse(delivery.getDeliveryItems(), designItemRepo)
+                Objects.requireNonNullElse(buildDesignRequestResponse(delivery.getDesignRequest()), ""),
+                Objects.requireNonNullElse(buildDeliveryItemListResponse(delivery.getDeliveryItems(), designItemRepo), "")
         );
         return MapUtils.build(keys, values);
     }
@@ -111,12 +114,12 @@ public class EntityResponseBuilder {
         List<String> keys = List.of(
                 "id", "type", "category", "logoPosition",
                 "color", "note", "sampleImages", "fabricId",
-                "fabricName"
+                "fabricName", "gender"
         );
         List<Object> values = List.of(
                 item.getId(), item.getType().getValue(), item.getCategory().getValue(), item.getLogoPosition(),
                 item.getColor(), item.getNote(), buildSampleImageListResponse(item.getSampleImages()), item.getFabric().getId(),
-                item.getFabric().getName()
+                item.getFabric().getName(), item.getGender().getValue()
         );
         return MapUtils.build(keys, values);
     }
@@ -166,7 +169,7 @@ public class EntityResponseBuilder {
 
     //-------Feedback---------
     public static Map<String, Object> buildFeedbackResponse(Feedback feedback) {
-        if(feedback == null) return null;
+        if (feedback == null) return null;
         List<String> keys = List.of("id", "rating", "content", "creationDate", "images");
         List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(), buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         return MapUtils.build(keys, values);
@@ -189,7 +192,7 @@ public class EntityResponseBuilder {
         return orders.stream()
                 .map(order -> {
                     Partner partner;
-                    if(order.getGarmentId() == null) partner = null;
+                    if (order.getGarmentId() == null) partner = null;
                     else partner = partnerRepo.findById(order.getId()).orElse(null);
 
                     Map<String, Object> orderMap = new HashMap<>();
@@ -252,19 +255,21 @@ public class EntityResponseBuilder {
     //-------Quotation---------
 
     public static List<Map<String, Object>> buildQuotationResponse(List<GarmentQuotation> garmentQuotations) {
-        return (garmentQuotations != null) ? garmentQuotations.stream().map(item -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", item.getId());
-            map.put("garmentId", item.getGarment().getId());
-            map.put("garmentName", item.getGarment().getCustomer().getName());
-            map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
-            map.put("acceptanceDeadline", item.getAcceptanceDeadline());
-            map.put("price", item.getPrice());
-            map.put("note", item.getNote());
-            map.put("status", item.getStatus());
-            return map;
-        }).toList()
-                : new ArrayList<>();
+        return (garmentQuotations != null) ?
+                garmentQuotations.stream().map(item -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", item.getId());
+                    map.put("garmentId", Objects.requireNonNullElse(item.getGarment().getId(), null));
+                    map.put("garmentName", item.getGarment().getCustomer().getName());
+                    map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
+                    map.put("acceptanceDeadline", item.getAcceptanceDeadline());
+                    map.put("price", item.getPrice());
+                    map.put("note", item.getNote());
+                    map.put("status", item.getStatus());
+                    return map;
+                }).toList()
+                :
+                new ArrayList<>();
     }
 
     //-------Revision Request---------
@@ -325,7 +330,6 @@ public class EntityResponseBuilder {
     //-------Transaction---------
 
     //-------Wallet---------
-
 
 
 }

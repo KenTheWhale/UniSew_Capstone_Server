@@ -19,4 +19,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> approveQuotation(int quotationId);
 
     ResponseEntity<ResponseObject> viewQuotation(int orderId);
+
+    ResponseEntity<ResponseObject> getSizes();
 }
