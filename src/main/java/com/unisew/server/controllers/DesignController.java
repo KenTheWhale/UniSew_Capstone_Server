@@ -114,10 +114,10 @@ public class DesignController {
     }
 
     //-------------------SCHOOL_DESIGN----------------------------//
-    @PostMapping("/school-design/list")
-    @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, @RequestBody GetListSchoolDesignRequest request){
-        return designService.getListSchoolDesign(httpRequest, request);
+    @PostMapping("/final/designs")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER')")
+    public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest){
+        return designService.getListSchoolDesign(httpRequest);
     }
 
     @PostMapping("/school/request/final")

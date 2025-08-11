@@ -57,5 +57,9 @@ public class OrderController {
         return orderService.approveQuotation(quotationId);
     }
 
-
+    @GetMapping("/sizes")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> getSizes(){
+        return orderService.getSizes();
+    }
 }

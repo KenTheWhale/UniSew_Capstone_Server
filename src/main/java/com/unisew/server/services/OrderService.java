@@ -20,5 +20,7 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> viewQuotation(int orderId);
 
+    ResponseEntity<ResponseObject> getSizes();
+
     ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request);
 }
