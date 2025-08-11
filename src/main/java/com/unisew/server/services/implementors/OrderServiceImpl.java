@@ -99,7 +99,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
+    public ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+        List<Order> orders = orderRepo.findAll();
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo));
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewSchoolOrder(HttpServletRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
         if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
@@ -189,6 +199,8 @@ public class OrderServiceImpl implements OrderService {
 
         return ResponseBuilder.build(HttpStatus.OK, "List of quotations", EntityResponseBuilder.buildQuotationResponse(order.getGarmentQuotations()));
     }
+
+
 
 
 }

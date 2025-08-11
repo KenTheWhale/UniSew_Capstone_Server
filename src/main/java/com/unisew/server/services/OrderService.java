@@ -12,11 +12,13 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request);
 
-    ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request);
+    ResponseEntity<ResponseObject> viewSchoolOrder(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request);
 
     ResponseEntity<ResponseObject> approveQuotation(int quotationId);
 
     ResponseEntity<ResponseObject> viewQuotation(int orderId);
+
+    ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request);
 }

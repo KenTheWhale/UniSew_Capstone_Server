@@ -28,9 +28,15 @@ public class OrderController {
     }
 
     @PostMapping("/list")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
-        return orderService.viewOrder(request);
+        return orderService.viewSchoolOrder(request);
+    }
+
+    @GetMapping("")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request) {
+        return orderService.viewAllOrder(request);
     }
 
     @PostMapping("/quotation")
