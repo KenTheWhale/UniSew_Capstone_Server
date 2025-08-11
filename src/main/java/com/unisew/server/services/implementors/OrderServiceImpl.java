@@ -1,6 +1,6 @@
 package com.unisew.server.services.implementors;
 
-import com.unisew.server.enums.DesignItemSize;
+import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
@@ -11,6 +11,7 @@ import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
+import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.ApproveQuotationValidation;
 import com.unisew.server.validations.OrderValidation;
@@ -25,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -84,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
                 OrderDetail detail = OrderDetail.builder()
                         .order(order)
                         .deliveryItemId(item.getDeliveryItemId())
-                        .size(DesignItemSize.valueOf(item.getSize()))
+                        .size(DeliveryItemSize.valueOf(item.getSize()))
                         .quantity(item.getQuantity())
                         .build();
                 orderDetailEntities.add(detail);
@@ -190,5 +188,26 @@ public class OrderServiceImpl implements OrderService {
         return ResponseBuilder.build(HttpStatus.OK, "List of quotations", EntityResponseBuilder.buildQuotationResponse(order.getGarmentQuotations()));
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> getSizes() {
+        List<Map<String, Object>> data = Arrays.stream(DeliveryItemSize.values())
+                .map(this::buildSize)
+                .toList();
 
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    private Map<String, Object> buildSize(DeliveryItemSize size){
+        List<String> keys = List.of(
+                "type", "size", "gender",
+                "maxHeight", "minHeight",
+                "maxWeight", "minWeight"
+        );
+        List<Object> values = List.of(
+                size.getType(), size.getSize(), size.getGender(),
+                size.getMaxHeight(), size.getMinHeight(),
+                size.getMaxWeight(), size.getMinWeight()
+        );
+        return MapUtils.build(keys, values);
+    }
 }

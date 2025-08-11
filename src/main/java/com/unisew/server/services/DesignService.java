@@ -45,7 +45,7 @@ public interface DesignService {
     ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest);
 
     //--------------------------------SCHOOL_DESIGN----------------------------------------//
-    ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest, GetListSchoolDesignRequest request);
+    ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> makeDesignFinal(HttpServletRequest httpRequest, MakeDesignFinalRequest request);
 
