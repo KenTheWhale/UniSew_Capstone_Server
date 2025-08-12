@@ -114,12 +114,12 @@ public class EntityResponseBuilder {
         List<String> keys = List.of(
                 "id", "type", "category", "logoPosition",
                 "color", "note", "sampleImages", "fabricId",
-                "fabricName", "gender"
+                "fabricName", "gender", "logoImageUrl"
         );
         List<Object> values = List.of(
                 item.getId(), item.getType().getValue(), item.getCategory().getValue(), item.getLogoPosition(),
                 item.getColor(), item.getNote(), buildSampleImageListResponse(item.getSampleImages()), item.getFabric().getId(),
-                item.getFabric().getName(), item.getGender().getValue()
+                item.getFabric().getName(), item.getGender().getValue(), item.getDesignRequest().getLogoImage()
         );
         return MapUtils.build(keys, values);
     }
@@ -229,7 +229,7 @@ public class EntityResponseBuilder {
 
         List<Object> values = List.of(
                 detail.getId(), item == null ? "" : buildDeliveryItemResponse(item, designItemRepo),
-                detail.getQuantity(), detail.getSize()
+                detail.getQuantity(), detail.getSize().getSize()
         );
         return MapUtils.build(keys, values);
     }
