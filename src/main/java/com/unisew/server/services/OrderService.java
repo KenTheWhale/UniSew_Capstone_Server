@@ -15,7 +15,7 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request);
 
-    ResponseEntity<ResponseObject> approveQuotation(int quotationId);
+    ResponseEntity<ResponseObject> approveQuotation(ApproveQuotationRequest request, HttpServletRequest httpServletRequest);
 
     ResponseEntity<ResponseObject> viewQuotation(int orderId);
 
