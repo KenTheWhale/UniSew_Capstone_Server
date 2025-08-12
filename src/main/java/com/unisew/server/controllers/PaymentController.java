@@ -26,4 +26,10 @@ public class PaymentController {
     public ResponseEntity<ResponseObject> getPaymentUrl(@RequestBody GetPaymentURLRequest request, HttpServletRequest httpRequest){
         return paymentService.getPaymentURL(request, httpRequest);
     }
+
+    @PostMapping("/transaction")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> createTransaction(){
+
+    }
 }
