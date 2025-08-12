@@ -50,12 +50,12 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request) {
         String error = OrderValidation.validate(request);
         if (error != null) {
-            return ResponseBuilder.build(HttpStatus.OK, error, null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         DesignDelivery delivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
         if (delivery == null || delivery.getSchoolDesign() == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "Invalid request", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid request", null);
         }
 
         SchoolDesign schoolDesign = delivery.getSchoolDesign();
@@ -201,12 +201,12 @@ public class OrderServiceImpl implements OrderService {
         List<String> keys = List.of(
                 "type", "size", "gender",
                 "maxHeight", "minHeight",
-                "maxWeight", "minWeight"
+                "maxWeight", "minWeight", "enumName"
         );
         List<Object> values = List.of(
                 size.getType(), size.getSize(), size.getGender(),
                 size.getMaxHeight(), size.getMinHeight(),
-                size.getMaxWeight(), size.getMinWeight()
+                size.getMaxWeight(), size.getMinWeight(), size.name()
         );
         return MapUtils.build(keys, values);
     }
