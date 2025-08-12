@@ -42,6 +42,7 @@ public class DesignServiceImpl implements DesignService {
     private final DesignCommentRepo designCommentRepo;
     private final SchoolDesignRepo schoolDesignRepo;
     private final PaymentService paymentService;
+    private final PartnerRepo partnerRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -593,6 +594,10 @@ public class DesignServiceImpl implements DesignService {
             }
         }
 
+        Partner designer = partnerRepo.findById(request.getCreateTransactionRequest().getReceiverId()).orElse(null);
+        if(designer == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer not found", null);
+
+        request.getCreateTransactionRequest().setReceiverId(designer.getCustomer().getId());
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
 
