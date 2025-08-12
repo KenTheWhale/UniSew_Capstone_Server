@@ -8,6 +8,7 @@ import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
+import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.MapUtils;
@@ -47,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
     DeliveryItemRepo deliveryItemRepo;
     SewingPhaseRepo sewingPhaseRepo;
     MilestoneRepo milestoneRepo;
+    private final PaymentService paymentService;
 
 
     @Override
@@ -245,8 +247,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> approveQuotation(int quotationId) {
-        GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(quotationId).orElse(null);
+    public ResponseEntity<ResponseObject> approveQuotation(ApproveQuotationRequest request, HttpServletRequest httpServletRequest) {
+        GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(request.getQuotationId()).orElse(null);
         String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
@@ -257,7 +259,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<GarmentQuotation> otherGarmentQuotations = garmentQuotationRepo.findAllByOrder_Id(garmentQuotation.getOrder().getId());
         for (GarmentQuotation item : otherGarmentQuotations) {
-            if (!item.getId().equals(quotationId) && item.getStatus() == Status.GARMENT_QUOTATION_PENDING) {
+            if (!item.getId().equals(request.getQuotationId()) && item.getStatus() == Status.GARMENT_QUOTATION_PENDING) {
                 item.setStatus(Status.GARMENT_QUOTATION_REJECTED);
                 garmentQuotationRepo.save(item);
             }
@@ -272,7 +274,7 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(order.getNote() + ";" + garmentQuotation.getNote());
         orderRepo.save(order);
 
-        return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
+        return paymentService.createTransaction(request.getCreateTransactionRequest(), httpServletRequest);
     }
 
     @Override
