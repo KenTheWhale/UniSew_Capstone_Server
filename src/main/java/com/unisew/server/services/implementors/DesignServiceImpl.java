@@ -567,10 +567,10 @@ public class DesignServiceImpl implements DesignService {
         DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
 
         if (designQuotation == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "package not found", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Quotation not found", null);
         }
         if (designRequest == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Request not found", null);
         }
         if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_PENDING)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Package already exists for this request", null);
@@ -579,7 +579,7 @@ public class DesignServiceImpl implements DesignService {
         designRequest.setDesignQuotationId(request.getDesignQuotationId());
         designRequest.setRevisionTime(designQuotation.getRevisionTime() + request.getExtraRevision());
         designRequest.setStatus(Status.DESIGN_REQUEST_PROCESSING);
-        designRequest.setPrice(designQuotation.getPrice() + designQuotation.getExtraRevisionPrice() * (designRequest.getRevisionTime() - designQuotation.getRevisionTime()));
+        designRequest.setPrice(designQuotation.getPrice() + request.getServiceFee() + designQuotation.getExtraRevisionPrice() * request.getExtraRevision());
         designRequestRepo.save(designRequest);
 
         designQuotation.setStatus(Status.DESIGN_QUOTATION_SELECTED);
