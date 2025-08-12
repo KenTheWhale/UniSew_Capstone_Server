@@ -2,13 +2,12 @@ package com.unisew.server.controllers;
 
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.requests.UpdateProductionStatusRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.OrderService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,9 +33,15 @@ public class OrderController {
     }
 
     @GetMapping("")
-    @PreAuthorize("hasRole('SCHOOL')")
+    @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request) {
         return orderService.viewAllOrder(request);
+    }
+
+    @PutMapping("/production")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, @RequestBody UpdateProductionStatusRequest request) {
+        return orderService.updateProductionStatus(httpServletRequest, request);
     }
 
     @PostMapping("/quotation")
@@ -45,16 +50,22 @@ public class OrderController {
         return orderService.createQuotation(httpServletRequest, request);
     }
 
-    @GetMapping("/quotation/{orderId}")
+    @GetMapping("/quotation")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> viewQuotation(@PathVariable(name = "orderId") int orderId) {
+    public ResponseEntity<ResponseObject> viewQuotation(@RequestParam(name = "orderId") int orderId) {
         return orderService.viewQuotation(orderId);
     }
 
-    @GetMapping("/quotation/approval/{quotationId}")
+    @GetMapping("/quotation/approval")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> approveQuotation(@PathVariable(name = "quotationId") int quotationId) {
+    public ResponseEntity<ResponseObject> approveQuotation(@RequestParam(name = "quotationId") int quotationId) {
         return orderService.approveQuotation(quotationId);
+    }
+
+    @PutMapping("/cancellation")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> cancelOrder(@RequestParam(name = "orderId") int orderId) {
+        return orderService.cancelOrder(orderId);
     }
 
     @GetMapping("/sizes")

@@ -114,12 +114,12 @@ public class EntityResponseBuilder {
         List<String> keys = List.of(
                 "id", "type", "category", "logoPosition",
                 "color", "note", "sampleImages", "fabricId",
-                "fabricName", "gender"
+                "fabricName", "gender", "logoImageUrl"
         );
         List<Object> values = List.of(
                 item.getId(), item.getType().getValue(), item.getCategory().getValue(), item.getLogoPosition(),
                 item.getColor(), item.getNote(), buildSampleImageListResponse(item.getSampleImages()), item.getFabric().getId(),
-                item.getFabric().getName(), item.getGender().getValue()
+                item.getFabric().getName(), item.getGender().getValue(), item.getDesignRequest().getLogoImage()
         );
         return MapUtils.build(keys, values);
     }
@@ -198,8 +198,8 @@ public class EntityResponseBuilder {
                     Map<String, Object> orderMap = new HashMap<>();
                     orderMap.put("id", order.getId());
                     orderMap.put("deadline", order.getDeadline());
-                    orderMap.put("schoolName", order.getSchoolDesign().getCustomer().getName());
-                    orderMap.put("garment", partner == null ? null : EntityResponseBuilder.buildPartnerResponse(partner));
+                    orderMap.put("school", buildCustomerResponse(order.getSchoolDesign().getCustomer()));
+                    orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner));
                     orderMap.put("note", order.getNote());
                     orderMap.put("orderDate", order.getOrderDate());
                     orderMap.put("price", order.getPrice());
@@ -229,13 +229,14 @@ public class EntityResponseBuilder {
 
         List<Object> values = List.of(
                 detail.getId(), item == null ? "" : buildDeliveryItemResponse(item, designItemRepo),
-                detail.getQuantity(), detail.getSize()
+                detail.getQuantity(), detail.getSize().getSize()
         );
         return MapUtils.build(keys, values);
     }
 
     //-------Partner---------
     public static Map<String, Object> buildPartnerResponse(Partner partner) {
+        if(partner == null) return null;
         List<String> keys = List.of(
                 "id", "customer",
                 "preview",

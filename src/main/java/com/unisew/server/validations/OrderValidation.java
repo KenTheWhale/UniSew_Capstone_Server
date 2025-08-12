@@ -1,6 +1,7 @@
 package com.unisew.server.validations;
 
 import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.UpdateProductionStatusRequest;
 
 public class OrderValidation {
     public static String validate(CreateOrderRequest request) {
@@ -25,5 +26,33 @@ public class OrderValidation {
             }
         }
         return null; // No validation errors
+    }
+
+    public static String validateUpdateProductionStatus(UpdateProductionStatusRequest request) {
+        if (request.getOrderId() == null || request.getOrderId() <= 0) {
+            return "Invalid order ID.";
+        }
+        if (request.getStatus() == null || request.getStatus().isEmpty()) {
+            return "Status cannot be null or empty.";
+        }
+
+        String[] validStatuses = {
+                "fabric_preparation", "cutting", "patching", "ironing",
+                "quality_check", "packaging", "sewing", "embroidering",
+                "hand_sewing", "delivering", "completed"
+        };
+        boolean isValidStatus = false;
+
+        for (String validStatus : validStatuses) {
+            if (request.getStatus().equals(validStatus)) {
+                isValidStatus = true;
+                break;
+            }
+        }
+        if (!isValidStatus) {
+            return "Invalid status provided.";
+        }
+        return null;
+
     }
 }

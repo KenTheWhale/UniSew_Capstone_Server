@@ -6,6 +6,7 @@ import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.requests.UpdateProductionStatusRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
@@ -26,7 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -50,12 +54,12 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request) {
         String error = OrderValidation.validate(request);
         if (error != null) {
-            return ResponseBuilder.build(HttpStatus.OK, error, null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         DesignDelivery delivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
         if (delivery == null || delivery.getSchoolDesign() == null) {
-            return ResponseBuilder.build(HttpStatus.OK, "Invalid request", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid request", null);
         }
 
         SchoolDesign schoolDesign = delivery.getSchoolDesign();
@@ -110,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> viewSchoolOrder(HttpServletRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
-        if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        if (account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
 
         List<Order> orders = account.getCustomer().getSchoolDesigns()
                 .stream()
@@ -123,11 +127,32 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, UpdateProductionStatusRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        String error = OrderValidation.validateUpdateProductionStatus(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        order.setStatus(Status.valueOf(request.getStatus()));
+        orderRepo.save(order);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Order status updated successfully", null);
+    }
+
+    @Override
     @Transactional
     public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request) {
         String error = QuotationValidation.validate(request);
         if (error != null) {
-            return ResponseBuilder.build(HttpStatus.OK, error, null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
@@ -182,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
         order.setServiceFee(garmentQuotation.getPrice() * 5 / 100);
-        order.setNote(order.getNote() + "&&" + garmentQuotation.getNote());
+        order.setNote(order.getNote() + ";" + garmentQuotation.getNote());
         orderRepo.save(order);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
@@ -207,19 +232,36 @@ public class OrderServiceImpl implements OrderService {
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
-    private Map<String, Object> buildSize(DeliveryItemSize size){
+    private Map<String, Object> buildSize(DeliveryItemSize size) {
         List<String> keys = List.of(
                 "type", "size", "gender",
                 "maxHeight", "minHeight",
-                "maxWeight", "minWeight"
+                "maxWeight", "minWeight",
+                "enumName"
         );
         List<Object> values = List.of(
                 size.getType(), size.getSize(), size.getGender(),
                 size.getMaxHeight(), size.getMinHeight(),
-                size.getMaxWeight(), size.getMinWeight()
+                size.getMaxWeight(), size.getMinWeight(),
+                size.name()
         );
         return MapUtils.build(keys, values);
     }
+
+    @Override
+    public ResponseEntity<ResponseObject> cancelOrder(int orderId) {
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+        if (order.getStatus() != Status.ORDER_PENDING) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order cannot be canceled at this stage", null);
+        }
+        order.setStatus(Status.ORDER_CANCELED);
+        orderRepo.save(order);
+        return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
+    }
+
 
 
 }
