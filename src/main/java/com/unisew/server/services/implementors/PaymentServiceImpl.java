@@ -1,23 +1,53 @@
 package com.unisew.server.services.implementors;
 
 import com.unisew.server.configurations.VNPayConfig;
+import com.unisew.server.enums.PaymentType;
+import com.unisew.server.enums.Role;
+import com.unisew.server.enums.Status;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.Transaction;
+import com.unisew.server.models.Wallet;
+import com.unisew.server.repositories.*;
+import com.unisew.server.requests.CreateTransactionRequest;
 import com.unisew.server.requests.GetPaymentURLRequest;
 import com.unisew.server.responses.ResponseObject;
+import com.unisew.server.services.JWTService;
 import com.unisew.server.services.PaymentService;
+import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
+    private final CustomerRepo customerRepo;
+    private final DesignRequestRepo designRequestRepo;
+    private final OrderRepo orderRepo;
+    private final WalletRepo walletRepo;
+    private final JWTService jwtService;
+    private final AccountRepo accountRepo;
+    private final TransactionRepo transactionRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getPaymentURL(GetPaymentURLRequest request, HttpServletRequest httpRequest) {
