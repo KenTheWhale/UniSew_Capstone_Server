@@ -1,5 +1,6 @@
 package com.unisew.server.controllers;
 
+import com.unisew.server.requests.CreateTransactionRequest;
 import com.unisew.server.requests.GetPaymentURLRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.PaymentService;
@@ -25,5 +26,11 @@ public class PaymentController {
     @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER')")
     public ResponseEntity<ResponseObject> getPaymentUrl(@RequestBody GetPaymentURLRequest request, HttpServletRequest httpRequest){
         return paymentService.getPaymentURL(request, httpRequest);
+    }
+
+    @PostMapping("/transaction")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'ADMIN')")
+    public ResponseEntity<ResponseObject> createTransaction(@RequestBody CreateTransactionRequest request, HttpServletRequest httpRequest){
+        return paymentService.createTransaction(request, httpRequest);
     }
 }
