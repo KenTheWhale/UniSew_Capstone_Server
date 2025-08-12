@@ -129,8 +129,8 @@ public class DesignController {
     //-------------------DESIGN QUOTATION----------------------------//
     @PostMapping("/pick/quotation")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> pickDesignQuotation(@RequestBody PickDesignQuotationRequest request) {
-        return designService.pickDesignQuotation(request);
+    public ResponseEntity<ResponseObject> pickDesignQuotation(@RequestBody PickDesignQuotationRequest request, HttpServletRequest httpRequest) {
+        return designService.pickDesignQuotation(request, httpRequest);
     }
 
     @PostMapping("/quotation/history")

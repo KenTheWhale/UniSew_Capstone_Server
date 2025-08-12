@@ -1,4 +1,6 @@
 package com.unisew.server.requests;
+
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +21,4 @@ public class CreateTransactionRequest {
     String gatewayCode;
     long serviceFee;
     boolean payFromWallet;
-
 }
-
