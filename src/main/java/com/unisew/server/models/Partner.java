@@ -55,4 +55,9 @@ public class Partner {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<GarmentQuotation> garmentQuotations;
+
+    @OneToMany(mappedBy = "garment", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<SewingPhase> sewingPhases;
 }
