@@ -48,7 +48,8 @@ public class Transaction {
     @Column(name = "`payment_type`")
     PaymentType paymentType;
 
-    String note;
+    @Column(name = "`service_fee`")
+    long serviceFee;
 
     @Enumerated(EnumType.STRING)
     Status status;
@@ -58,9 +59,4 @@ public class Transaction {
 
     @Column(name = "`payment_gateway_code`")
     String paymentGatewayCode;
-
-    @Column(name = "`payment_gateway_message`")
-    String paymentGatewayMessage;
-
-
 }
