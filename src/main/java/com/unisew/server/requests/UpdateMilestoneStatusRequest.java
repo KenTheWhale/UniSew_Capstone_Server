@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateProductionStatusRequest {
-    Integer orderId;
-    String status;
+public class UpdateMilestoneStatusRequest {
+    Integer milestoneId;
+    String imageUrl;
 }

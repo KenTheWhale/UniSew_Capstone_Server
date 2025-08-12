@@ -28,8 +28,6 @@ public class Milestone {
     @JoinColumn(name = "`order_id`")
     Order order;
 
-    int stage;
-
     @Column(name = "`start_date`")
     LocalDate startDate;
 
@@ -41,4 +39,6 @@ public class Milestone {
 
     @Enumerated(EnumType.STRING)
     Status status;
+
+    int stage;
 }
