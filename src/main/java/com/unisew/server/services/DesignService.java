@@ -19,7 +19,7 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request);
 
-    ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request);
+    ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request, HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> updateRequestByDeadline(UpdateRequestByDeadline request);
 
