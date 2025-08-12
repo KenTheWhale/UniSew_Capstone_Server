@@ -21,6 +21,7 @@ import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

@@ -7,6 +7,7 @@ import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import com.unisew.server.services.JWTService;
+import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.MapUtils;
@@ -40,7 +41,7 @@ public class DesignServiceImpl implements DesignService {
     private final DeliveryItemRepo deliveryItemRepo;
     private final DesignCommentRepo designCommentRepo;
     private final SchoolDesignRepo schoolDesignRepo;
-    private final CustomerRepo customerRepo;
+    private final PaymentService paymentService;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -560,7 +561,7 @@ public class DesignServiceImpl implements DesignService {
     //-----------------------DESIGN_QUOTATION-------------------------//
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request) {
+    public ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request, HttpServletRequest httpRequest) {
 
         DesignQuotation designQuotation = designQuotationRepo.findById(request.getDesignQuotationId()).orElse(null);
 
@@ -592,9 +593,7 @@ public class DesignServiceImpl implements DesignService {
             }
         }
 
-        //Missing transaction and wallet
-
-        return ResponseBuilder.build(HttpStatus.OK, "Selected Designer", null);
+        return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
 
     @Override
