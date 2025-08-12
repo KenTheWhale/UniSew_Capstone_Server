@@ -59,4 +59,9 @@ public class Order {
     @EqualsAndHashCode.Exclude
     List<OrderDetail> orderDetails;
 
+    @OneToMany(mappedBy = "order")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Milestone> milestones;
+
 }
