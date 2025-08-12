@@ -49,8 +49,11 @@ public enum Status {
     //MILESTONE
     MILESTONE_PROCESSING("processing"),
     MILESTONE_COMPLETED("completed"),
-    MILESTONE_LATE("late");
+    MILESTONE_LATE("late"),
 
+    //TRANSACTION
+    TRANSACTION_SUCCESS("success"),
+    TRANSACTION_FAIL("fail");
 
     private final String value;
 }

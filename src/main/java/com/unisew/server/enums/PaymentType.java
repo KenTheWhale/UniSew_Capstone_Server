@@ -7,8 +7,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PaymentType {
 
-    SCHOOL_ORDER("Order payment"),
-    PLATFORM_DESIGNER("Designer fee payment");
+    ORDER("order"),
+    DESIGN("design"),
+    ORDER_RETURN("order_return"),
+    DESIGN_RETURN("design_return"),
+    WALLET("wallet");
 
     private final String value;
 }
