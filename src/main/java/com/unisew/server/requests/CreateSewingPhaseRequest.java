@@ -8,9 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PickDesignQuotationRequest {
-    int designQuotationId;
-    int designRequestId;
-    int extraRevision;
-    long serviceFee;
+public class CreateSewingPhaseRequest {
+    String name;
+    String description;
 }

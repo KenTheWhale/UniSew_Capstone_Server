@@ -40,8 +40,16 @@ public enum Status {
     //GARMENT QUOTATION
     GARMENT_QUOTATION_PENDING("pending"),
     GARMENT_QUOTATION_APPROVED("approved"),
-    GARMENT_QUOTATION_REJECTED("rejected");
+    GARMENT_QUOTATION_REJECTED("rejected"),
 
+    //SEWING PHASE
+    SEWING_PHASE_ACTIVE("active"),
+    SEWING_PHASE_INACTIVE("inactive"),
+
+    //MILESTONE
+    MILESTONE_PROCESSING("processing"),
+    MILESTONE_COMPLETED("completed"),
+    MILESTONE_LATE("late");
 
 
     private final String value;
