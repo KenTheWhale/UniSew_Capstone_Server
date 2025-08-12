@@ -25,10 +25,9 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> cancelOrder(int orderId);
 
-    ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, UpdateProductionStatusRequest request);
-
-
     ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, CreateSewingPhaseRequest request);
 
     ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request);
+
+    ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request);
 }

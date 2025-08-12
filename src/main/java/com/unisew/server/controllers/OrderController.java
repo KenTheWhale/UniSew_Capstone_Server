@@ -36,12 +36,6 @@ public class OrderController {
         return orderService.viewAllOrder(request);
     }
 
-    @PutMapping("/production")
-    @PreAuthorize("hasRole('GARMENT')")
-    public ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, @RequestBody UpdateProductionStatusRequest request) {
-        return orderService.updateProductionStatus(httpServletRequest, request);
-    }
-
     @PostMapping("/quotation")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, @RequestBody QuotationRequest request) {
@@ -82,5 +76,11 @@ public class OrderController {
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, @RequestBody AssignMilestoneRequest request) {
         return orderService.assignMilestone(httpServletRequest, request);
+    }
+
+    @PutMapping("/milestone")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> updateMilestoneStatus(@RequestBody UpdateMilestoneStatusRequest request) {
+        return orderService.updateMilestoneStatus(request);
     }
 }

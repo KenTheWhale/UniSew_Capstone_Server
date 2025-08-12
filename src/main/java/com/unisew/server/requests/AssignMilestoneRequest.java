@@ -14,8 +14,17 @@ import java.util.List;
 public class AssignMilestoneRequest {
 
     Integer orderId;
-    List<Integer> phaseIdList;
-    Integer stage;
-    LocalDate startDate;
-    LocalDate endDate;
+    List<Phase> phaseList;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class Phase {
+        Integer id;
+        int stage;
+        LocalDate startDate;
+        LocalDate endDate;
+    }
 }
