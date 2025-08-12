@@ -55,7 +55,5 @@ public enum Status {
     TRANSACTION_SUCCESS("success"),
     TRANSACTION_FAIL("fail");
 
-
-
     private final String value;
 }

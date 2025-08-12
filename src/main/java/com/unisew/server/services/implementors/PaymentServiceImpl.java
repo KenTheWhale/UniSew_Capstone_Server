@@ -5,10 +5,14 @@ import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
-import com.unisew.server.models.Customer;
 import com.unisew.server.models.Transaction;
 import com.unisew.server.models.Wallet;
-import com.unisew.server.repositories.*;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.OrderRepo;
+import com.unisew.server.repositories.TransactionRepo;
+import com.unisew.server.repositories.WalletRepo;
 import com.unisew.server.requests.CreateTransactionRequest;
 import com.unisew.server.requests.GetPaymentURLRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -17,7 +21,6 @@ import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,6 +51,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final JWTService jwtService;
     private final AccountRepo accountRepo;
     private final TransactionRepo transactionRepo;
+
+
 
     @Override
     public ResponseEntity<ResponseObject> getPaymentURL(GetPaymentURLRequest request, HttpServletRequest httpRequest) {
@@ -117,5 +122,131 @@ public class PaymentServiceImpl implements PaymentService {
         Map<String, Object> data = new HashMap<>();
         data.put("url", VNPayConfig.vnp_PayUrl + "?" + queryUrl);
         return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, HttpServletRequest httpRequest) {
+        String error = validateCreateTransaction(request);
+        if(!error.isEmpty()){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+
+        Account sender = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if(sender == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Sender not found", null);
+        }
+
+        Account receiver = customerRepo.findById(request.getReceiverId()).get().getAccount();
+
+        Wallet adminWallet = getAdminWallet();
+        Wallet senderWallet = sender.getWallet();
+        Wallet receiverWallet = receiver.getWallet();
+
+        long amount = request.getTotalPrice() - request.getServiceFee();
+
+        adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
+        if(request.getType().equalsIgnoreCase(PaymentType.WALLET.name())){
+            receiverWallet.setBalance(receiverWallet.getBalance() + amount);
+        }else {
+            receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
+        }
+
+        walletRepo.save(adminWallet);
+        walletRepo.save(receiverWallet);
+
+        if(request.isPayFromWallet()){
+            return payFromWallet(request, senderWallet, receiverWallet);
+        }
+        return payFromGateway(request, senderWallet, receiverWallet);
+    }
+
+    private String validateCreateTransaction(CreateTransactionRequest request){
+        if(checkIfNullOrEmpty(request.getType())){
+            return "Type is required";
+        }
+
+        PaymentType paymentType = Arrays.stream(PaymentType.values())
+                .filter(e -> e.name().equalsIgnoreCase(request.getType()))
+                .findFirst()
+                .orElse(null);
+
+        if(paymentType == null){
+            return "Type invalid";
+        }
+
+        if(!customerRepo.existsById(request.getReceiverId())){
+            return "Receiver not found";
+        }
+
+        if(request.getType().equalsIgnoreCase("design") && !designRequestRepo.existsById(request.getItemId())){
+            return "Design request not found";
+        }
+
+        if(request.getType().equalsIgnoreCase("order") && !orderRepo.existsById(request.getItemId())){
+            return "Order not found";
+        }
+
+        if(request.getTotalPrice() < 0) {
+            return "Total price must be greater than 0";
+        }
+
+        if(checkIfNullOrEmpty(request.getGatewayCode())){
+            return "Payment gateway is required";
+        }
+
+        if(request.getServiceFee() < 0){
+            return "Service fee must be greater than 0";
+        }
+
+        return "";
+    }
+
+    private boolean checkIfNullOrEmpty(String value){
+        return value == null || value.isEmpty();
+    }
+
+    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet){
+        long amount = request.getTotalPrice() - request.getServiceFee();
+        if(senderWallet.getBalance() < amount){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
+        }
+
+        senderWallet.setBalance(senderWallet.getBalance() - amount);
+        senderWallet = walletRepo.save(senderWallet);
+
+
+        return createTransaction(request, senderWallet, receiverWallet, amount);
+    }
+
+    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet){
+        long amount = request.getTotalPrice() - request.getServiceFee();
+
+        return createTransaction(request, senderWallet, receiverWallet, amount);
+    }
+
+    private ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, long amount) {
+        transactionRepo.save(
+                Transaction.builder()
+                        .wallet(senderWallet)
+                        .sender(senderWallet.getAccount().getCustomer())
+                        .receiver(receiverWallet.getAccount().getCustomer())
+                        .itemId(request.getItemId())
+                        .senderName(senderWallet.getAccount().getCustomer().getName())
+                        .receiverName(receiverWallet.getAccount().getCustomer().getName())
+                        .amount(amount)
+                        .paymentType(PaymentType.valueOf(request.getType().toUpperCase()))
+                        .serviceFee(request.getServiceFee())
+                        .status(request.getGatewayCode().trim().equalsIgnoreCase("00") ? Status.TRANSACTION_SUCCESS : Status.TRANSACTION_FAIL)
+                        .creationDate(LocalDate.now())
+                        .paymentGatewayCode(request.getGatewayCode().trim())
+                        .build()
+        );
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Transaction created", null);
+    }
+
+    private Wallet getAdminWallet(){
+        return walletRepo.findByAccount_Role(Role.ADMIN);
     }
 }
