@@ -54,10 +54,10 @@ public class OrderController {
         return orderService.viewQuotation(orderId);
     }
 
-    @GetMapping("/quotation/approval")
+    @PostMapping("/quotation/approval")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> approveQuotation(@RequestParam(name = "quotationId") int quotationId) {
-        return orderService.approveQuotation(quotationId);
+    public ResponseEntity<ResponseObject> approveQuotation(@RequestBody ApproveQuotationRequest request, HttpServletRequest httpServletRequest) {
+        return orderService.approveQuotation(request,httpServletRequest);
     }
 
     @PutMapping("/cancellation")
