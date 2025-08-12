@@ -5,6 +5,7 @@ import com.unisew.server.models.*;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.SewingPhaseRepo;
 
 import java.util.*;
 
@@ -188,7 +189,7 @@ public class EntityResponseBuilder {
     }
 
     //-------Order---------
-    public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo) {
+    public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, SewingPhaseRepo sewingPhaseRepo) {
         return orders.stream()
                 .map(order -> {
                     Partner partner;
@@ -206,6 +207,7 @@ public class EntityResponseBuilder {
                     orderMap.put("serviceFee", order.getServiceFee());
                     orderMap.put("status", order.getStatus().getValue());
                     orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
+                    orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
                     return orderMap;
                 })
                 .toList();
@@ -230,6 +232,26 @@ public class EntityResponseBuilder {
         List<Object> values = List.of(
                 detail.getId(), item == null ? "" : buildDeliveryItemResponse(item, designItemRepo),
                 detail.getQuantity(), detail.getSize().getSize()
+        );
+        return MapUtils.build(keys, values);
+    }
+
+    //-------Order Milestone---------
+    public static List<Map<String, Object>> buildOrderMilestoneList(List<Milestone> milestones) {
+        return milestones.stream()
+                .map(EntityResponseBuilder::buildOrderMilestone)
+                .toList();
+    }
+
+    public static Map<String, Object> buildOrderMilestone(Milestone milestone) {
+        if (milestone == null) return null;
+        List<String> keys = List.of(
+                "id", "stage", "imageUrl",
+                "startDate", "endDate", "status"
+        );
+        List<Object> values = List.of(
+                milestone.getId(), milestone.getStage(), Objects.requireNonNullElse(milestone.getImgUrl(), ""),
+                milestone.getStartDate(), milestone.getEndDate(), milestone.getStatus().getValue()
         );
         return MapUtils.build(keys, values);
     }

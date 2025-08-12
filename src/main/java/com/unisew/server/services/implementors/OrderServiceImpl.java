@@ -48,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
     DeliveryItemRepo deliveryItemRepo;
     SewingPhaseRepo sewingPhaseRepo;
     MilestoneRepo milestoneRepo;
-    private final PaymentService paymentService;
+    PaymentService paymentService;
 
 
     @Override
@@ -109,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         List<Order> orders = orderRepo.findAll();
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
     }
 
     @Override
@@ -125,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
                 .flatMap(List::stream)
                 .toList();
 
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
     }
 
     @Override
@@ -168,48 +168,55 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        for (Integer phaseId : request.getPhaseIdList()) {
-            SewingPhase sewingPhase = sewingPhaseRepo.findById(phaseId).orElse(null);
+        for (AssignMilestoneRequest.Phase phase : request.getPhaseList()) {
+            SewingPhase sewingPhase = sewingPhaseRepo.findById(phase.getId()).orElse(null);
             if (sewingPhase == null) {
                 return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
             }
 
-            Milestone milestone = Milestone.builder()
-                    .stage(request.getStage())
-                    .startDate(request.getStartDate())
-                    .endDate(request.getEndDate())
+            milestoneRepo.save(Milestone.builder()
+                    .stage(phase.getStage())
+                    .startDate(phase.getStartDate())
+                    .endDate(phase.getEndDate())
                     .status(Status.MILESTONE_ASSIGNED)
                     .phase(sewingPhase)
                     .order(order)
-                    .build();
-
-            milestoneRepo.save(milestone);
+                    .build());
         }
 
         return ResponseBuilder.build(HttpStatus.OK, "Milestone assigned successfully", null);
     }
 
     @Override
-    public ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, UpdateProductionStatusRequest request) {
-        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
-        if (account == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+    public ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request) {
+        Milestone milestone = milestoneRepo.findById(request.getMilestoneId()).orElse(null);
+        if (milestone == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
         }
-        String error = OrderValidation.validateUpdateProductionStatus(request);
-        if (error != null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+
+        if (LocalDate.now().isAfter(milestone.getEndDate())) {
+            milestone.setStatus(Status.MILESTONE_LATE);
+        } else {
+            milestone.setStatus(Status.MILESTONE_COMPLETED);
         }
-        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        milestone.setImgUrl(request.getImageUrl());
+        milestoneRepo.save(milestone);
+
+        Order order = milestone.getOrder();
         if (order == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
+        }
+        List<Milestone> milestones = milestoneRepo.findAllByPhase_Id(milestone.getPhase().getId());
+
+        boolean isHighestStage = milestones.stream()
+                .allMatch(m -> m.getStage() <= milestone.getStage());
+        if (isHighestStage) {
+            order.setStatus(Status.ORDER_COMPLETED);
+            orderRepo.save(order);
         }
 
-        order.setStatus(Status.valueOf(request.getStatus()));
-        orderRepo.save(order);
-
-        return ResponseBuilder.build(HttpStatus.OK, "Order status updated successfully", null);
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
     }
-
 
     @Override
     @Transactional
@@ -271,7 +278,7 @@ public class OrderServiceImpl implements OrderService {
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
         order.setServiceFee(garmentQuotation.getPrice() * 5 / 100);
-        order.setNote(order.getNote() + ";" + garmentQuotation.getNote());
+        order.setNote(order.getNote());
         orderRepo.save(order);
 
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpServletRequest);
