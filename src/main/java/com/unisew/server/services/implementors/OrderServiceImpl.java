@@ -161,22 +161,29 @@ public class OrderServiceImpl implements OrderService {
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
-        SewingPhase sewingPhase = sewingPhaseRepo.findById(request.getPhaseId()).orElse(null);
-        if (sewingPhase == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
-        }
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        milestoneRepo.save(Milestone.builder()
-                .phase(sewingPhase)
-                .order(order)
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .imgUrl("")
-                .build());
+        for (Integer phaseId : request.getPhaseIdList()) {
+            SewingPhase sewingPhase = sewingPhaseRepo.findById(phaseId).orElse(null);
+            if (sewingPhase == null) {
+                return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
+            }
+
+            Milestone milestone = Milestone.builder()
+                    .stage(request.getStage())
+                    .startDate(request.getStartDate())
+                    .endDate(request.getEndDate())
+                    .status(Status.MILESTONE_ASSIGNED)
+                    .phase(sewingPhase)
+                    .order(order)
+                    .build();
+
+            milestoneRepo.save(milestone);
+        }
+
         return ResponseBuilder.build(HttpStatus.OK, "Milestone assigned successfully", null);
     }
 

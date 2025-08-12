@@ -78,6 +78,9 @@ public class OrderValidation {
         if (request.getEndDate().isBefore(request.getStartDate()) || request.getEndDate().isEqual(request.getStartDate())) {
             return "End date must be after start date.";
         }
+        if (request.getPhaseIdList() == null || request.getPhaseIdList().isEmpty()) {
+            return "At least one sewing phase must be selected.";
+        }
         return null;
     }
 }

@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -13,7 +14,8 @@ import java.time.LocalDate;
 public class AssignMilestoneRequest {
 
     Integer orderId;
-    Integer phaseId;
+    List<Integer> phaseIdList;
+    Integer stage;
     LocalDate startDate;
     LocalDate endDate;
 }

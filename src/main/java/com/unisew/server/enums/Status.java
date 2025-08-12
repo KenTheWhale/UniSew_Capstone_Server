@@ -47,6 +47,7 @@ public enum Status {
     SEWING_PHASE_INACTIVE("inactive"),
 
     //MILESTONE
+    MILESTONE_ASSIGNED("assigned"),
     MILESTONE_PROCESSING("processing"),
     MILESTONE_COMPLETED("completed"),
     MILESTONE_LATE("late");
