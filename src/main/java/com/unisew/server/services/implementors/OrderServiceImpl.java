@@ -4,8 +4,7 @@ import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
-import com.unisew.server.requests.CreateOrderRequest;
-import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
@@ -26,7 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
     DesignDeliveryRepo designDeliveryRepo;
     DesignItemRepo designItemRepo;
     DeliveryItemRepo deliveryItemRepo;
+    SewingPhaseRepo sewingPhaseRepo;
+    MilestoneRepo milestoneRepo;
 
 
     @Override
@@ -97,10 +101,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewOrder(HttpServletRequest request) {
+    public ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+        List<Order> orders = orderRepo.findAll();
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo));
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewSchoolOrder(HttpServletRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
-        if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        if (account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
 
         List<Order> orders = account.getCustomer().getSchoolDesigns()
                 .stream()
@@ -113,11 +127,87 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, CreateSewingPhaseRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        String error = OrderValidation.validateCreateSewingPhase(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        Partner partner = partnerRepo.findById(account.getCustomer().getPartner().getId()).orElse(null);
+        if (partner == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment not found", null);
+        }
+        sewingPhaseRepo.save(
+                SewingPhase.builder()
+                        .name(request.getName())
+                        .description(request.getDescription())
+                        .status(Status.SEWING_PHASE_ACTIVE)
+                        .garment(partner)
+                        .build()
+        );
+        return ResponseBuilder.build(HttpStatus.CREATED, "Sewing phase created successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        String error = OrderValidation.validateAssignMilestone(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        SewingPhase sewingPhase = sewingPhaseRepo.findById(request.getPhaseId()).orElse(null);
+        if (sewingPhase == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
+        }
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        milestoneRepo.save(Milestone.builder()
+                .phase(sewingPhase)
+                .order(order)
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .imgUrl("")
+                .build());
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone assigned successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, UpdateProductionStatusRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        String error = OrderValidation.validateUpdateProductionStatus(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        order.setStatus(Status.valueOf(request.getStatus()));
+        orderRepo.save(order);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Order status updated successfully", null);
+    }
+
+
+    @Override
     @Transactional
     public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, QuotationRequest request) {
         String error = QuotationValidation.validate(request);
         if (error != null) {
-            return ResponseBuilder.build(HttpStatus.OK, error, null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
@@ -172,7 +262,7 @@ public class OrderServiceImpl implements OrderService {
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
         order.setServiceFee(garmentQuotation.getPrice() * 5 / 100);
-        order.setNote(order.getNote() + "&&" + garmentQuotation.getNote());
+        order.setNote(order.getNote() + ";" + garmentQuotation.getNote());
         orderRepo.save(order);
 
         return ResponseBuilder.build(HttpStatus.OK, "Quotation approved successfully", null);
@@ -197,17 +287,35 @@ public class OrderServiceImpl implements OrderService {
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
-    private Map<String, Object> buildSize(DeliveryItemSize size){
+    private Map<String, Object> buildSize(DeliveryItemSize size) {
         List<String> keys = List.of(
                 "type", "size", "gender",
                 "maxHeight", "minHeight",
-                "maxWeight", "minWeight", "enumName"
+                "maxWeight", "minWeight",
+                "enumName"
         );
         List<Object> values = List.of(
                 size.getType(), size.getSize(), size.getGender(),
                 size.getMaxHeight(), size.getMinHeight(),
-                size.getMaxWeight(), size.getMinWeight(), size.name()
+                size.getMaxWeight(), size.getMinWeight(),
+                size.name()
         );
         return MapUtils.build(keys, values);
     }
+
+    @Override
+    public ResponseEntity<ResponseObject> cancelOrder(int orderId) {
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+        if (order.getStatus() != Status.ORDER_PENDING) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order cannot be canceled at this stage", null);
+        }
+        order.setStatus(Status.ORDER_CANCELED);
+        orderRepo.save(order);
+        return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
+    }
+
+
 }
