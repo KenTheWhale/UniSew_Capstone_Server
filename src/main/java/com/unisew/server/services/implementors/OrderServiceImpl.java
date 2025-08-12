@@ -4,9 +4,7 @@ import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
-import com.unisew.server.requests.CreateOrderRequest;
-import com.unisew.server.requests.QuotationRequest;
-import com.unisew.server.requests.UpdateProductionStatusRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
@@ -47,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
     DesignDeliveryRepo designDeliveryRepo;
     DesignItemRepo designItemRepo;
     DeliveryItemRepo deliveryItemRepo;
+    SewingPhaseRepo sewingPhaseRepo;
+    MilestoneRepo milestoneRepo;
 
 
     @Override
@@ -127,6 +127,60 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, CreateSewingPhaseRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        String error = OrderValidation.validateCreateSewingPhase(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        Partner partner = partnerRepo.findById(account.getCustomer().getPartner().getId()).orElse(null);
+        if (partner == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment not found", null);
+        }
+        sewingPhaseRepo.save(
+                SewingPhase.builder()
+                        .name(request.getName())
+                        .description(request.getDescription())
+                        .status(Status.SEWING_PHASE_ACTIVE)
+                        .garment(partner)
+                        .build()
+        );
+        return ResponseBuilder.build(HttpStatus.CREATED, "Sewing phase created successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        String error = OrderValidation.validateAssignMilestone(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        SewingPhase sewingPhase = sewingPhaseRepo.findById(request.getPhaseId()).orElse(null);
+        if (sewingPhase == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
+        }
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        milestoneRepo.save(Milestone.builder()
+                .phase(sewingPhase)
+                .order(order)
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .imgUrl("")
+                .build());
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone assigned successfully", null);
+    }
+
+    @Override
     public ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, UpdateProductionStatusRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
         if (account == null) {
@@ -146,6 +200,7 @@ public class OrderServiceImpl implements OrderService {
 
         return ResponseBuilder.build(HttpStatus.OK, "Order status updated successfully", null);
     }
+
 
     @Override
     @Transactional
@@ -261,7 +316,6 @@ public class OrderServiceImpl implements OrderService {
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
     }
-
 
 
 }

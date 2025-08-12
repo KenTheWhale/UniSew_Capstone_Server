@@ -1,6 +1,8 @@
 package com.unisew.server.validations;
 
+import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.CreateSewingPhaseRequest;
 import com.unisew.server.requests.UpdateProductionStatusRequest;
 
 public class OrderValidation {
@@ -54,5 +56,28 @@ public class OrderValidation {
         }
         return null;
 
+    }
+
+    public static String validateCreateSewingPhase(CreateSewingPhaseRequest request) {
+        if (request.getName() == null || request.getName().isEmpty()) {
+            return "Sewing phase name cannot be null or empty.";
+        }
+        if (request.getDescription() == null || request.getDescription().isEmpty()) {
+            return "Sewing phase description cannot be null or empty.";
+        }
+        return null;
+    }
+
+    public static String validateAssignMilestone(AssignMilestoneRequest request) {
+        if (request.getStartDate() == null) {
+            return "Start date is required.";
+        }
+        if (request.getEndDate() == null) {
+            return "End date is required.";
+        }
+        if (request.getEndDate().isBefore(request.getStartDate()) || request.getEndDate().isEqual(request.getStartDate())) {
+            return "End date must be after start date.";
+        }
+        return null;
     }
 }

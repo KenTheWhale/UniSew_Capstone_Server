@@ -1,8 +1,6 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.requests.CreateOrderRequest;
-import com.unisew.server.requests.QuotationRequest;
-import com.unisew.server.requests.UpdateProductionStatusRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -72,5 +70,17 @@ public class OrderController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> getSizes(){
         return orderService.getSizes();
+    }
+
+    @PostMapping("/phase")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, @RequestBody CreateSewingPhaseRequest request) {
+        return orderService.createSewingPhase(httpServletRequest, request);
+    }
+
+    @PostMapping("/milestone")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, @RequestBody AssignMilestoneRequest request) {
+        return orderService.assignMilestone(httpServletRequest, request);
     }
 }

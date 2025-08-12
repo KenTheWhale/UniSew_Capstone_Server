@@ -1,8 +1,6 @@
 package com.unisew.server.services;
 
-import com.unisew.server.requests.CreateOrderRequest;
-import com.unisew.server.requests.QuotationRequest;
-import com.unisew.server.requests.UpdateProductionStatusRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpRequest;
@@ -28,4 +26,9 @@ public interface OrderService {
     ResponseEntity<ResponseObject> cancelOrder(int orderId);
 
     ResponseEntity<ResponseObject> updateProductionStatus(HttpServletRequest httpServletRequest, UpdateProductionStatusRequest request);
+
+
+    ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, CreateSewingPhaseRequest request);
+
+    ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request);
 }
