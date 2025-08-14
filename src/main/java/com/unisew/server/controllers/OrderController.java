@@ -66,6 +66,7 @@ public class OrderController {
         return orderService.getSizes();
     }
 
+    //----------------------------MILESTONE----------------------------//
     @PostMapping("/phase")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, @RequestBody CreateSewingPhaseRequest request) {
@@ -83,4 +84,11 @@ public class OrderController {
     public ResponseEntity<ResponseObject> updateMilestoneStatus(@RequestBody UpdateMilestoneStatusRequest request) {
         return orderService.updateMilestoneStatus(request);
     }
+
+    @GetMapping("/milestone")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> viewMilestone(@RequestParam(name = "orderId") int orderId) {
+        return orderService.viewMilestone(orderId);
+    }
+
 }

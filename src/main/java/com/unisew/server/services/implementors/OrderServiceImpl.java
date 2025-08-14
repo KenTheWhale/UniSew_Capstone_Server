@@ -108,6 +108,9 @@ public class OrderServiceImpl implements OrderService {
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
+//        List<Order> orders = orderRepo.findAll().stream()
+//                .filter(order -> order.getGarmentId() == null)
+//                .toList();
         List<Order> orders = orderRepo.findAll();
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
     }
@@ -188,34 +191,62 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request) {
         Milestone milestone = milestoneRepo.findById(request.getMilestoneId()).orElse(null);
         if (milestone == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
         }
 
-        if (LocalDate.now().isAfter(milestone.getEndDate())) {
+        if (milestone.getEndDate() != null && LocalDate.now().isAfter(milestone.getEndDate())) {
             milestone.setStatus(Status.MILESTONE_LATE);
         } else {
-            milestone.setStatus(Status.MILESTONE_COMPLETED);
+            switch (milestone.getStatus()) {
+                case MILESTONE_ASSIGNED:
+                    milestone.setStatus(Status.MILESTONE_PROCESSING);
+                    break;
+                case MILESTONE_PROCESSING:
+                    milestone.setStatus(Status.MILESTONE_COMPLETED);
+                    break;
+                default:
+            }
         }
-        milestone.setImgUrl(request.getImageUrl());
+
+        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            milestone.setImgUrl(request.getImageUrl());
+        }
+
         milestoneRepo.save(milestone);
 
         Order order = milestone.getOrder();
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
         }
+
         List<Milestone> milestones = milestoneRepo.findAllByPhase_Id(milestone.getPhase().getId());
 
         boolean isHighestStage = milestones.stream()
                 .allMatch(m -> m.getStage() <= milestone.getStage());
+
         if (isHighestStage) {
             order.setStatus(Status.ORDER_COMPLETED);
-            orderRepo.save(order);
         }
 
+        orderRepo.save(order);
+
         return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewMilestone(int orderId) {
+        List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream()
+                .sorted((m1, m2) -> Integer.compare(m1.getStage(), m2.getStage()))
+                .toList();
+        if (milestones.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone view successfully", EntityResponseBuilder.buildOrderMilestoneList(milestones));
     }
 
     @Override

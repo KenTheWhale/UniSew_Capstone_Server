@@ -246,11 +246,11 @@ public class EntityResponseBuilder {
     public static Map<String, Object> buildOrderMilestone(Milestone milestone) {
         if (milestone == null) return null;
         List<String> keys = List.of(
-                "id", "stage", "imageUrl",
+                "id", "name", "description", "stage", "imageUrl",
                 "startDate", "endDate", "status"
         );
         List<Object> values = List.of(
-                milestone.getId(), milestone.getStage(), Objects.requireNonNullElse(milestone.getImgUrl(), ""),
+                milestone.getId(), milestone.getPhase().getName(), milestone.getPhase().getDescription(), milestone.getStage(), Objects.requireNonNullElse(milestone.getImgUrl(), ""),
                 milestone.getStartDate(), milestone.getEndDate(), milestone.getStatus().getValue()
         );
         return MapUtils.build(keys, values);

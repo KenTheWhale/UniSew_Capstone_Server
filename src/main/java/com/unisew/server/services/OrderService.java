@@ -30,4 +30,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request);
 
     ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request);
+
+    ResponseEntity<ResponseObject> viewMilestone(int orderId);
 }
