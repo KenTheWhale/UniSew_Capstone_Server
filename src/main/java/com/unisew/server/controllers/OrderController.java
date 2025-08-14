@@ -18,6 +18,7 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    //----------------------------ORDER----------------------------//
     @PostMapping("")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest request) {
@@ -36,6 +37,19 @@ public class OrderController {
         return orderService.viewAllOrder(request);
     }
 
+    @GetMapping("/garment")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> viewGarmentOrder(HttpServletRequest request) {
+        return orderService.viewGarmentOrder(request);
+    }
+
+    @PutMapping("/cancellation")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> cancelOrder(@RequestParam(name = "orderId") int orderId) {
+        return orderService.cancelOrder(orderId);
+    }
+
+    //----------------------------QUOTATION----------------------------//
     @PostMapping("/quotation")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpServletRequest, @RequestBody QuotationRequest request) {
@@ -54,22 +68,24 @@ public class OrderController {
         return orderService.approveQuotation(request,httpServletRequest);
     }
 
-    @PutMapping("/cancellation")
-    @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> cancelOrder(@RequestParam(name = "orderId") int orderId) {
-        return orderService.cancelOrder(orderId);
-    }
-
+    //----------------------------SIZE----------------------------//
     @GetMapping("/sizes")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> getSizes(){
         return orderService.getSizes();
     }
 
+    //----------------------------MILESTONE----------------------------//
     @PostMapping("/phase")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, @RequestBody CreateSewingPhaseRequest request) {
         return orderService.createSewingPhase(httpServletRequest, request);
+    }
+
+    @GetMapping("/phase")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request) {
+        return orderService.viewPhase(request);
     }
 
     @PostMapping("/milestone")
@@ -83,4 +99,12 @@ public class OrderController {
     public ResponseEntity<ResponseObject> updateMilestoneStatus(@RequestBody UpdateMilestoneStatusRequest request) {
         return orderService.updateMilestoneStatus(request);
     }
+
+    @GetMapping("/milestone")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> viewMilestone(@RequestParam(name = "orderId") int orderId) {
+        return orderService.viewMilestone(orderId);
+    }
+
+
 }
