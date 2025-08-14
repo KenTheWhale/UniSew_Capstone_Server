@@ -108,11 +108,19 @@ public class OrderServiceImpl implements OrderService {
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
-//        List<Order> orders = orderRepo.findAll().stream()
-//                .filter(order -> order.getGarmentId() == null)
-//                .toList();
+
         List<Order> orders = orderRepo.findAll();
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewGarmentOrder(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+        List<Order> orders = orderRepo.findAllByGarmentId(account.getCustomer().getPartner().getId());
+        return ResponseBuilder.build(HttpStatus.OK, "Get garment order list successfully", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
     }
 
     @Override
@@ -247,6 +255,17 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return ResponseBuilder.build(HttpStatus.OK, "Milestone view successfully", EntityResponseBuilder.buildOrderMilestoneList(milestones));
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request) {
+        List<SewingPhase> phases = sewingPhaseRepo.findAll().stream()
+                .filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE)
+                .toList();
+        if (phases.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active sewing phases found", null);
+        }
+        return ResponseBuilder.build(HttpStatus.OK, "Sewing phases retrieved successfully", EntityResponseBuilder.buildSewingPhaseList(phases));
     }
 
     @Override

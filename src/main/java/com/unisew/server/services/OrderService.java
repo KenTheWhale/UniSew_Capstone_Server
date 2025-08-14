@@ -32,4 +32,8 @@ public interface OrderService {
     ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request);
 
     ResponseEntity<ResponseObject> viewMilestone(int orderId);
+
+    ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request);
+
+    ResponseEntity<ResponseObject> viewGarmentOrder(HttpServletRequest request);
 }

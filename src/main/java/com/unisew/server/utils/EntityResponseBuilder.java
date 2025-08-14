@@ -256,6 +256,24 @@ public class EntityResponseBuilder {
         return MapUtils.build(keys, values);
     }
 
+    //-------Sewing Phase---------
+    public static List<Map<String, Object>> buildSewingPhaseList(List<SewingPhase> phases) {
+        return phases.stream()
+                .map(EntityResponseBuilder::buildSewingPhaseResponse)
+                .toList();
+    }
+
+    private static Map<String, Object> buildSewingPhaseResponse(SewingPhase sewingPhase) {
+        if (sewingPhase == null) return null;
+        List<String> keys = List.of(
+                "id", "name", "description", "status"
+        );
+        List<Object> values = List.of(
+                sewingPhase.getId(), sewingPhase.getName(), sewingPhase.getDescription(), sewingPhase.getStatus().getValue()
+        );
+        return MapUtils.build(keys, values);
+    }
+
     //-------Partner---------
     public static Map<String, Object> buildPartnerResponse(Partner partner) {
         if(partner == null) return null;
