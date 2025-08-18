@@ -34,6 +34,8 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> createNewDelivery(CreateNewDeliveryRequest request);
 
+    ResponseEntity<ResponseObject> addFileUrl(AddFileUrlRequest request);
+
     //--------------------------------REVISION_REQUEST----------------------------------------//
     ResponseEntity<ResponseObject> createRevisionRequest(CreateRevisionRequest request);
 

@@ -88,6 +88,12 @@ public class DesignController {
         return designService.getAllFabric();
     }
 
+    @PutMapping("/delivery-file")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> uploadFileUrl(@RequestBody AddFileUrlRequest request){
+        return designService.addFileUrl(request);
+    }
+
     //-------------------REVISION_REQUEST----------------------------//
     @PostMapping("/revision")
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
