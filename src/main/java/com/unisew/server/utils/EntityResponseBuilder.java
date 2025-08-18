@@ -246,12 +246,30 @@ public class EntityResponseBuilder {
     public static Map<String, Object> buildOrderMilestone(Milestone milestone) {
         if (milestone == null) return null;
         List<String> keys = List.of(
-                "id", "stage", "imageUrl",
+                "id", "name", "description", "stage", "imageUrl",
                 "startDate", "endDate", "status"
         );
         List<Object> values = List.of(
-                milestone.getId(), milestone.getStage(), Objects.requireNonNullElse(milestone.getImgUrl(), ""),
+                milestone.getId(), milestone.getPhase().getName(), milestone.getPhase().getDescription(), milestone.getStage(), Objects.requireNonNullElse(milestone.getImgUrl(), ""),
                 milestone.getStartDate(), milestone.getEndDate(), milestone.getStatus().getValue()
+        );
+        return MapUtils.build(keys, values);
+    }
+
+    //-------Sewing Phase---------
+    public static List<Map<String, Object>> buildSewingPhaseList(List<SewingPhase> phases) {
+        return phases.stream()
+                .map(EntityResponseBuilder::buildSewingPhaseResponse)
+                .toList();
+    }
+
+    private static Map<String, Object> buildSewingPhaseResponse(SewingPhase sewingPhase) {
+        if (sewingPhase == null) return null;
+        List<String> keys = List.of(
+                "id", "name", "description", "status"
+        );
+        List<Object> values = List.of(
+                sewingPhase.getId(), sewingPhase.getName(), sewingPhase.getDescription(), sewingPhase.getStatus().getValue()
         );
         return MapUtils.build(keys, values);
     }
