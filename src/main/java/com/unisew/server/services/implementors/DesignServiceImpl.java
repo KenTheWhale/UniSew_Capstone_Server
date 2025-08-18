@@ -356,6 +356,22 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Upload delivery successfully", null);
     }
 
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> addFileUrl(AddFileUrlRequest request) {
+
+        DesignDelivery designDelivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
+
+        if (designDelivery == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "delivery not found", null);
+        }
+
+        designDelivery.setFileUrl(request.getFileUrl());
+        designDeliveryRepo.save(designDelivery);
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Upload file successfully", null);
+    }
+
     //-----------------------REVISION_REQUEST-------------------------//
     @Override
     @Transactional
