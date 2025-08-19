@@ -12,6 +12,7 @@ import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
+import com.unisew.server.validations.BuyRevisionValidation;
 import com.unisew.server.validations.CreateDesignValidation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -229,6 +230,32 @@ public class DesignServiceImpl implements DesignService {
         designRequestRepo.save(newDesign);
 
         return ResponseBuilder.build(HttpStatus.CREATED, "Design duplicated successfully", null);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request) {
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getRequestId()).orElse(null);
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design request not found", null);
+        }
+
+        DesignQuotation designQuotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
+        if (designQuotation == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design quotation not found", null);
+        }
+
+        String message = BuyRevisionValidation.validate(designRequest,request, designQuotation);
+
+        if(message != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, message, null);
+        }
+
+        designRequest.setRevisionTime(request.getRevisionTime());
+        designRequestRepo.save(designRequest);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Buy revision successful", null);
     }
 
     //-----------------------------------FABRIC---------------------------------------//

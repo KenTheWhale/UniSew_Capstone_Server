@@ -67,6 +67,12 @@ public class DesignController {
     public ResponseEntity<ResponseObject> duplicateRequest(@RequestBody DuplicateRequest request){
         return designService.duplicateRequest(request);
     }
+
+    @PutMapping("/request/revision-time")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request){
+        return designService.buyRevisionTime(request);
+    }
     //-------------------DESIGN_DELIVERY---------------------//
 
     @PostMapping("/deliveries")

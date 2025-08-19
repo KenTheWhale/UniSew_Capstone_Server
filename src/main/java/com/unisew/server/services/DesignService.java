@@ -25,6 +25,9 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request);
 
+    ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request);
+
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
