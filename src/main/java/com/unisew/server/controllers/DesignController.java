@@ -67,6 +67,12 @@ public class DesignController {
     public ResponseEntity<ResponseObject> duplicateRequest(@RequestBody DuplicateRequest request){
         return designService.duplicateRequest(request);
     }
+
+    @PutMapping("/request/revision-time")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request){
+        return designService.buyRevisionTime(request);
+    }
     //-------------------DESIGN_DELIVERY---------------------//
 
     @PostMapping("/deliveries")
@@ -86,6 +92,12 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getListFabrics() {
         return designService.getAllFabric();
+    }
+
+    @PutMapping("/delivery-file")
+    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> uploadFileUrl(@RequestBody AddFileUrlRequest request){
+        return designService.addFileUrl(request);
     }
 
     //-------------------REVISION_REQUEST----------------------------//
