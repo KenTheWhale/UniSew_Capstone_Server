@@ -25,6 +25,9 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request);
 
+    ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request);
+
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
@@ -33,6 +36,8 @@ public interface DesignService {
     ResponseEntity<ResponseObject> getListDeliveries(GetListDeliveryRequest request);
 
     ResponseEntity<ResponseObject> createNewDelivery(CreateNewDeliveryRequest request);
+
+    ResponseEntity<ResponseObject> addFileUrl(AddFileUrlRequest request);
 
     //--------------------------------REVISION_REQUEST----------------------------------------//
     ResponseEntity<ResponseObject> createRevisionRequest(CreateRevisionRequest request);
