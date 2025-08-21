@@ -11,4 +11,5 @@ import lombok.experimental.FieldDefaults;
 public class UpdateRevisionTimeRequest {
     int requestId;
     int revisionTime;
+    CreateTransactionRequest createTransactionRequest;
 }

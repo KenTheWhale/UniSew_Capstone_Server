@@ -25,7 +25,7 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request);
 
-    ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request);
+    ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request, HttpServletRequest httpRequest);
 
 
     //--------------------------------FABRIC-----------------------------------------//

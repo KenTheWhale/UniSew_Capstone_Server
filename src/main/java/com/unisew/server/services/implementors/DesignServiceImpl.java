@@ -234,7 +234,7 @@ public class DesignServiceImpl implements DesignService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request) {
+    public ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request, HttpServletRequest httpRequest) {
 
         DesignRequest designRequest = designRequestRepo.findById(request.getRequestId()).orElse(null);
         if (designRequest == null) {
@@ -255,7 +255,7 @@ public class DesignServiceImpl implements DesignService {
         designRequest.setRevisionTime(request.getRevisionTime());
         designRequestRepo.save(designRequest);
 
-        return ResponseBuilder.build(HttpStatus.OK, "Buy revision successful", null);
+        return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
 
     //-----------------------------------FABRIC---------------------------------------//
@@ -641,7 +641,6 @@ public class DesignServiceImpl implements DesignService {
         if(designer == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer not found", null);
 
         request.getCreateTransactionRequest().setReceiverId(designer.getCustomer().getId());
-
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
 
