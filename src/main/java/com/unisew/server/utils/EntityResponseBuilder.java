@@ -169,6 +169,10 @@ public class EntityResponseBuilder {
     //-------Fabric---------
 
     //-------Feedback---------
+    public static List<Map<String, Object>> buildListFeedbackResponse(List<Feedback> feedbacks) {
+        return feedbacks.stream().map(EntityResponseBuilder::buildFeedbackResponse).toList();
+    }
+
     public static Map<String, Object> buildFeedbackResponse(Feedback feedback) {
         if (feedback == null) return null;
         List<String> keys = List.of("id", "rating", "content", "creationDate", "images");

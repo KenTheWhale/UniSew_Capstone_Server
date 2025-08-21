@@ -1,4 +1,23 @@
 package com.unisew.server.services;
 
+import com.unisew.server.requests.ApproveReportRequest;
+import com.unisew.server.requests.GiveFeedbackRequest;
+import com.unisew.server.responses.ResponseObject;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
+
 public interface FeedbackService {
+
+    ResponseEntity<ResponseObject> getFeedbacksByOrder(Integer orderId);
+
+    ResponseEntity<ResponseObject> giveFeedback(HttpServletRequest httpServletRequest, GiveFeedbackRequest request);
+
+    ResponseEntity<ResponseObject> getFeedbacksByDesign(Integer designRequestId);
+
+    ResponseEntity<ResponseObject> getFeedbackByGarment(Integer garmentId);
+
+    ResponseEntity<ResponseObject> getFeedbackByDesigner(Integer designerId);
+
+    ResponseEntity<ResponseObject> approveReport(ApproveReportRequest request);
 }

@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`quotation`")
+@Table(name = "`garment_quotation`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GarmentQuotation {
 
