@@ -70,8 +70,8 @@ public class DesignController {
 
     @PutMapping("/request/revision-time")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request){
-        return designService.buyRevisionTime(request);
+    public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request, HttpServletRequest httpRequest){
+        return designService.buyRevisionTime(request, httpRequest);
     }
     //-------------------DESIGN_DELIVERY---------------------//
 
