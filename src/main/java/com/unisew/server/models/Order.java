@@ -38,9 +38,6 @@ public class Order {
 
     long price;
 
-    @Column(name = "`service_fee`")
-    long serviceFee;
-
     @Column(name = "`order_date`")
     LocalDate orderDate;
 

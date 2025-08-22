@@ -33,11 +33,11 @@ public class OrderController {
 
     @GetMapping("")
     @PreAuthorize("hasRole('GARMENT')")
-    public ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request) {
-        return orderService.viewAllOrder(request);
+    public ResponseEntity<ResponseObject> viewAllOrder() {
+        return orderService.viewAllOrder();
     }
 
-    @GetMapping("/garment")
+    @PostMapping("/garment")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> viewGarmentOrder(HttpServletRequest request) {
         return orderService.viewGarmentOrder(request);

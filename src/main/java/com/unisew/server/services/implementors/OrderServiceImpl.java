@@ -75,7 +75,6 @@ public class OrderServiceImpl implements OrderService {
                         .garmentName("")
                         .deadline(request.getDeadline())
                         .price(0)
-                        .serviceFee(0)
                         .orderDate(LocalDate.now())
                         .note(request.getNote())
                         .status(Status.ORDER_PENDING)
@@ -103,13 +102,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request) {
-        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-        if (account == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
-        }
+    public ResponseEntity<ResponseObject> viewAllOrder() {
 
-        List<Order> orders = orderRepo.findAll();
+        List<Order> orders = orderRepo.findAll().stream().filter(order -> order.getStatus().equals(Status.ORDER_PENDING)).toList();
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
     }
 
@@ -140,6 +135,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, CreateSewingPhaseRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
         if (account == null) {
@@ -165,6 +161,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
         if (account == null) {
@@ -327,7 +324,6 @@ public class OrderServiceImpl implements OrderService {
         order.setGarmentId(garmentQuotation.getGarment().getId());
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
-        order.setServiceFee(garmentQuotation.getPrice() * 5 / 100);
         order.setNote(order.getNote());
         orderRepo.save(order);
 

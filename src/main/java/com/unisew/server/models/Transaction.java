@@ -51,6 +51,9 @@ public class Transaction {
     @Column(name = "`service_fee`")
     long serviceFee;
 
+    @Column(name = "`balance_type`")
+    String balanceType;
+
     @Enumerated(EnumType.STRING)
     Status status;
 
