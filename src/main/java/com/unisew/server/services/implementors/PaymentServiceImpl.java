@@ -143,23 +143,25 @@ public class PaymentServiceImpl implements PaymentService {
         Wallet adminWallet = getAdminWallet();
         Wallet senderWallet = sender.getWallet();
         Wallet receiverWallet = receiver.getWallet();
+        String balanceType = "pending";
 
         long amount = request.getTotalPrice() - request.getServiceFee();
 
         adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
         if(request.getType().equalsIgnoreCase(PaymentType.WALLET.name())){
             receiverWallet.setBalance(receiverWallet.getBalance() + amount);
+            balanceType = "balance";
         }else {
             receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
         }
 
         walletRepo.save(adminWallet);
-        walletRepo.save(receiverWallet);
+        receiverWallet = walletRepo.save(receiverWallet);
 
         if(request.isPayFromWallet()){
-            return payFromWallet(request, senderWallet, receiverWallet);
+            return payFromWallet(request, senderWallet, receiverWallet, balanceType);
         }
-        return payFromGateway(request, senderWallet, receiverWallet);
+        return payFromGateway(request, senderWallet, receiverWallet, balanceType);
     }
 
     private String validateCreateTransaction(CreateTransactionRequest request){
@@ -207,7 +209,7 @@ public class PaymentServiceImpl implements PaymentService {
         return value == null || value.isEmpty();
     }
 
-    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet){
+    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType){
         long amount = request.getTotalPrice() - request.getServiceFee();
         if(senderWallet.getBalance() < amount){
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
@@ -217,16 +219,16 @@ public class PaymentServiceImpl implements PaymentService {
         senderWallet = walletRepo.save(senderWallet);
 
 
-        return createTransaction(request, senderWallet, receiverWallet, amount);
+        return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
     }
 
-    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet){
+    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType){
         long amount = request.getTotalPrice() - request.getServiceFee();
 
-        return createTransaction(request, senderWallet, receiverWallet, amount);
+        return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
     }
 
-    private ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, long amount) {
+    private ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, long amount, String balanceType) {
         transactionRepo.save(
                 Transaction.builder()
                         .wallet(senderWallet)
@@ -235,6 +237,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .itemId(request.getItemId())
                         .senderName(senderWallet.getAccount().getCustomer().getName())
                         .receiverName(receiverWallet.getAccount().getCustomer().getName())
+                        .balanceType(balanceType)
                         .amount(amount)
                         .paymentType(PaymentType.valueOf(request.getType().toUpperCase()))
                         .serviceFee(request.getServiceFee())
