@@ -13,6 +13,7 @@ import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.BuyRevisionValidation;
+import com.unisew.server.validations.CancelRequestValidation;
 import com.unisew.server.validations.CreateDesignValidation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -256,6 +257,26 @@ public class DesignServiceImpl implements DesignService {
         designRequestRepo.save(designRequest);
 
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> cancelRequest(CancelRequest request, HttpServletRequest httpServletRequest) {
+
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getRequestId()).orElse(null);
+
+        ResponseEntity<ResponseObject> validationResponse =
+                CancelRequestValidation.validate(account, designRequest);
+
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        designRequest.setStatus(Status.DESIGN_REQUEST_CANCELED);
+        designRequestRepo.save(designRequest);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Design request cancelled", null);
     }
 
     //-----------------------------------FABRIC---------------------------------------//

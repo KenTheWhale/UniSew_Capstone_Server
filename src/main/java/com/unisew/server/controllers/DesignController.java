@@ -73,6 +73,12 @@ public class DesignController {
     public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request, HttpServletRequest httpRequest){
         return designService.buyRevisionTime(request, httpRequest);
     }
+
+    @PutMapping("/request/cancel")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> cancelRequest(@RequestBody CancelRequest request, HttpServletRequest httpRequest){
+        return designService.cancelRequest(request, httpRequest);
+    }
     //-------------------DESIGN_DELIVERY---------------------//
 
     @PostMapping("/deliveries")
