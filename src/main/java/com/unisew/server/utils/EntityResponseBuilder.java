@@ -213,7 +213,6 @@ public class EntityResponseBuilder {
                     orderMap.put("note", order.getNote());
                     orderMap.put("orderDate", order.getOrderDate());
                     orderMap.put("price", order.getPrice());
-                    orderMap.put("serviceFee", order.getServiceFee());
                     orderMap.put("status", order.getStatus().getValue());
                     orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
                     orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));

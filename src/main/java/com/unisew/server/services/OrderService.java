@@ -21,7 +21,7 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> getSizes();
 
-    ResponseEntity<ResponseObject> viewAllOrder(HttpServletRequest request);
+    ResponseEntity<ResponseObject> viewAllOrder();
 
     ResponseEntity<ResponseObject> cancelOrder(int orderId);
 
