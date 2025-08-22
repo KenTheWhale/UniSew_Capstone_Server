@@ -70,8 +70,14 @@ public class DesignController {
 
     @PutMapping("/request/revision-time")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request){
-        return designService.buyRevisionTime(request);
+    public ResponseEntity<ResponseObject> buyRevisionTime(@RequestBody UpdateRevisionTimeRequest request, HttpServletRequest httpRequest){
+        return designService.buyRevisionTime(request, httpRequest);
+    }
+
+    @PutMapping("/request/cancel")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> cancelRequest(@RequestBody CancelRequest request, HttpServletRequest httpRequest){
+        return designService.cancelRequest(request, httpRequest);
     }
     //-------------------DESIGN_DELIVERY---------------------//
 
@@ -111,18 +117,6 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(@RequestBody GetUnUseListRevisionRequest request) {
         return designService.getAllUnUsedRevisionRequest(request);
-    }
-    //-------------------DESIGN_COMMENT----------------------------//
-    @PostMapping("/list-comment/{requestId}")
-    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getListComment(@RequestBody GetListCommentRequest request) {
-        return designService.getListDesignComment(request);
-    }
-
-    @PostMapping("/comment")
-    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> sendComment(@RequestBody SendCommentRequest request, HttpServletRequest httpRequest) {
-        return designService.sendComment(httpRequest, request);
     }
 
     //-------------------SCHOOL_DESIGN----------------------------//

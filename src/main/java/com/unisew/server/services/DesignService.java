@@ -25,9 +25,9 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> duplicateRequest(DuplicateRequest request);
 
-    ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request);
+    ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request, HttpServletRequest httpRequest);
 
-
+    ResponseEntity<ResponseObject> cancelRequest(CancelRequest request, HttpServletRequest httpServletRequest);
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
@@ -44,10 +44,6 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getAllUnUsedRevisionRequest(GetUnUseListRevisionRequest request);
 
-    //--------------------------------DESIGN_COMMENT----------------------------------------//
-    ResponseEntity<ResponseObject> getListDesignComment(GetListCommentRequest request);
-
-    ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest);
 
     //--------------------------------SCHOOL_DESIGN----------------------------------------//
     ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest);

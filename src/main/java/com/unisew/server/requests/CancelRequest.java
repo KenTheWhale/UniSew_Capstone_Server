@@ -8,8 +8,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateRevisionTimeRequest {
+public class CancelRequest {
     int requestId;
-    int revisionTime;
-    CreateTransactionRequest createTransactionRequest;
 }

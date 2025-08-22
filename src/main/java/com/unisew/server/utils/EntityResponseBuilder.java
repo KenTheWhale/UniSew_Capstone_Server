@@ -4,9 +4,11 @@ import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
 
+import java.time.LocalDate;
 import java.util.*;
 
 public class EntityResponseBuilder {
@@ -88,7 +90,7 @@ public class EntityResponseBuilder {
                 "submitDate",
                 "version",
                 "designRequest",
-                "designItems"
+                "deliveryItems"
         );
 
 
@@ -126,8 +128,15 @@ public class EntityResponseBuilder {
     }
 
     //-------Design Quotation---------
-    public static List<Map<String, Object>> buildDesignQuotationListResponse(List<DesignQuotation> quotations) {
+    public static List<Map<String, Object>> buildDesignQuotationListResponse(List<DesignQuotation> quotations, DesignQuotationRepo designQuotationRepo) {
+
         return quotations.stream()
+                .peek(quotation -> {
+                    if(LocalDate.now().isAfter(quotation.getAcceptanceDeadline())){
+                        quotation.setStatus(Status.DESIGN_QUOTATION_REJECTED);
+                        designQuotationRepo.save(quotation);
+                    }
+                })
                 .filter(quotation -> quotation.getStatus().equals(Status.DESIGN_QUOTATION_PENDING))
                 .map(EntityResponseBuilder::buildDesignQuotationResponse)
                 .toList();
@@ -272,7 +281,6 @@ public class EntityResponseBuilder {
                     orderMap.put("note", order.getNote());
                     orderMap.put("orderDate", order.getOrderDate());
                     orderMap.put("price", order.getPrice());
-                    orderMap.put("serviceFee", order.getServiceFee());
                     orderMap.put("status", order.getStatus().getValue());
                     orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
                     orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));

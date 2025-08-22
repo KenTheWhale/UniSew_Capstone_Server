@@ -18,6 +18,10 @@ public class CreateOrderRequest {
     List<OrderItem> orderDetails;
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class OrderItem {
         Integer deliveryItemId;
         String size;
