@@ -151,23 +151,37 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public ResponseEntity<ResponseObject> approveReport(ApproveReportRequest request) {
-        Feedback report = feedbackRepo.findById(request.getFeedbackId()).orElse(null);
+        Feedback feedback = feedbackRepo.findById(request.getFeedbackId()).orElse(null);
 
-        String error = FeedbackValidation.validateApproveFeedback(request, report);
+        String error = FeedbackValidation.validateApproveReport(request, feedback);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
-        if (request.getAdminMessage() != null && !request.getAdminMessage().isBlank()) {
-            String updated = (report.getContent() == null ? "" : report.getContent() + "\n\n")
-                    + "[Admin Response] " + request.getAdminMessage();
-            report.setContent(updated);
+        if (request.getMessageForSchool() != null && !request.getMessageForSchool().isBlank()) {
+            feedback.setMessageForSchool(request.getMessageForSchool().trim());
+        }
+        if (request.getMessageForPartner() != null && !request.getMessageForPartner().isBlank()) {
+            feedback.setMessageForPartner(request.getMessageForPartner().trim());
         }
 
-        report.setReport(false);
-        feedbackRepo.save(report);
+        feedback.setApprovalDate(LocalDate.now());
 
-        return ResponseBuilder.build(HttpStatus.OK, "Feedback approved successfully", null);
+        if (request.isApproved()) {
+            feedback.setStatus(Status.FEEDBACK_REPORT_RESOLVED_ACCEPTED);
+        } else {
+            feedback.setStatus(Status.FEEDBACK_REPORT_RESOLVED_REJECTED);
+        }
+
+        feedbackRepo.save(feedback);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Feedback report processed successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getAllReport() {
+        List<Feedback> reports = feedbackRepo.findAllByReportIsTrue();
+        return ResponseBuilder.build(HttpStatus.OK, "List of all feedback reports", EntityResponseBuilder.buildListFeedbackResponse(reports));
     }
 
     @Override
@@ -210,16 +224,25 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer partner could not be resolved for this request", null);
         }
 
-        Feedback feedback = Feedback.builder()
-                .rating(request.getRating())
-                .content(request.getContent())
-                .report(request.isReport())
-                .creationDate(LocalDate.now())
-                .order(null)
-                .designRequest(dr)
-                .build();
 
-        feedback = feedbackRepo.save(feedback);
+        Feedback feedback = feedbackRepo.save(
+                Feedback.builder()
+                        .rating(request.getRating())
+                        .content(request.getContent())
+                        .report(request.isReport())
+                        .creationDate(LocalDate.now())
+                        .messageForPartner("")
+                        .messageForSchool("")
+                        .order(null)
+                        .designRequest(dr)
+                        .build()
+        );
+
+        if(request.isReport()) {
+            feedback.setStatus(Status.FEEDBACK_REPORT_UNDER_REVIEW);
+        } else {
+            feedback.setStatus(Status.FEEDBACK_APPROVED);
+        }
 
         if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
             FeedbackImage img = FeedbackImage.builder()
@@ -260,16 +283,24 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment partner not found", null);
         }
 
-        Feedback feedback = Feedback.builder()
-                .rating(request.getRating())
-                .content(request.getContent())
-                .report(request.isReport())
-                .creationDate(LocalDate.now())
-                .order(order)
-                .designRequest(null)
-                .build();
+        Feedback feedback = feedbackRepo.save(
+                Feedback.builder()
+                        .rating(request.getRating())
+                        .content(request.getContent())
+                        .report(request.isReport())
+                        .creationDate(LocalDate.now())
+                        .messageForPartner("")
+                        .messageForSchool("")
+                        .order(order)
+                        .designRequest(null)
+                        .build()
+        );
 
-        feedback = feedbackRepo.save(feedback);
+        if(request.isReport()) {
+            feedback.setStatus(Status.FEEDBACK_REPORT_UNDER_REVIEW);
+        } else {
+            feedback.setStatus(Status.FEEDBACK_APPROVED);
+        }
 
         if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
             FeedbackImage img = FeedbackImage.builder()

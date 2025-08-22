@@ -41,13 +41,19 @@ public class FeedbackController {
         return feedbackService.getFeedbackByDesigner(designerId);
     }
 
+    @GetMapping("/report")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getAllReport() {
+        return feedbackService.getAllReport();
+    }
+
     @PostMapping("")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> giveFeedback(HttpServletRequest httpServletRequest, @RequestBody GiveFeedbackRequest request) {
         return feedbackService.giveFeedback(httpServletRequest, request);
     }
 
-    @PostMapping("/approve")
+    @PostMapping("/approval")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> approveReport(@RequestBody ApproveReportRequest request) {
         return feedbackService.approveReport(request);

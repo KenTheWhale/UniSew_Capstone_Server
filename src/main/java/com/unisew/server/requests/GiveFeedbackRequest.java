@@ -13,6 +13,6 @@ public class GiveFeedbackRequest {
     Integer orderId;
     Integer rating;
     String content;
-    boolean isReport;
+    boolean report;
     String imageUrl;
 }

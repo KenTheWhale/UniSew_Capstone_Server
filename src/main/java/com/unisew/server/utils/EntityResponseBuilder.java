@@ -175,9 +175,73 @@ public class EntityResponseBuilder {
 
     public static Map<String, Object> buildFeedbackResponse(Feedback feedback) {
         if (feedback == null) return null;
-        List<String> keys = List.of("id", "rating", "content", "creationDate", "images");
-        List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(), buildFeedbackImageListResponse(feedback.getFeedbackImages()));
+        List<String> keys = List.of("id", "rating", "content", "creationDate", "images", "status", "sender", "receiver");
+        List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(), buildFeedbackImageListResponse(feedback.getFeedbackImages()), feedback.getStatus(), Objects.requireNonNull(buildSenderMap(feedback)), Objects.requireNonNull(buildReceiverMap(feedback)));
         return MapUtils.build(keys, values);
+    }
+
+    private static Map<String, Object> buildSenderMap(Feedback fb) {
+        Customer school = null;
+        if (fb.getDesignRequest() != null) {
+            school = fb.getDesignRequest().getSchool();
+        } else if (fb.getOrder() != null
+                && fb.getOrder().getSchoolDesign() != null) {
+            school = fb.getOrder().getSchoolDesign().getCustomer();
+        }
+        if (school == null) return null;
+
+        Map<String, Object> sender = new HashMap<>();
+        sender.put("type", "school");
+        sender.put("id", school.getId());
+        sender.put("name", school.getName());
+        sender.put("avatar", school.getAvatar());
+        if (school.getAccount() != null) {
+            sender.put("email", school.getAccount().getEmail());
+        }
+        return sender;
+    }
+
+    private static Map<String, Object> buildReceiverMap(Feedback fb) {
+        if (fb.getDesignRequest() != null) {
+            Partner designer = null;
+            List<DesignQuotation> quotations = fb.getDesignRequest().getDesignQuotations();
+            if (quotations != null && !quotations.isEmpty()) {
+                designer = quotations.stream()
+                        .filter(q -> q.getStatus() == Status.DESIGN_QUOTATION_SELECTED)
+                        .map(DesignQuotation::getDesigner)
+                        .findFirst()
+                        .orElseGet(() ->
+                                quotations.stream()
+                                        .map(DesignQuotation::getDesigner)
+                                        .findFirst()
+                                        .orElse(null)
+                        );
+            }
+            if (designer == null) return null;
+
+            Map<String, Object> receiver = new HashMap<>();
+            receiver.put("type", "designer");
+            receiver.put("id", designer.getId());
+            if (designer.getCustomer() != null) {
+                receiver.put("name", designer.getCustomer().getName());
+                receiver.put("avatar", designer.getCustomer().getAvatar());
+                if (designer.getCustomer().getAccount() != null) {
+                    receiver.put("email", designer.getCustomer().getAccount().getEmail());
+                }
+            }
+            return receiver;
+        }
+
+        if (fb.getOrder() != null) {
+            Order order = fb.getOrder();
+            Map<String, Object> receiver = new HashMap<>();
+            receiver.put("type", "garment");
+            receiver.put("id", order.getGarmentId());
+            receiver.put("name", order.getGarmentName());
+            return receiver;
+        }
+
+        return null;
     }
 
     //-------Feedback Image---------

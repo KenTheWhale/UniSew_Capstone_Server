@@ -1,5 +1,6 @@
 package com.unisew.server.models;
 
+import com.unisew.server.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -29,6 +30,18 @@ public class Feedback {
 
     @Column(name = "`creation_date`")
     LocalDate creationDate;
+
+    @Column(name = "`approval_date`")
+    LocalDate approvalDate;
+
+    @Column(name = "`message_for_school`")
+    String messageForSchool;
+
+    @Column(name = "`message_for_partner`")
+    String messageForPartner;
+
+    @Enumerated(EnumType.STRING)
+    Status Status;
 
     @OneToOne(mappedBy = "feedback", fetch = FetchType.EAGER)
     @ToString.Exclude

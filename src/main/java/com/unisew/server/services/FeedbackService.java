@@ -20,4 +20,6 @@ public interface FeedbackService {
     ResponseEntity<ResponseObject> getFeedbackByDesigner(Integer designerId);
 
     ResponseEntity<ResponseObject> approveReport(ApproveReportRequest request);
+
+    ResponseEntity<ResponseObject> getAllReport();
 }

@@ -10,5 +10,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ApproveReportRequest {
     Integer feedbackId;
-    String adminMessage;
+    String messageForSchool;
+    String messageForPartner;
+    boolean isApproved;
 }
