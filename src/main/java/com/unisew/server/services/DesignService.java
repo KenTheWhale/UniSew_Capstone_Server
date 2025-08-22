@@ -27,7 +27,7 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request, HttpServletRequest httpRequest);
 
-
+    ResponseEntity<ResponseObject> cancelRequest(CancelRequest request, HttpServletRequest httpServletRequest);
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
