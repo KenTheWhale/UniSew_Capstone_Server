@@ -118,18 +118,6 @@ public class DesignController {
     public ResponseEntity<ResponseObject> getUnUseListRevisionByRequestId(@RequestBody GetUnUseListRevisionRequest request) {
         return designService.getAllUnUsedRevisionRequest(request);
     }
-    //-------------------DESIGN_COMMENT----------------------------//
-    @PostMapping("/list-comment/{requestId}")
-    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> getListComment(@RequestBody GetListCommentRequest request) {
-        return designService.getListDesignComment(request);
-    }
-
-    @PostMapping("/comment")
-    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
-    public ResponseEntity<ResponseObject> sendComment(@RequestBody SendCommentRequest request, HttpServletRequest httpRequest) {
-        return designService.sendComment(httpRequest, request);
-    }
 
     //-------------------SCHOOL_DESIGN----------------------------//
     @PostMapping("/final/designs")
