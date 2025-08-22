@@ -13,6 +13,7 @@ import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.BuyRevisionValidation;
+import com.unisew.server.validations.CancelRequestValidation;
 import com.unisew.server.validations.CreateDesignValidation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,6 @@ public class DesignServiceImpl implements DesignService {
     private final DesignDeliveryRepo designDeliveryRepo;
     private final RevisionRequestRepo revisionRequestRepo;
     private final DeliveryItemRepo deliveryItemRepo;
-    private final DesignCommentRepo designCommentRepo;
     private final SchoolDesignRepo schoolDesignRepo;
     private final PaymentService paymentService;
     private final PartnerRepo partnerRepo;
@@ -258,6 +258,26 @@ public class DesignServiceImpl implements DesignService {
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> cancelRequest(CancelRequest request, HttpServletRequest httpServletRequest) {
+
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+
+        DesignRequest designRequest = designRequestRepo.findById(request.getRequestId()).orElse(null);
+
+        ResponseEntity<ResponseObject> validationResponse =
+                CancelRequestValidation.validate(account, designRequest);
+
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        designRequest.setStatus(Status.DESIGN_REQUEST_CANCELED);
+        designRequestRepo.save(designRequest);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Design request cancelled", null);
+    }
+
     //-----------------------------------FABRIC---------------------------------------//
     @Override
     public ResponseEntity<ResponseObject> getAllFabric() {
@@ -370,15 +390,6 @@ public class DesignServiceImpl implements DesignService {
                             .build()
             );
         }
-//
-//        DesignComment designComment = DesignComment.builder()
-//                .content("Designer has submit new delivery. Delivery Code: ")
-//                .designRequest(designRequest)
-//                .creationDate(LocalDateTime.now())
-//                .senderId(0)
-//                .senderRole("system")
-//                .build();
-//        designCommentRepo.save(designComment);
 
         return ResponseBuilder.build(HttpStatus.CREATED, "Upload delivery successfully", null);
     }
@@ -475,78 +486,6 @@ public class DesignServiceImpl implements DesignService {
         );
     }
 
-    //-----------------------DESIGN_COMMENT-------------------------//
-    @Override
-    public ResponseEntity<ResponseObject> getListDesignComment(GetListCommentRequest request) {
-
-        List<DesignComment> designComments = designCommentRepo.findAllByDesignRequest_Id(request.getRequestId());
-
-
-        List<Map<String, Object>> mapList = designComments.stream()
-                .map(
-                        comment -> {
-                            Map<String, Object> map = new HashMap<>();
-                            map.put("senderId", comment.getSenderId());
-                            map.put("senderRole", comment.getSenderRole());
-                            map.put("content", comment.getContent());
-                            map.put("createdAt", comment.getCreationDate());
-                            return map;
-                        }
-                ).toList();
-
-        return ResponseEntity.status(HttpStatus.OK).body(
-                ResponseObject.builder()
-                        .message("List of Design Comments")
-                        .body(mapList)
-                        .build()
-        );
-    }
-
-    @Override
-    public ResponseEntity<ResponseObject> sendComment(HttpServletRequest request, SendCommentRequest sendCommentRequest) {
-
-        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-
-        if (account == null) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
-        }
-
-        DesignRequest designRequest = designRequestRepo.findById(sendCommentRequest.getRequestId()).orElse(null);
-        if (designRequest == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    ResponseObject.builder()
-                            .message("Can not find design request")
-                            .build()
-            );
-        }
-
-        List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(designRequest.getId());
-
-        boolean isFinal = deliveries.stream().anyMatch(delivery ->
-                schoolDesignRepo.existsByCustomer_IdAndDesignDelivery_Id(
-                        designRequest.getSchool().getId(),
-                        delivery.getId()
-                )
-        );
-
-        if (isFinal) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST,
-                    "This request has a final delivery. No more comments allowed.", null);
-        }
-
-        DesignComment comment = DesignComment.builder()
-                .designRequest(designRequest)
-                .content(sendCommentRequest.getComment())
-                .creationDate(LocalDateTime.now())
-                .senderId(account.getId())
-                .senderRole(account.getRole().getValue())
-                .build();
-
-        designCommentRepo.save(comment);
-
-        return ResponseBuilder.build(HttpStatus.CREATED, "Comment sent", null);
-    }
-
     //-----------------------SCHOOL_DESIGN-------------------------//
     @Override
     public ResponseEntity<ResponseObject> getListSchoolDesign(HttpServletRequest httpRequest) {
@@ -619,6 +558,9 @@ public class DesignServiceImpl implements DesignService {
         }
         if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_PENDING)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Package already exists for this request", null);
+        }
+        if (LocalDate.now().isAfter(designQuotation.getAcceptanceDeadline())) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Acceptance deadline has passed", null);
         }
 
         designRequest.setDesignQuotationId(request.getDesignQuotationId());

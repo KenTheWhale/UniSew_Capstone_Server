@@ -23,7 +23,6 @@ public class ServerApplication {
 
     private final DeliveryItemRepo deliveryItemRepo;
 
-    private final DesignCommentRepo designCommentRepo;
 
     private final DesignDeliveryRepo designDeliveryRepo;
 
