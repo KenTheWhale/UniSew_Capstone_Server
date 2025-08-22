@@ -10,4 +10,6 @@ public interface DesignRequestRepo extends JpaRepository<DesignRequest, Integer>
     List<DesignRequest> findAllBySchool_Id(int schoolId);
 
     Optional<DesignRequest> findByDesignQuotationId(int quotationId);
+
+    List<DesignRequest> findAllByFeedbackIsNotNull();
 }
