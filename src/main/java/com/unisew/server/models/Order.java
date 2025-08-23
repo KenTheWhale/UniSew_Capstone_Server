@@ -38,6 +38,12 @@ public class Order {
 
     long price;
 
+    @Column(name = "`shipping_fee`")
+    long shippingFee;
+
+    @Column(name = "`shipping_code`")
+    String shippingCode;
+
     @Column(name = "`order_date`")
     LocalDate orderDate;
 
