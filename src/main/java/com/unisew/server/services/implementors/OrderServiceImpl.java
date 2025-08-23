@@ -82,7 +82,14 @@ public class OrderServiceImpl implements OrderService {
         );
 
         int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
-        if (request.getOrderDetails().size() != expectedOrderDetailsSize) {
+        List<Integer> filteredOrderItemID = new ArrayList<>();
+        request.getOrderDetails().forEach(orderItem -> {
+            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+                filteredOrderItemID.add(orderItem.getDeliveryItemId());
+            }
+        });
+
+        if (filteredOrderItemID.size() != expectedOrderDetailsSize) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size", null);
         }
 
