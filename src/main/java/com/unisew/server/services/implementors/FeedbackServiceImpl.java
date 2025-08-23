@@ -210,11 +210,9 @@ public class FeedbackServiceImpl implements FeedbackService {
         if (dr == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Design request not found", null);
         }
-
         if (!Objects.equals(dr.getSchool().getId(), school.getId())) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not the owner of this request", null);
         }
-
         if (dr.getFeedback() != null) {
             return ResponseBuilder.build(HttpStatus.CONFLICT, "Feedback already exists for this design request", null);
         }
@@ -224,6 +222,7 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer partner could not be resolved for this request", null);
         }
 
+        ;
 
         Feedback feedback = feedbackRepo.save(
                 Feedback.builder()
@@ -233,23 +232,25 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .creationDate(LocalDate.now())
                         .messageForPartner("")
                         .messageForSchool("")
-                        .order(null)
                         .designRequest(dr)
+                        .order(null)
+                        .Status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
                         .build()
         );
 
-        if(request.isReport()) {
-            feedback.setStatus(Status.FEEDBACK_REPORT_UNDER_REVIEW);
-        } else {
-            feedback.setStatus(Status.FEEDBACK_APPROVED);
-        }
-
-        if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
-            FeedbackImage img = FeedbackImage.builder()
-                    .imageUrl(request.getImageUrl())
-                    .feedback(feedback)
-                    .build();
-            feedbackImageRepo.save(img);
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            List<FeedbackImage> images = request.getImageUrls().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(url -> FeedbackImage.builder()
+                            .imageUrl(url)
+                            .feedback(feedback)
+                            .build())
+                    .toList();
+            if (!images.isEmpty()) {
+                feedbackImageRepo.saveAll(images);
+            }
         }
 
         dr.setFeedback(feedback);
@@ -265,16 +266,14 @@ public class FeedbackServiceImpl implements FeedbackService {
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
-
-        if (order.getSchoolDesign() == null || order.getSchoolDesign().getCustomer() == null
+        if (order.getSchoolDesign() == null
+                || order.getSchoolDesign().getCustomer() == null
                 || !Objects.equals(order.getSchoolDesign().getCustomer().getId(), school.getId())) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not the owner of this order's school design", null);
         }
-
         if (order.getFeedback() != null) {
             return ResponseBuilder.build(HttpStatus.CONFLICT, "Feedback already exists for this order", null);
         }
-
         if (order.getGarmentId() == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order has no garment assigned", null);
         }
@@ -293,21 +292,23 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .messageForSchool("")
                         .order(order)
                         .designRequest(null)
+                        .Status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
                         .build()
         );
 
-        if(request.isReport()) {
-            feedback.setStatus(Status.FEEDBACK_REPORT_UNDER_REVIEW);
-        } else {
-            feedback.setStatus(Status.FEEDBACK_APPROVED);
-        }
-
-        if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
-            FeedbackImage img = FeedbackImage.builder()
-                    .imageUrl(request.getImageUrl())
-                    .feedback(feedback)
-                    .build();
-            feedbackImageRepo.save(img);
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            List<FeedbackImage> images = request.getImageUrls().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(url -> FeedbackImage.builder()
+                            .imageUrl(url)
+                            .feedback(feedback)
+                            .build())
+                    .toList();
+            if (!images.isEmpty()) {
+                feedbackImageRepo.saveAll(images);
+            }
         }
 
         order.setFeedback(feedback);
