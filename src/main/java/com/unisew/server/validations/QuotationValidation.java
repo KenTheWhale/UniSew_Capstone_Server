@@ -12,9 +12,6 @@ public class QuotationValidation {
         if (request.getOrderId() == null) {
             return "Order ID is required!";
         }
-        if (request.getGarmentId() == null) {
-            return "Garment (factory) ID is required!";
-        }
         if (request.getEarlyDeliveryDate() == null) {
             return "Early delivery date is required!";
         }
