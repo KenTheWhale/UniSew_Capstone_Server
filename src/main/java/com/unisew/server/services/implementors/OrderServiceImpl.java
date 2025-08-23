@@ -1,6 +1,7 @@
 package com.unisew.server.services.implementors;
 
 import com.unisew.server.enums.DeliveryItemSize;
+import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.*;
@@ -290,7 +291,7 @@ public class OrderServiceImpl implements OrderService {
 
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
 
-        if (account == null) {
+        if (account == null || !account.getRole().equals(Role.GARMENT)) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 

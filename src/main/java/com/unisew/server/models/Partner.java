@@ -30,6 +30,9 @@ public class Partner {
     @Column(name = "`inside_preview`")
     String insidePreview;
 
+    @Column(name = "`shipping_uid`")
+    String shippingUid;
+
     @Column(name = "`start_time`")
     LocalTime startTime;
 
