@@ -32,9 +32,4 @@ public class SchoolDesign {
     @EqualsAndHashCode.Exclude
     List<Order> orders;
 
-    @OneToMany(mappedBy = "template", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<DesignRequest> designRequests;
-
 }
