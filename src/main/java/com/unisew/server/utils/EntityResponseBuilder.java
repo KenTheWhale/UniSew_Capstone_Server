@@ -284,6 +284,7 @@ public class EntityResponseBuilder {
                     orderMap.put("status", order.getStatus().getValue());
                     orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
                     orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
+                    orderMap.put("selectedDesign", EntityResponseBuilder.buildDesignDeliveryResponse(order.getSchoolDesign().getDesignDelivery(), designItemRepo));
                     return orderMap;
                 })
                 .toList();

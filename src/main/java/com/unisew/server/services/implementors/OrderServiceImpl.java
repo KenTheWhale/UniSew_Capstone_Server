@@ -83,7 +83,14 @@ public class OrderServiceImpl implements OrderService {
         );
 
         int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
-        if (request.getOrderDetails().size() != expectedOrderDetailsSize) {
+        List<Integer> filteredOrderItemID = new ArrayList<>();
+        request.getOrderDetails().forEach(orderItem -> {
+            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+                filteredOrderItemID.add(orderItem.getDeliveryItemId());
+            }
+        });
+
+        if (filteredOrderItemID.size() != expectedOrderDetailsSize) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size", null);
         }
 
@@ -293,6 +300,10 @@ public class OrderServiceImpl implements OrderService {
 
         if (account == null || !account.getRole().equals(Role.GARMENT)) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+
+        if(garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)){
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
         }
 
         GarmentQuotation garmentQuotation = GarmentQuotation.builder()

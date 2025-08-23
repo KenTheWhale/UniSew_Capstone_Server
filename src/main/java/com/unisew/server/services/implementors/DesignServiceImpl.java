@@ -394,22 +394,6 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Upload delivery successfully", null);
     }
 
-    @Override
-    @Transactional
-    public ResponseEntity<ResponseObject> addFileUrl(AddFileUrlRequest request) {
-
-        DesignDelivery designDelivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
-
-        if (designDelivery == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "delivery not found", null);
-        }
-
-        designDelivery.setFileUrl(request.getFileUrl());
-        designDeliveryRepo.save(designDelivery);
-
-        return ResponseBuilder.build(HttpStatus.CREATED, "Upload file successfully", null);
-    }
-
     //-----------------------REVISION_REQUEST-------------------------//
     @Override
     @Transactional
@@ -631,7 +615,7 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design request not found", null);
         }
 
-        if (designQuotationRepo.existsByDesigner_Customer_Account_IdAndDesignRequest_Id(account.getId(), designRequest.getId())) {
+        if (designQuotationRepo.existsByDesigner_IdAndDesignRequest_IdAndStatus(account.getCustomer().getPartner().getId(), designRequest.getId(), Status.DESIGN_QUOTATION_PENDING)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You already request to apply this design", null);
         }
 
