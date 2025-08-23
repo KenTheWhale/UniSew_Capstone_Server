@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class QuotationRequest {
     Integer orderId;
-    Integer garmentId;
     LocalDate earlyDeliveryDate;
     LocalDate acceptanceDeadline;
     long price;

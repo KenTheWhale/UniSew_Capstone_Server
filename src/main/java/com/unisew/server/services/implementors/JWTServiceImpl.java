@@ -69,6 +69,7 @@ public class JWTServiceImpl implements JWTService {
     @Override
     public String generateAccessToken(Account account) {
         Map<String, Object> data = new HashMap<>();
+        data.put("id", account.getId());
         data.put("role", account.getRole().getValue());
         return generateToken(data, account, accessExpiration);
     }
@@ -76,6 +77,7 @@ public class JWTServiceImpl implements JWTService {
     @Override
     public String generateRefreshToken(Account account) {
         Map<String, Object> data = new HashMap<>();
+        data.put("id", account.getId());
         data.put("role", account.getRole().getValue());
         return generateToken(data, account, refreshExpiration);
     }
