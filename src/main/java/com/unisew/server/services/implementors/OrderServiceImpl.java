@@ -302,6 +302,10 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
+        if(garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)){
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
+        }
+
         GarmentQuotation garmentQuotation = GarmentQuotation.builder()
                 .order(order)
                 .garment(account.getCustomer().getPartner())

@@ -45,9 +45,7 @@ public class DesignDelivery {
 
     int version;
 
-    String fileUrl;
-
-    @OneToOne(mappedBy = "designDelivery", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "designDelivery", cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     SchoolDesign schoolDesign;
