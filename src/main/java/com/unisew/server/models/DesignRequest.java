@@ -29,10 +29,6 @@ public class DesignRequest {
     @JoinColumn(name = "`feedback_id`")
     Feedback feedback;
 
-    @ManyToOne
-    @JoinColumn(name = "`template_id`")
-    SchoolDesign template;
-
     @Column(name = "`design_quotation_id`")
     Integer designQuotationId;
 
