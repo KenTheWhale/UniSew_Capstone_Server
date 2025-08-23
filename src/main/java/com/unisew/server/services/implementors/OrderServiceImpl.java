@@ -82,6 +82,11 @@ public class OrderServiceImpl implements OrderService {
                         .build()
         );
 
+        int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
+        if (request.getOrderDetails().size() != expectedOrderDetailsSize) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size", null);
+        }
+
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
             for (CreateOrderRequest.OrderItem item : request.getOrderDetails()) {
@@ -150,6 +155,11 @@ public class OrderServiceImpl implements OrderService {
         if (partner == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment not found", null);
         }
+
+        long activePhasesCount = sewingPhaseRepo.countSewingPhaseByGarment_IdAndStatus(partner.getId(), Status.SEWING_PHASE_ACTIVE);
+        if (activePhasesCount == 10) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Maximum sewing phases reached!", null);
+        }
         sewingPhaseRepo.save(
                 SewingPhase.builder()
                         .name(request.getName())
@@ -168,13 +178,13 @@ public class OrderServiceImpl implements OrderService {
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
-        String error = OrderValidation.validateAssignMilestone(request);
-        if (error != null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
-        }
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+        String error = OrderValidation.validateAssignMilestone(order, request, sewingPhaseRepo);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         for (AssignMilestoneRequest.Phase phase : request.getPhaseList()) {
@@ -367,6 +377,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> cancelOrder(int orderId) {
         Order order = orderRepo.findById(orderId).orElse(null);
         if (order == null) {
