@@ -329,10 +329,17 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(ApproveQuotationRequest request, HttpServletRequest httpServletRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
         GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(request.getQuotationId()).orElse(null);
         String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+        if(!garmentQuotation.getGarment().getId().equals(account.getCustomer().getPartner().getId())) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are not authorized to approve this quotation", null);
         }
 
         garmentQuotation.setStatus(Status.GARMENT_QUOTATION_APPROVED);
