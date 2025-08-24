@@ -446,6 +446,32 @@ public class EntityResponseBuilder {
     }
 
     //-------Transaction---------
+    public static List<Map<String, Object>> buildListTransactionResponse(List<Transaction> transactions) {
+        return transactions.stream().map(EntityResponseBuilder::buildTransactionResponse).toList();
+    }
+
+    private static Map<String, Object> buildTransactionResponse(Transaction transaction) {
+        if (transaction == null) return null;
+        List<String> keys = List.of(
+                "id", "sender", "receiver",
+                "cardNumber",
+                "amount", "creationDate",
+                "serviceFee", "balanceType",
+                "status", "paymentType",
+                "paymentGatewayCode"
+        );
+        List<Object> values = List.of(
+                transaction.getId(), buildCustomerResponse(transaction.getSender()), buildCustomerResponse(transaction.getReceiver()),
+                transaction.getWallet().getCardNumber(),
+                transaction.getAmount(), transaction.getCreationDate(),
+                transaction.getServiceFee(), transaction.getBalanceType(),
+                transaction.getStatus().getValue(), transaction.getPaymentType().getValue(),
+                transaction.getPaymentGatewayCode()
+        );
+
+        return MapUtils.build(keys, values);
+    }
+
 
     //-------Wallet---------
 

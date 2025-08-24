@@ -19,6 +19,7 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -252,5 +253,11 @@ public class PaymentServiceImpl implements PaymentService {
 
     private Wallet getAdminWallet(){
         return walletRepo.findByAccount_Role(Role.ADMIN);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getAllTransaction(HttpServletRequest httpRequest) {
+        List<Transaction> transactions = transactionRepo.findAllByOrderByIdDesc();
+        return ResponseBuilder.build(HttpStatus.OK, "Transactions", EntityResponseBuilder.buildListTransactionResponse(transactions));
     }
 }

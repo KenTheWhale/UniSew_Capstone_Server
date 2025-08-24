@@ -11,5 +11,6 @@ public interface PaymentService {
 
     ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, HttpServletRequest httpRequest);
 
+    ResponseEntity<ResponseObject> getAllTransaction(HttpServletRequest httpRequest);
 
 }
