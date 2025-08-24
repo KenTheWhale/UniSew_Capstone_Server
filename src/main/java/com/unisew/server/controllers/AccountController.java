@@ -1,5 +1,6 @@
 package com.unisew.server.controllers;
 
+import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
@@ -41,5 +42,16 @@ public class AccountController {
     @PreAuthorize("hasAnyRole('DESIGNER', 'GARMENT')")
     public ResponseEntity<ResponseObject> getPartnerProfile(HttpServletRequest request){
         return accountService.getProfile(request, "partner");
+    }
+    @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getAccountList() {
+        return accountService.getListAccounts();
+    }
+
+    @PutMapping("/modification")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> changeAccountStatus(@RequestBody ChangeAccountStatusRequest request) {
+        return accountService.changeAccountStatus(request);
     }
 }

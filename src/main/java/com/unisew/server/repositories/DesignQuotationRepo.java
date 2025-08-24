@@ -13,4 +13,6 @@ public interface DesignQuotationRepo extends JpaRepository<DesignQuotation, Inte
     boolean existsByDesigner_IdAndDesignRequest_IdAndStatus(int designerId, int requestId, Status status);
 
     List<DesignQuotation> findAllByDesigner_Id(Integer designerId);
+
+    boolean existsByDesigner_Customer_Account_IdAndDesignRequest_Id(Integer id, Integer id1);
 }
