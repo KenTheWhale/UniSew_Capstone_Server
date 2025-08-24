@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
         int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
         List<Integer> filteredOrderItemID = new ArrayList<>();
         request.getOrderDetails().forEach(orderItem -> {
-            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+            if (!filteredOrderItemID.contains(orderItem.getDeliveryItemId())) {
                 filteredOrderItemID.add(orderItem.getDeliveryItemId());
             }
         });
@@ -143,7 +144,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(SchoolDesign::getOrders)
                 .flatMap(List::stream)
                 .peek(order -> {
-                    if(!LocalDate.now().isBefore(order.getDeadline()) && order.getStatus().equals(Status.ORDER_PENDING)){
+                    if (!LocalDate.now().isBefore(order.getDeadline()) && order.getStatus().equals(Status.ORDER_PENDING)) {
                         order.setStatus(Status.ORDER_CANCELED);
                         orderRepo.save(order);
                     }
@@ -210,8 +211,9 @@ public class OrderServiceImpl implements OrderService {
                     .stage(phase.getStage())
                     .startDate(phase.getStartDate())
                     .endDate(phase.getEndDate())
-                    .status(Status.MILESTONE_ASSIGNED)
+                    .status(phase.getStartDate().isAfter(LocalDate.now()) ? Status.MILESTONE_ASSIGNED : Status.MILESTONE_PROCESSING)
                     .phase(sewingPhase)
+                    .completedDate(null)
                     .order(order)
                     .build());
         }
@@ -222,54 +224,55 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request) {
-        Milestone milestone = milestoneRepo.findById(request.getMilestoneId()).orElse(null);
+        // Update current milestone
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+
+        Milestone milestone = milestoneRepo.findByOrder_IdAndStatus(order.getId(), Status.MILESTONE_PROCESSING).orElse(null);
         if (milestone == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active milestone", null);
         }
 
         if (milestone.getEndDate() != null && LocalDate.now().isAfter(milestone.getEndDate())) {
             milestone.setStatus(Status.MILESTONE_LATE);
         } else {
-            switch (milestone.getStatus()) {
-                case MILESTONE_ASSIGNED:
-                    milestone.setStatus(Status.MILESTONE_PROCESSING);
-                    break;
-                case MILESTONE_PROCESSING:
-                    milestone.setStatus(Status.MILESTONE_COMPLETED);
-                    break;
-                default:
-            }
+            milestone.setStatus(Status.MILESTONE_COMPLETED);
         }
 
-        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+        milestone.setCompletedDate(LocalDate.now());
+
+        if (request.getImageUrl() != null) {
             milestone.setImgUrl(request.getImageUrl());
         }
 
-        milestoneRepo.save(milestone);
+        milestone = milestoneRepo.save(milestone);
 
-        Order order = milestone.getOrder();
-        if (order == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
+        //Update the next milestone
+
+        //Check not final stage
+        if (order.getMilestones().size() > milestone.getStage()) {
+            int nextStage = milestone.getStage() + 1;
+            Milestone nextMilestone = milestoneRepo.findByOrder_IdAndStage(order.getId(), nextStage).orElse(null);
+
+            if (nextMilestone == null) {
+                return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No next milestone", null);
+            }
+
+            nextMilestone.setStatus(Status.MILESTONE_PROCESSING);
+            milestoneRepo.save(nextMilestone);
+
+            return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
         }
 
-        List<Milestone> milestones = milestoneRepo.findAllByPhase_Id(milestone.getPhase().getId());
-
-        boolean isHighestStage = milestones.stream()
-                .allMatch(m -> m.getStage() <= milestone.getStage());
-
-        if (isHighestStage) {
-            order.setStatus(Status.ORDER_COMPLETED);
-        }
-
-        orderRepo.save(order);
-
-        return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
+        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are already at the end phase", null);
     }
 
     @Override
     public ResponseEntity<ResponseObject> viewMilestone(int orderId) {
         List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream()
-                .sorted((m1, m2) -> Integer.compare(m1.getStage(), m2.getStage()))
+                .sorted(Comparator.comparingInt(Milestone::getStage))
                 .toList();
         if (milestones.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
@@ -288,9 +291,6 @@ public class OrderServiceImpl implements OrderService {
                 .filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE)
                 .filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId()))
                 .toList();
-        if (phases.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active sewing phases found", null);
-        }
         return ResponseBuilder.build(HttpStatus.OK, "Sewing phases retrieved successfully", EntityResponseBuilder.buildSewingPhaseList(phases));
     }
 
@@ -313,7 +313,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
-        if(garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)){
+        if (garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
         }
 
@@ -336,7 +336,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(ApproveQuotationRequest request, HttpServletRequest httpServletRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
-        if(account == null){
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(request.getQuotationId()).orElse(null);
@@ -345,7 +345,7 @@ public class OrderServiceImpl implements OrderService {
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
-        if(!garmentQuotation.getGarment().getId().equals(account.getCustomer().getPartner().getId())) {
+        if (!garmentQuotation.getOrder().getSchoolDesign().getCustomer().getId().equals(account.getCustomer().getId())) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are not authorized to approve this quotation", null);
         }
 
@@ -422,5 +422,18 @@ public class OrderServiceImpl implements OrderService {
         return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if(account == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+        Order order = orderRepo.findByIdAndSchoolDesign_Customer_Account_Id(orderId, account.getId()).orElse(null);
+        if(order == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
+        }
 
+        Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo);
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
 }

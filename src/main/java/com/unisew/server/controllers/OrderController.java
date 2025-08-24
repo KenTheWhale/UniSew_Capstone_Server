@@ -31,6 +31,12 @@ public class OrderController {
         return orderService.viewSchoolOrder(request);
     }
 
+    @PostMapping("/school/detail")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, @RequestParam int orderId) {
+        return orderService.viewSchoolOrderDetail(request, orderId);
+    }
+
     @GetMapping("")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> viewAllOrder() {
@@ -76,13 +82,13 @@ public class OrderController {
     }
 
     //----------------------------MILESTONE----------------------------//
-    @PostMapping("/phase")
+    @PostMapping("/phase/create")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, @RequestBody CreateSewingPhaseRequest request) {
         return orderService.createSewingPhase(httpServletRequest, request);
     }
 
-    @GetMapping("/phase")
+    @PostMapping("/phase")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request) {
         return orderService.viewPhase(request);

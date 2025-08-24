@@ -268,26 +268,30 @@ public class EntityResponseBuilder {
     //-------Order---------
     public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, SewingPhaseRepo sewingPhaseRepo) {
         return orders.stream()
-                .map(order -> {
-                    Partner partner;
-                    if (order.getGarmentId() == null) partner = null;
-                    else partner = partnerRepo.findById(order.getId()).orElse(null);
-
-                    Map<String, Object> orderMap = new HashMap<>();
-                    orderMap.put("id", order.getId());
-                    orderMap.put("deadline", order.getDeadline());
-                    orderMap.put("school", buildCustomerResponse(order.getSchoolDesign().getCustomer()));
-                    orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner));
-                    orderMap.put("note", order.getNote());
-                    orderMap.put("orderDate", order.getOrderDate());
-                    orderMap.put("price", order.getPrice());
-                    orderMap.put("status", order.getStatus().getValue());
-                    orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
-                    orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
-                    orderMap.put("selectedDesign", EntityResponseBuilder.buildDesignDeliveryResponse(order.getSchoolDesign().getDesignDelivery(), designItemRepo));
-                    return orderMap;
-                })
+                .map(order -> buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo))
                 .toList();
+    }
+
+    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo){
+        Partner partner;
+        if (order.getGarmentId() == null) partner = null;
+        else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
+
+        Map<String, Object> orderMap = new HashMap<>();
+        orderMap.put("id", order.getId());
+        orderMap.put("deadline", order.getDeadline());
+        orderMap.put("school", buildCustomerResponse(order.getSchoolDesign().getCustomer()));
+        orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner));
+        orderMap.put("note", order.getNote());
+        orderMap.put("orderDate", order.getOrderDate());
+        orderMap.put("price", order.getPrice());
+        orderMap.put("shippingFee", order.getShippingFee());
+        orderMap.put("shippingCode", order.getShippingCode());
+        orderMap.put("status", order.getStatus().getValue());
+        orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
+        orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
+        orderMap.put("selectedDesign", EntityResponseBuilder.buildDesignDeliveryResponse(order.getSchoolDesign().getDesignDelivery(), designItemRepo));
+        return orderMap;
     }
 
     //-------Order Detail---------
@@ -324,11 +328,11 @@ public class EntityResponseBuilder {
         if (milestone == null) return null;
         List<String> keys = List.of(
                 "id", "name", "description", "stage", "imageUrl",
-                "startDate", "endDate", "status"
+                "startDate", "endDate", "status", "completedDate"
         );
         List<Object> values = List.of(
                 milestone.getId(), milestone.getPhase().getName(), milestone.getPhase().getDescription(), milestone.getStage(), Objects.requireNonNullElse(milestone.getImgUrl(), ""),
-                milestone.getStartDate(), milestone.getEndDate(), milestone.getStatus().getValue()
+                milestone.getStartDate(), milestone.getEndDate(), milestone.getStatus().getValue(), Objects.requireNonNullElse(milestone.getCompletedDate(), "")
         );
         return MapUtils.build(keys, values);
     }

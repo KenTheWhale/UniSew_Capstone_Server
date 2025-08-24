@@ -34,6 +34,9 @@ public class Milestone {
     @Column(name = "`end_date`")
     LocalDate endDate;
 
+    @Column(name = "`completed_date`")
+    LocalDate completedDate;
+
     @Column(name = "`image_url`")
     String imgUrl;
 
