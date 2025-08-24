@@ -3,6 +3,8 @@ package com.unisew.server.requests;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,5 +16,5 @@ public class GiveFeedbackRequest {
     Integer rating;
     String content;
     boolean report;
-    String imageUrl;
+    List<String> imageUrls;
 }

@@ -280,8 +280,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
         List<SewingPhase> phases = sewingPhaseRepo.findAll().stream()
                 .filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE)
+                .filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId()))
                 .toList();
         if (phases.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active sewing phases found", null);
@@ -340,9 +345,8 @@ public class OrderServiceImpl implements OrderService {
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
-
-        if(!garmentQuotation.getOrder().getSchoolDesign().getCustomer().getAccount().getId().equals(account.getId())){
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid quotation", null);
+        if(!garmentQuotation.getGarment().getId().equals(account.getCustomer().getPartner().getId())) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are not authorized to approve this quotation", null);
         }
 
         garmentQuotation.setStatus(Status.GARMENT_QUOTATION_APPROVED);

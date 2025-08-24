@@ -4,6 +4,8 @@ import com.unisew.server.models.Feedback;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 
+import java.util.Objects;
+
 public class FeedbackValidation {
     public static String validateGiveFeedback(GiveFeedbackRequest request) {
         if (request == null) return "Request body is required";
@@ -25,6 +27,14 @@ public class FeedbackValidation {
             return "Content is required";
         }
 
+        if (request.getImageUrls() != null) {
+            boolean hasInvalid = request.getImageUrls().stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .anyMatch(String::isEmpty);
+            if (hasInvalid) return "Images are required";
+            if (request.getImageUrls().size() > 3) return "Maximum 3 images are allowed";
+        }
         return null;
     }
 
