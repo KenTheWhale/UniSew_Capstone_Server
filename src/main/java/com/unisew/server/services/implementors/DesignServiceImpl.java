@@ -58,9 +58,12 @@ public class DesignServiceImpl implements DesignService {
         }
 
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        if (account.getStatus().equals(Status.ACCOUNT_INACTIVE)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account is inactive", null);
         }
 
         DesignRequest designRequest = DesignRequest.builder()
@@ -394,6 +397,8 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Upload delivery successfully", null);
     }
 
+
+
     //-----------------------REVISION_REQUEST-------------------------//
     @Override
     @Transactional
@@ -530,6 +535,16 @@ public class DesignServiceImpl implements DesignService {
     @Transactional
     public ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request, HttpServletRequest httpRequest) {
 
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        if (account.getStatus().equals(Status.ACCOUNT_INACTIVE)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account is inactive", null);
+        }
+
+
         DesignQuotation designQuotation = designQuotationRepo.findById(request.getDesignQuotationId()).orElse(null);
 
         DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
@@ -541,7 +556,7 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Request not found", null);
         }
         if (!designRequest.getStatus().equals(Status.DESIGN_REQUEST_PENDING)) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Package already exists for this request", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Quotation already exists for this request", null);
         }
         if (LocalDate.now().isAfter(designQuotation.getAcceptanceDeadline())) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Acceptance deadline has passed", null);
@@ -610,12 +625,16 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
+        if (account.getStatus().equals(Status.ACCOUNT_INACTIVE)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account is inactive", null);
+        }
+
         DesignRequest designRequest = designRequestRepo.findById(request.getDesignRequestId()).orElse(null);
         if (designRequest == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design request not found", null);
         }
 
-        if (designQuotationRepo.existsByDesigner_IdAndDesignRequest_IdAndStatus(account.getCustomer().getPartner().getId(), designRequest.getId(), Status.DESIGN_QUOTATION_PENDING)) {
+        if (designQuotationRepo.existsByDesigner_Customer_Account_IdAndDesignRequest_Id(account.getId(), designRequest.getId())) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You already request to apply this design", null);
         }
 

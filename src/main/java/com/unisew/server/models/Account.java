@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -44,6 +45,11 @@ public class Account implements UserDetails {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     Wallet wallet;
+
+    @OneToMany(mappedBy = "account")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<DeactivateTicket> deactivateTickets;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

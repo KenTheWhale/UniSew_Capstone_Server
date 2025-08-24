@@ -1,5 +1,6 @@
 package com.unisew.server.services;
 
+import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,4 +14,8 @@ public interface AccountService {
     ResponseEntity<ResponseObject> updateCustomerBasicData(UpdateCustomerBasicDataRequest request, HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> getProfile(HttpServletRequest request, String userType);
+
+    ResponseEntity<ResponseObject> getListAccounts();
+
+    ResponseEntity<ResponseObject> changeAccountStatus(ChangeAccountStatusRequest request);
 }

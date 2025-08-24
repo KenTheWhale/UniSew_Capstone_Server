@@ -1,11 +1,12 @@
 package com.unisew.server.services.implementors;
 
 import com.unisew.server.enums.Role;
-import com.unisew.server.models.Account;
-import com.unisew.server.models.Customer;
-import com.unisew.server.models.Partner;
-import com.unisew.server.models.Wallet;
+import com.unisew.server.enums.Status;
+import com.unisew.server.models.*;
 import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeactivateTicketRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
@@ -22,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +34,8 @@ public class AccountServiceImpl implements AccountService {
 
     private final JWTService jwtService;
     private final AccountRepo accountRepo;
+    private final DesignRequestRepo designRequestRepo;
+    private final DeactivateTicketRepo deactivateTicketRepo;
 
     @Override
     public ResponseEntity<ResponseObject> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -88,6 +93,63 @@ public class AccountServiceImpl implements AccountService {
         return ResponseBuilder.build(HttpStatus.OK, "", MapUtils.build(keys, values));
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> getListAccounts() {
+
+        List<Account> accounts = accountRepo.findAll().stream()
+                .filter(a -> !a.getRole().equals(Role.ADMIN))
+                .toList();
+        if (accounts.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No accounts found", null);
+        }
+        List<Map<String, Object>> mapList = accounts.stream()
+                .map(this::buildAccountResponse)
+                .toList();
+
+        return ResponseBuilder.build(HttpStatus.OK, "Get list account success", mapList);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> changeAccountStatus(ChangeAccountStatusRequest request) {
+
+        Account account = accountRepo.findById(request.getAccountId()).orElse(null);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+
+        if (account.getStatus().getValue().equalsIgnoreCase(request.getStatus())) {
+            return ResponseBuilder.build(HttpStatus.CONFLICT, "Account is already " +  account.getStatus().getValue(), null);
+        }
+
+        account.setStatus(Status.valueOf(request.getStatus()));
+        accountRepo.save(account);
+
+        DeactivateTicket deactivateTicket = DeactivateTicket.builder()
+                .account(account)
+                .reason(request.getReason())
+                .startDate(LocalDate.now())
+                .endDate(request.getEndDate())
+                .build();
+        deactivateTicketRepo.save(deactivateTicket);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Change account status successfully", null);
+    }
+
+    private Map<String, Object> buildAccountResponse(Account account) {
+        if (account == null) return null;
+
+        List<String> keys = List.of(
+                "id", "registerDate", "email", "role", "status"
+        );
+        List<Object> values = List.of(
+                account.getId(), account.getRegisterDate(),
+                account.getEmail(),account.getRole(),account.getStatus()
+        );
+        return MapUtils.build(keys, values);
+    }
+
     private Map<String, Object> buildCustomerResponse(Customer customer, String userType) {
         if (customer == null) return null;
         List<String> keys = List.of(
@@ -99,7 +161,7 @@ public class AccountServiceImpl implements AccountService {
                 customer.getName(), customer.getPhone(), customer.getTaxCode()
         );
 
-        if(!userType.equalsIgnoreCase(Role.SCHOOL.getValue())){
+        if (!userType.equalsIgnoreCase(Role.SCHOOL.getValue())) {
             keys = List.of(
                     "address", "avatar", "businessName",
                     "name", "phone", "taxCode",
@@ -116,8 +178,8 @@ public class AccountServiceImpl implements AccountService {
         return MapUtils.build(keys, values);
     }
 
-    private Map<String, Object> buildPartnerResponse(Partner partner){
-        if(partner == null) return null;
+    private Map<String, Object> buildPartnerResponse(Partner partner) {
+        if (partner == null) return null;
         List<String> keys = List.of(
                 "busy", "endTime", "startTime",
                 "preview", "rating"
@@ -131,8 +193,8 @@ public class AccountServiceImpl implements AccountService {
         return MapUtils.build(keys, values);
     }
 
-    private Map<String, Object> buildWalletResponse(Wallet wallet){
-        if(wallet == null) return null;
+    private Map<String, Object> buildWalletResponse(Wallet wallet) {
+        if (wallet == null) return null;
         List<String> keys = List.of(
                 "id", "balance", "pendingBalance",
                 "cardExpiration", "cardName",
