@@ -16,6 +16,7 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AuthService;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +33,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -280,6 +282,28 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Something wrong", null);
         }
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getNumberAccountRole() {
+
+        List<Account> accounts = accountRepo.findAll().stream()
+                .filter(a -> !a.getRole().equals(Role.ADMIN))
+                .toList();
+        if (accounts.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No accounts found", null);
+        }
+        List<Account> schoolAccount = accounts.stream().filter(a -> a.getRole().equals(Role.SCHOOL)).toList();
+        List<Account> designerAccount = accounts.stream().filter(a -> a.getRole().equals(Role.DESIGNER)).toList();
+        List<Account> garmentAccount = accounts.stream().filter(a -> a.getRole().equals(Role.GARMENT)).toList();
+
+        Map<String,Object> responseData = new HashMap<>();
+        responseData.put("numberSchoolAccount", schoolAccount.size());
+        responseData.put("numberDesignerAccount", designerAccount.size());
+        responseData.put("numberGarmentAccount", garmentAccount.size());
+
+
+        return ResponseBuilder.build(HttpStatus.OK, "Number of account", responseData);
     }
 
     private String validateCreatePartnerAccountRequest(EncryptPartnerDataRequest data) {
