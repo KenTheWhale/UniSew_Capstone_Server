@@ -1,6 +1,9 @@
 package com.unisew.server.controllers;
 
+import com.unisew.server.models.WithdrawRequest;
+import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
@@ -53,5 +56,28 @@ public class AccountController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> changeAccountStatus(@RequestBody ChangeAccountStatusRequest request) {
         return accountService.changeAccountStatus(request);
+    }
+
+    @PostMapping("/withdraw")
+    @PreAuthorize("hasAnyRole('DESIGNER', 'SCHOOL', 'GARMENT')")
+    public ResponseEntity<ResponseObject> withdraw(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request ) {
+        return accountService.createWithDrawRequest(httpRequest, request);
+    }
+    @GetMapping("/withdraw/all-list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getWithdrawList() {
+        return accountService.getAllWithdraws();
+    }
+
+    @PutMapping("/withdraw/decision")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> withdrawDecision(@RequestBody AcceptOrRejectWithDrawRequest request) {
+        return accountService.acceptOrRejectWithDraw(request);
+    }
+
+    @PostMapping("/withdraw/my-list")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request) {
+        return accountService.getAllMyWithdraw(request);
     }
 }

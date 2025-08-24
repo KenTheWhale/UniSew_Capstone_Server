@@ -1,6 +1,8 @@
 package com.unisew.server.services;
 
+import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,4 +20,12 @@ public interface AccountService {
     ResponseEntity<ResponseObject> getListAccounts();
 
     ResponseEntity<ResponseObject> changeAccountStatus(ChangeAccountStatusRequest request);
+
+    ResponseEntity<ResponseObject> createWithDrawRequest(HttpServletRequest httpServletRequest, CreateWithDrawRequest request);
+
+    ResponseEntity<ResponseObject> getAllWithdraws();
+
+    ResponseEntity<ResponseObject> acceptOrRejectWithDraw(AcceptOrRejectWithDrawRequest request);
+
+    ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request);
 }

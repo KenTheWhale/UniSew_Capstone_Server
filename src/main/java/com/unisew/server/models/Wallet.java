@@ -41,4 +41,9 @@ public class Wallet {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "wallet")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<WithdrawRequest> withdrawRequests;
 }

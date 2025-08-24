@@ -3,10 +3,10 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
-import com.unisew.server.repositories.AccountRepo;
-import com.unisew.server.repositories.DeactivateTicketRepo;
-import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.*;
+import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
@@ -36,6 +36,8 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepo accountRepo;
     private final DesignRequestRepo designRequestRepo;
     private final DeactivateTicketRepo deactivateTicketRepo;
+    private final WalletRepo walletRepo;
+    private final WithdrawRequestRepo withdrawRequestRepo;
 
     @Override
     public ResponseEntity<ResponseObject> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -120,7 +122,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         if (account.getStatus().getValue().equalsIgnoreCase(request.getStatus())) {
-            return ResponseBuilder.build(HttpStatus.CONFLICT, "Account is already " +  account.getStatus().getValue(), null);
+            return ResponseBuilder.build(HttpStatus.CONFLICT, "Account is already " + account.getStatus().getValue(), null);
         }
 
         account.setStatus(Status.valueOf(request.getStatus()));
@@ -137,6 +139,128 @@ public class AccountServiceImpl implements AccountService {
         return ResponseBuilder.build(HttpStatus.OK, "Change account status successfully", null);
     }
 
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> createWithDrawRequest(HttpServletRequest httpServletRequest, CreateWithDrawRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
+        }
+
+        Wallet wallet = walletRepo.findByAccount_Id(account.getId());
+
+        if (wallet == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Wallet not found", null);
+        }
+
+        if (request.getWithdrawAmount() > wallet.getBalance()) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Withdraw amount exceeded", null);
+        }
+
+        WithdrawRequest withdrawRequest = WithdrawRequest.builder()
+                .wallet(wallet)
+                .creationDate(LocalDate.now())
+                .withdrawAmount(request.getWithdrawAmount())
+                .status(Status.WITHDRAW_PENDING)
+                .build();
+
+        withdrawRequestRepo.save(withdrawRequest);
+        return ResponseBuilder.build(HttpStatus.OK, "Submit withdraw request successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getAllWithdraws() {
+
+        List<WithdrawRequest> withdrawRequests = withdrawRequestRepo.findAll();
+        List<Map<String, Object>> mapList = withdrawRequests.stream()
+                .map(wr -> buildWithdrawResponse(wr, false))
+                .toList();
+        return ResponseBuilder.build(HttpStatus.OK, "Get all list withdraws successfully", mapList);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> acceptOrRejectWithDraw(AcceptOrRejectWithDrawRequest request) {
+
+        WithdrawRequest withdrawRequest = withdrawRequestRepo.findById(request.getWithdrawId()).orElse(null);
+
+        if (withdrawRequest == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Withdraw not found", null);
+        }
+
+        if (withdrawRequest.getWithdrawAmount() > withdrawRequest.getWallet().getBalance()) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Withdraw amount exceeded", null);
+        }
+
+        if ("approve".equalsIgnoreCase(request.getDecision())) {
+            Wallet wallet = withdrawRequest.getWallet();
+            wallet.setBalance(wallet.getBalance() - withdrawRequest.getWithdrawAmount());
+            walletRepo.save(wallet);
+
+            withdrawRequest.setStatus(Status.WITHDRAW_APPROVED);
+            withdrawRequestRepo.save(withdrawRequest);
+
+            return ResponseBuilder.build(HttpStatus.OK,
+                    "Withdraw " + withdrawRequest.getId() + " has been approved", null);
+
+        } else if ("reject".equalsIgnoreCase(request.getDecision())) {
+            withdrawRequest.setStatus(Status.WITHDRAW_REJECTED);
+            withdrawRequestRepo.save(withdrawRequest);
+
+            return ResponseBuilder.build(HttpStatus.OK,
+                    "Withdraw " + withdrawRequest.getId() + " has been rejected", null);
+        }
+
+        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid decision", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request) {
+
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
+        }
+
+        List<WithdrawRequest> withdrawRequests = withdrawRequestRepo.findAllByWallet_Account_Id(account.getId());
+
+        List<Map<String,Object>> mapList = withdrawRequests.stream()
+                .map(wr -> buildWithdrawResponse(wr, true))
+                .toList();
+
+        return ResponseBuilder.build(HttpStatus.OK, "Get my list withdraws successfully", mapList);
+    }
+
+    private Map<String, Object> buildWithdrawResponse(WithdrawRequest withdrawRequest, boolean simpleMode) {
+        if (withdrawRequest == null) return null;
+
+        List<String> keys;
+        List<Object> values;
+
+        if (simpleMode) {
+            keys = List.of("id", "creationDate", "withdrawAmount", "status");
+            values = List.of(
+                    withdrawRequest.getId(),
+                    withdrawRequest.getCreationDate(),
+                    withdrawRequest.getWithdrawAmount(),
+                    withdrawRequest.getStatus().getValue()
+            );
+        } else {
+            keys = List.of("id", "creationDate", "account", "withdrawAmount", "status");
+            values = List.of(
+                    withdrawRequest.getId(),
+                    withdrawRequest.getCreationDate(),
+                    buildAccountResponse(withdrawRequest.getWallet().getAccount()),
+                    withdrawRequest.getWithdrawAmount(),
+                    withdrawRequest.getStatus().getValue()
+            );
+        }
+
+        return MapUtils.build(keys, values);
+    }
+
     private Map<String, Object> buildAccountResponse(Account account) {
         if (account == null) return null;
 
@@ -145,7 +269,7 @@ public class AccountServiceImpl implements AccountService {
         );
         List<Object> values = List.of(
                 account.getId(), account.getRegisterDate(),
-                account.getEmail(),account.getRole(),account.getStatus()
+                account.getEmail(), account.getRole(), account.getStatus()
         );
         return MapUtils.build(keys, values);
     }
