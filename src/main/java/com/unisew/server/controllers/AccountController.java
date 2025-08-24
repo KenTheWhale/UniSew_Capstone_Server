@@ -49,7 +49,7 @@ public class AccountController {
         return accountService.getListAccounts();
     }
 
-    @PutMapping("/modification")
+    @PutMapping("/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> changeAccountStatus(@RequestBody ChangeAccountStatusRequest request) {
         return accountService.changeAccountStatus(request);
