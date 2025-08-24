@@ -27,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,19 +51,41 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request) {
+    public ResponseEntity<ResponseObject> createOrder(HttpServletRequest httpServletRequest, CreateOrderRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null || account.getCustomer() == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account/Customer not found", null);
+        }
+
         String error = OrderValidation.validate(request);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         DesignDelivery delivery = designDeliveryRepo.findById(request.getDeliveryId()).orElse(null);
-        if (delivery == null || delivery.getSchoolDesign() == null) {
+        if (delivery == null || delivery.getSchoolDesign() == null || delivery.getSchoolDesign().getCustomer() == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid request", null);
         }
 
         SchoolDesign schoolDesign = delivery.getSchoolDesign();
+        Integer ownerSchoolId = schoolDesign.getCustomer().getId();
+        Integer callerSchoolId = account.getCustomer().getId();
 
+        if (!Objects.equals(ownerSchoolId, callerSchoolId)) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to create order!", null);
+        }
+
+        int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
+        List<Integer> filteredOrderItemID = new ArrayList<>();
+        request.getOrderDetails().forEach(orderItem -> {
+            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+                filteredOrderItemID.add(orderItem.getDeliveryItemId());
+            }
+        });
+
+        if (filteredOrderItemID.size() != expectedOrderDetailsSize) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size!", null);
+        }
 
         Order order = orderRepo.save(
                 Order.builder()
@@ -81,18 +100,6 @@ public class OrderServiceImpl implements OrderService {
                         .status(Status.ORDER_PENDING)
                         .build()
         );
-
-        int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
-        List<Integer> filteredOrderItemID = new ArrayList<>();
-        request.getOrderDetails().forEach(orderItem -> {
-            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
-                filteredOrderItemID.add(orderItem.getDeliveryItemId());
-            }
-        });
-
-        if (filteredOrderItemID.size() != expectedOrderDetailsSize) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size", null);
-        }
 
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
@@ -189,6 +196,11 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
+        Partner currentGarment = account.getCustomer().getPartner();
+        if (order.getGarmentId() == null || !order.getGarmentId().equals(currentGarment.getId())) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
+                    "You are not allowed to assign milestones for an order that does not belong to your garment", null);
+        }
         String error = OrderValidation.validateAssignMilestone(order, request, sewingPhaseRepo);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
@@ -215,10 +227,22 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request) {
+    public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, UpdateMilestoneStatusRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
         Milestone milestone = milestoneRepo.findById(request.getMilestoneId()).orElse(null);
         if (milestone == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
+        }
+        Order order = milestone.getOrder();
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
+        }
+        if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
+                    "You are not allowed to update a milestone for an order that does not belong to your garment", null);
         }
 
         if (milestone.getEndDate() != null && LocalDate.now().isAfter(milestone.getEndDate())) {
@@ -241,11 +265,6 @@ public class OrderServiceImpl implements OrderService {
 
         milestoneRepo.save(milestone);
 
-        Order order = milestone.getOrder();
-        if (order == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
-        }
-
         List<Milestone> milestones = milestoneRepo.findAllByPhase_Id(milestone.getPhase().getId());
 
         boolean isHighestStage = milestones.stream()
@@ -261,12 +280,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> viewMilestone(int orderId) {
+    public ResponseEntity<ResponseObject> viewMilestone(HttpServletRequest httpServletRequest, int orderId) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+        if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
+                    "You are not allowed to view milestones for an order that does not belong to your garment", null);
+        }
         List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream()
                 .sorted((m1, m2) -> Integer.compare(m1.getStage(), m2.getStage()))
                 .toList();
         if (milestones.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
+            return ResponseBuilder.build(HttpStatus.OK, "Milestone not found", null);
         }
 
         return ResponseBuilder.build(HttpStatus.OK, "Milestone view successfully", EntityResponseBuilder.buildOrderMilestoneList(milestones));
@@ -278,12 +309,13 @@ public class OrderServiceImpl implements OrderService {
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
+
         List<SewingPhase> phases = sewingPhaseRepo.findAll().stream()
                 .filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE)
                 .filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId()))
                 .toList();
         if (phases.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active sewing phases found", null);
+            return ResponseBuilder.build(HttpStatus.OK, "No active sewing phases found", null);
         }
         return ResponseBuilder.build(HttpStatus.OK, "Sewing phases retrieved successfully", EntityResponseBuilder.buildSewingPhaseList(phases));
     }
