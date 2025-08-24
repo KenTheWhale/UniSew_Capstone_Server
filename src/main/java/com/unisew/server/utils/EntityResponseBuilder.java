@@ -377,13 +377,12 @@ public class EntityResponseBuilder {
                 garmentQuotations.stream().map(item -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", item.getId());
-                    map.put("garmentId", Objects.requireNonNullElse(item.getGarment().getId(), null));
-                    map.put("garmentName", item.getGarment().getCustomer().getName());
+                    map.put("garment", buildPartnerResponse(item.getGarment()));
                     map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
                     map.put("acceptanceDeadline", item.getAcceptanceDeadline());
                     map.put("price", item.getPrice());
                     map.put("note", item.getNote());
-                    map.put("status", item.getStatus());
+                    map.put("status", item.getStatus().getValue());
                     return map;
                 }).toList()
                 :

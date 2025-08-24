@@ -142,6 +142,12 @@ public class OrderServiceImpl implements OrderService {
                 .filter(schoolDesign -> schoolDesign.getOrders() != null && !schoolDesign.getOrders().isEmpty())
                 .map(SchoolDesign::getOrders)
                 .flatMap(List::stream)
+                .peek(order -> {
+                    if(!LocalDate.now().isBefore(order.getDeadline()) && order.getStatus().equals(Status.ORDER_PENDING)){
+                        order.setStatus(Status.ORDER_CANCELED);
+                        orderRepo.save(order);
+                    }
+                })
                 .toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
@@ -324,10 +330,19 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> approveQuotation(ApproveQuotationRequest request, HttpServletRequest httpServletRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if(account == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
         GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(request.getQuotationId()).orElse(null);
+
         String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+
+        if(!garmentQuotation.getOrder().getSchoolDesign().getCustomer().getAccount().getId().equals(account.getId())){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid quotation", null);
         }
 
         garmentQuotation.setStatus(Status.GARMENT_QUOTATION_APPROVED);
@@ -349,6 +364,7 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(order.getNote());
         orderRepo.save(order);
 
+        request.getCreateTransactionRequest().setReceiverId(garmentQuotation.getGarment().getCustomer().getId());
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpServletRequest);
     }
 

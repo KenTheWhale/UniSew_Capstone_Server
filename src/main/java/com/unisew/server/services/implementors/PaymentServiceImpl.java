@@ -138,6 +138,8 @@ public class PaymentServiceImpl implements PaymentService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Sender not found", null);
         }
 
+        boolean isPaymentSuccess = request.getGatewayCode().equalsIgnoreCase("00");
+
         Account receiver = customerRepo.findById(request.getReceiverId()).get().getAccount();
 
         Wallet adminWallet = getAdminWallet();
@@ -147,16 +149,20 @@ public class PaymentServiceImpl implements PaymentService {
 
         long amount = request.getTotalPrice() - request.getServiceFee();
 
-        adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
-        if(request.getType().equalsIgnoreCase(PaymentType.WALLET.name())){
-            receiverWallet.setBalance(receiverWallet.getBalance() + amount);
-            balanceType = "balance";
-        }else {
-            receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
+        if(isPaymentSuccess){
+            adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
+            if(request.getType().equalsIgnoreCase(PaymentType.WALLET.name())){
+                receiverWallet.setBalance(receiverWallet.getBalance() + amount);
+                balanceType = "balance";
+            }else {
+                receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
+            }
+
+            walletRepo.save(adminWallet);
+            receiverWallet = walletRepo.save(receiverWallet);
         }
 
-        walletRepo.save(adminWallet);
-        receiverWallet = walletRepo.save(receiverWallet);
+        if(!isPaymentSuccess) balanceType = "fail";
 
         if(request.isPayFromWallet()){
             return payFromWallet(request, senderWallet, receiverWallet, balanceType);
@@ -209,15 +215,18 @@ public class PaymentServiceImpl implements PaymentService {
         return value == null || value.isEmpty();
     }
 
-    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType){
+    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType)  {
         long amount = request.getTotalPrice() - request.getServiceFee();
-        if(senderWallet.getBalance() < amount){
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
+        boolean isPaymentSuccess = request.getGatewayCode().equalsIgnoreCase("00");
+
+        if(isPaymentSuccess){
+            if(senderWallet.getBalance() < amount){
+                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
+            }
+
+            senderWallet.setBalance(senderWallet.getBalance() - amount);
+            senderWallet = walletRepo.save(senderWallet);
         }
-
-        senderWallet.setBalance(senderWallet.getBalance() - amount);
-        senderWallet = walletRepo.save(senderWallet);
-
 
         return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
     }
