@@ -250,7 +250,6 @@ public class ServerApplication {
                                     fabricRepo.saveAll(fabrics);
                                 }
 
-                                // PACKAGES
 
 
                                 // DESIGN_REQUEST
