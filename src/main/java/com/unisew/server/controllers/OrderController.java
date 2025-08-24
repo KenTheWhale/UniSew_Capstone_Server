@@ -21,8 +21,8 @@ public class OrderController {
     //----------------------------ORDER----------------------------//
     @PostMapping("")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> createOrder(@RequestBody CreateOrderRequest request) {
-        return orderService.createOrder(request);
+    public ResponseEntity<ResponseObject> createOrder(HttpServletRequest httpServletRequest, @RequestBody CreateOrderRequest request) {
+        return orderService.createOrder(httpServletRequest, request);
     }
 
     @PostMapping("/list")
@@ -102,14 +102,14 @@ public class OrderController {
 
     @PutMapping("/milestone")
     @PreAuthorize("hasRole('GARMENT')")
-    public ResponseEntity<ResponseObject> updateMilestoneStatus(@RequestBody UpdateMilestoneStatusRequest request) {
-        return orderService.updateMilestoneStatus(request);
+    public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, @RequestBody UpdateMilestoneStatusRequest request) {
+        return orderService.updateMilestoneStatus(httpServletRequest, request);
     }
 
-    @GetMapping("/milestone")
+    @PostMapping("/milestone")
     @PreAuthorize("hasRole('GARMENT')")
-    public ResponseEntity<ResponseObject> viewMilestone(@RequestParam(name = "orderId") int orderId) {
-        return orderService.viewMilestone(orderId);
+    public ResponseEntity<ResponseObject> viewMilestone(HttpServletRequest httpServletRequest, @RequestParam(name = "orderId") int orderId) {
+        return orderService.viewMilestone(httpServletRequest, orderId);
     }
 
 
