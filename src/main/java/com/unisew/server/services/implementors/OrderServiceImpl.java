@@ -3,9 +3,31 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.*;
-import com.unisew.server.repositories.*;
-import com.unisew.server.requests.*;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.DesignDelivery;
+import com.unisew.server.models.GarmentQuotation;
+import com.unisew.server.models.Milestone;
+import com.unisew.server.models.Order;
+import com.unisew.server.models.OrderDetail;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.SchoolDesign;
+import com.unisew.server.models.SewingPhase;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignDeliveryRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.GarmentQuotationRepo;
+import com.unisew.server.repositories.MilestoneRepo;
+import com.unisew.server.repositories.OrderDetailRepo;
+import com.unisew.server.repositories.OrderRepo;
+import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.SewingPhaseRepo;
+import com.unisew.server.requests.ApproveQuotationRequest;
+import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
@@ -32,6 +54,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +63,6 @@ public class OrderServiceImpl implements OrderService {
 
     OrderRepo orderRepo;
     PartnerRepo partnerRepo;
-    SchoolDesignRepo schoolDesignRepo;
     OrderDetailRepo orderDetailRepo;
     GarmentQuotationRepo garmentQuotationRepo;
     JWTService jwtService;
@@ -238,7 +260,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request) {
+    public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, UpdateMilestoneStatusRequest request) {
         // Update current milestone
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
