@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 public interface OrderService {
 
 
-    ResponseEntity<ResponseObject> createOrder(CreateOrderRequest request);
+    ResponseEntity<ResponseObject> createOrder(HttpServletRequest httpServletRequest, CreateOrderRequest request);
 
     ResponseEntity<ResponseObject> viewSchoolOrder(HttpServletRequest request);
 
@@ -29,9 +29,9 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, AssignMilestoneRequest request);
 
-    ResponseEntity<ResponseObject> updateMilestoneStatus(UpdateMilestoneStatusRequest request);
+    ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, UpdateMilestoneStatusRequest request);
 
-    ResponseEntity<ResponseObject> viewMilestone(int orderId);
+    ResponseEntity<ResponseObject> viewMilestone(HttpServletRequest httpServletRequest, int orderId);
 
     ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request);
 
