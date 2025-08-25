@@ -29,6 +29,12 @@ public class AccountController {
         return accountService.logout(request, response);
     }
 
+    @PostMapping("/access")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request){
+        return accountService.getAccessToken(request);
+    }
+
     @PutMapping("/data/customer")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> updateCustomerBasicData(@RequestBody UpdateCustomerBasicDataRequest request, HttpServletRequest httpRequest) {

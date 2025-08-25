@@ -28,4 +28,6 @@ public interface AccountService {
     ResponseEntity<ResponseObject> acceptOrRejectWithDraw(AcceptOrRejectWithDrawRequest request);
 
     ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request);
+
+    ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request);
 }
