@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class SecurityConfig {
                         cors.configurationSource(
                                 request -> {
                                     CorsConfiguration config = new CorsConfiguration();
-                                    config.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                                    config.setAllowedOrigins(List.of("http://localhost:5173", "https://unisew.onrender.com/"));
                                     config.setAllowedMethods(Collections.singletonList("*"));
                                     config.setAllowedHeaders(Collections.singletonList("*"));
                                     config.setAllowCredentials(true);
