@@ -10,18 +10,11 @@ import java.util.Set;
 public class CreateDesignValidation {
     public static String validate(CreateDesignRequest createDesignRequest) {
 
-        Set<String> validTypes = Set.of(
-                DesignItemType.SHIRT.getValue(),
-                DesignItemType.PANTS.getValue(),
-                DesignItemType.SKIRT.getValue()
-        );
+        Set<String> validTypes = Set.of(DesignItemType.SHIRT.getValue(), DesignItemType.PANTS.getValue(), DesignItemType.SKIRT.getValue());
 
         Set<String> validDesignTypes = Set.of("upload", "new", "template");
 
-        Set<String> validGenders = Set.of(
-                Gender.BOY.getValue().toLowerCase(),
-                Gender.GIRL.getValue().toLowerCase()
-        );
+        Set<String> validGenders = Set.of(Gender.BOY.getValue().toLowerCase(), Gender.GIRL.getValue().toLowerCase());
 
         if (createDesignRequest.getDesignName() == null || createDesignRequest.getDesignName().isEmpty()) {
             return "Design name is required";
@@ -38,13 +31,11 @@ public class CreateDesignValidation {
 
         for (CreateDesignRequest.Item item : items) {
 
-            if (item.getDesignType() == null ||
-                    !validDesignTypes.contains(item.getDesignType().toLowerCase())) {
+            if (item.getDesignType() == null || !validDesignTypes.contains(item.getDesignType().toLowerCase())) {
                 return "DesignType must be 'upload', 'new', or 'template'";
             }
 
-            if (item.getGender() == null ||
-                    !validGenders.contains(item.getGender().toLowerCase())) {
+            if (item.getGender() == null || !validGenders.contains(item.getGender().toLowerCase())) {
                 return "Gender must be 'boy' or 'girl'";
             }
 
