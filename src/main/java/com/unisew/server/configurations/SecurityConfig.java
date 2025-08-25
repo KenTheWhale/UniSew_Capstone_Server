@@ -32,7 +32,7 @@ public class SecurityConfig {
                         cors.configurationSource(
                                 request -> {
                                     CorsConfiguration config = new CorsConfiguration();
-                                    config.setAllowedOrigins(List.of("http://localhost:5173", "https://unisew.onrender.com/"));
+                                    config.setAllowedOrigins(List.of("http://localhost:5173", "https://unisew.onrender.com"));
                                     config.setAllowedMethods(Collections.singletonList("*"));
                                     config.setAllowedHeaders(Collections.singletonList("*"));
                                     config.setAllowCredentials(true);
