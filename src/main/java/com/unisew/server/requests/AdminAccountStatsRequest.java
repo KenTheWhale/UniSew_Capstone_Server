@@ -7,12 +7,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateMilestoneStatusRequest {
-    Integer orderId;
-    String imageUrl;
+public class AdminAccountStatsRequest {
+    LocalDate from;
+    LocalDate to;
+    GroupBy groupBy;
+
+    public enum GroupBy {
+        DAY, WEEK, MONTH
+    }
 }

@@ -104,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
         int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
         List<Integer> filteredOrderItemID = new ArrayList<>();
         request.getOrderDetails().forEach(orderItem -> {
-            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+            if (!filteredOrderItemID.contains(orderItem.getDeliveryItemId())) {
                 filteredOrderItemID.add(orderItem.getDeliveryItemId());
             }
         });
@@ -113,29 +113,12 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size!", null);
         }
 
-        Order order = orderRepo.save(
-                Order.builder()
-                        .schoolDesign(schoolDesign)
-                        .feedback(null)
-                        .garmentId(null)
-                        .garmentName("")
-                        .deadline(request.getDeadline())
-                        .price(0)
-                        .orderDate(LocalDate.now())
-                        .note(request.getNote())
-                        .status(Status.ORDER_PENDING)
-                        .build()
-        );
+        Order order = orderRepo.save(Order.builder().schoolDesign(schoolDesign).feedback(null).garmentId(null).garmentName("").deadline(request.getDeadline()).price(0).orderDate(LocalDate.now()).note(request.getNote()).status(Status.ORDER_PENDING).build());
 
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
             for (CreateOrderRequest.OrderItem item : request.getOrderDetails()) {
-                OrderDetail detail = OrderDetail.builder()
-                        .order(order)
-                        .deliveryItemId(item.getDeliveryItemId())
-                        .size(DeliveryItemSize.valueOf(item.getSize()))
-                        .quantity(item.getQuantity())
-                        .build();
+                OrderDetail detail = OrderDetail.builder().order(order).deliveryItemId(item.getDeliveryItemId()).size(DeliveryItemSize.valueOf(item.getSize())).quantity(item.getQuantity()).build();
                 orderDetailEntities.add(detail);
             }
             orderDetailRepo.saveAll(orderDetailEntities);
@@ -206,14 +189,7 @@ public class OrderServiceImpl implements OrderService {
         if (activePhasesCount == 10) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Maximum sewing phases reached!", null);
         }
-        sewingPhaseRepo.save(
-                SewingPhase.builder()
-                        .name(request.getName())
-                        .description(request.getDescription())
-                        .status(Status.SEWING_PHASE_ACTIVE)
-                        .garment(partner)
-                        .build()
-        );
+        sewingPhaseRepo.save(SewingPhase.builder().name(request.getName()).description(request.getDescription()).status(Status.SEWING_PHASE_ACTIVE).garment(partner).build());
         return ResponseBuilder.build(HttpStatus.CREATED, "Sewing phase created successfully", null);
     }
 
@@ -230,8 +206,7 @@ public class OrderServiceImpl implements OrderService {
         }
         Partner currentGarment = account.getCustomer().getPartner();
         if (order.getGarmentId() == null || !order.getGarmentId().equals(currentGarment.getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
-                    "You are not allowed to assign milestones for an order that does not belong to your garment", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to assign milestones for an order that does not belong to your garment", null);
         }
         String error = OrderValidation.validateAssignMilestone(order, request, sewingPhaseRepo);
         if (error != null) {
@@ -261,6 +236,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, UpdateMilestoneStatusRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
         // Update current milestone
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
@@ -269,7 +248,14 @@ public class OrderServiceImpl implements OrderService {
 
         Milestone milestone = milestoneRepo.findByOrder_IdAndStatus(order.getId(), Status.MILESTONE_PROCESSING).orElse(null);
         if (milestone == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active milestone", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
+        }
+        order = milestone.getOrder();
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
+        }
+        if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to update a milestone for an order that does not belong to your garment", null);
         }
 
         if (milestone.getEndDate() != null && LocalDate.now().isAfter(milestone.getEndDate())) {
@@ -315,8 +301,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
         if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
-                    "You are not allowed to view milestones for an order that does not belong to your garment", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to view milestones for an order that does not belong to your garment", null);
         }
         List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream()
                 .sorted(Comparator.comparingInt(Milestone::getStage))
@@ -335,10 +320,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
-        List<SewingPhase> phases = sewingPhaseRepo.findAll().stream()
-                .filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE)
-                .filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId()))
-                .toList();
+        List<SewingPhase> phases = sewingPhaseRepo.findAll().stream().filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE).filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId())).toList();
         if (phases.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.OK, "No active sewing phases found", null);
         }
@@ -368,15 +350,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
         }
 
-        GarmentQuotation garmentQuotation = GarmentQuotation.builder()
-                .order(order)
-                .garment(account.getCustomer().getPartner())
-                .earlyDeliveryDate(request.getEarlyDeliveryDate())
-                .acceptanceDeadline(request.getAcceptanceDeadline())
-                .price(request.getPrice())
-                .note(request.getNote())
-                .status(Status.GARMENT_QUOTATION_PENDING)
-                .build();
+        GarmentQuotation garmentQuotation = GarmentQuotation.builder().order(order).garment(account.getCustomer().getPartner()).earlyDeliveryDate(request.getEarlyDeliveryDate()).acceptanceDeadline(request.getAcceptanceDeadline()).price(request.getPrice()).note(request.getNote()).status(Status.GARMENT_QUOTATION_PENDING).build();
 
         garmentQuotationRepo.save(garmentQuotation);
 
@@ -391,7 +365,6 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
         GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(request.getQuotationId()).orElse(null);
-
         String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
@@ -435,26 +408,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseEntity<ResponseObject> getSizes() {
-        List<Map<String, Object>> data = Arrays.stream(DeliveryItemSize.values())
-                .map(this::buildSize)
-                .toList();
+        List<Map<String, Object>> data = Arrays.stream(DeliveryItemSize.values()).map(this::buildSize).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
     private Map<String, Object> buildSize(DeliveryItemSize size) {
-        List<String> keys = List.of(
-                "type", "size", "gender",
-                "maxHeight", "minHeight",
-                "maxWeight", "minWeight",
-                "enumName"
-        );
-        List<Object> values = List.of(
-                size.getType(), size.getSize(), size.getGender(),
-                size.getMaxHeight(), size.getMinHeight(),
-                size.getMaxWeight(), size.getMinWeight(),
-                size.name()
-        );
+        List<String> keys = List.of("type", "size", "gender", "maxHeight", "minHeight", "maxWeight", "minWeight", "enumName");
+        List<Object> values = List.of(size.getType(), size.getSize(), size.getGender(), size.getMaxHeight(), size.getMinHeight(), size.getMaxWeight(), size.getMinWeight(), size.name());
         return MapUtils.build(keys, values);
     }
 
@@ -476,11 +437,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-        if(account == null){
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         Order order = orderRepo.findByIdAndSchoolDesign_Customer_Account_Id(orderId, account.getId()).orElse(null);
-        if(order == null){
+        if (order == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
         }
 

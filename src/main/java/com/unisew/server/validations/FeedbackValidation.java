@@ -28,10 +28,7 @@ public class FeedbackValidation {
         }
 
         if (request.getImageUrls() != null) {
-            boolean hasInvalid = request.getImageUrls().stream()
-                    .filter(Objects::nonNull)
-                    .map(String::trim)
-                    .anyMatch(String::isEmpty);
+            boolean hasInvalid = request.getImageUrls().stream().filter(Objects::nonNull).map(String::trim).anyMatch(String::isEmpty);
             if (hasInvalid) return "Images are required";
             if (request.getImageUrls().size() > 3) return "Maximum 3 images are allowed";
         }

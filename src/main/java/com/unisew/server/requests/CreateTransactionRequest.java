@@ -14,7 +14,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateTransactionRequest {
-    String type; //Design or Order or Wallet
+    String type;
     int receiverId;
     Integer itemId;
     long totalPrice;

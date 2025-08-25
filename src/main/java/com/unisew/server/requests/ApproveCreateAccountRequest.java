@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UpdateMilestoneStatusRequest {
-    Integer orderId;
-    String imageUrl;
+public class ApproveCreateAccountRequest {
+    int accountRequestId;
+    String status;
 }
