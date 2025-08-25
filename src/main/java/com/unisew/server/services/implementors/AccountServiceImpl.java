@@ -22,6 +22,7 @@ import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
+import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import com.unisew.server.services.JWTService;
@@ -476,5 +477,46 @@ public class AccountServiceImpl implements AccountService {
 
         return ResponseBuilder.build(HttpStatus.BAD_REQUEST,
                 "Status must be either 'approve' or 'reject'", null);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request, UpdatePartnerProfileRequest updatePartnerProfileRequest) {
+
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+
+        if (account == null ) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid account", null);
+        }
+        Wallet wallet = account.getWallet();
+        Customer customer = account.getCustomer();
+        Partner partner = account.getCustomer().getPartner();
+        if (wallet == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not find wallet", null);
+        }
+        if (partner == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Can not find partner", null);
+        }
+
+        UpdatePartnerProfileRequest.WalletDTO walletRequest = updatePartnerProfileRequest.getWallet();
+        UpdatePartnerProfileRequest.CustomerDTO customerRequest = updatePartnerProfileRequest.getCustomer();
+        UpdatePartnerProfileRequest.PartnerDTO partnerRequest = updatePartnerProfileRequest.getPartner();
+
+        wallet.setCardOwner(walletRequest.getOwnerName());
+        wallet.setBank(walletRequest.getBank());
+        wallet.setBankAccountNumber(walletRequest.getBankAccountNumber());
+        walletRepo.save(wallet);
+
+        customer.setName(customerRequest.getName());
+        customer.setBusinessName(customerRequest.getBusinessName());
+        customer.setAvatar(customerRequest.getAvatarUrl());
+        customerRepo.save(customer);
+
+        partner.setStartTime(partnerRequest.getStartTime());
+        partner.setEndTime(partnerRequest.getEndTime());
+        partner.setShippingUid(partnerRequest.getShippingUid());
+        partnerRepo.save(partner);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Partner profile updated successfully", null);
     }
 }

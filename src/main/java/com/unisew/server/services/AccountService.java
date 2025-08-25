@@ -5,6 +5,7 @@ import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
+import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,5 +37,6 @@ public interface AccountService {
 
     ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(ApproveCreateAccountRequest request);
 
+    ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request, UpdatePartnerProfileRequest updatePartnerProfileRequest);
 
 }

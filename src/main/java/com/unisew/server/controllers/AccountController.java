@@ -5,6 +5,7 @@ import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
+import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -104,5 +105,11 @@ public class AccountController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(@RequestBody ApproveCreateAccountRequest request) {
         return accountService.ApproveOrRejectCreateAccount(request);
+    }
+
+    @PutMapping("/partner/profile")
+    @PreAuthorize("hasAnyRole( 'DESIGNER', 'GARMENT')")
+    public ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request,@RequestBody UpdatePartnerProfileRequest updatePartnerProfileRequest) {
+        return accountService.updatePartnerProfile(request, updatePartnerProfileRequest);
     }
 }
