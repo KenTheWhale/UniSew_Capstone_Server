@@ -255,7 +255,6 @@ public class PaymentServiceImpl implements PaymentService {
                         .paymentGatewayCode(request.getGatewayCode().trim())
                         .build()
         );
-
         return ResponseBuilder.build(HttpStatus.CREATED, "Transaction created", null);
     }
 

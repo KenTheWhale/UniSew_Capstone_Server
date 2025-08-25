@@ -1,6 +1,7 @@
 package com.unisew.server.controllers;
 
 import com.unisew.server.requests.AdminAccountStatsRequest;
+import com.unisew.server.requests.AdminTransactionStatsRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AdminService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,5 +25,10 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> getAccountStats(@RequestBody AdminAccountStatsRequest request) {
         return adminService.getAccountStats(request);
+    }
+
+    @PostMapping("/transaction/stats")
+    public ResponseEntity<ResponseObject> getTransactionStats(@RequestBody AdminTransactionStatsRequest request) {
+        return adminService.getTransactionStats(request);
     }
 }
