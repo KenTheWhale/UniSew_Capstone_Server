@@ -293,12 +293,10 @@ public class OrderServiceImpl implements OrderService {
             int nextStage = milestone.getStage() + 1;
             Milestone nextMilestone = milestoneRepo.findByOrder_IdAndStage(order.getId(), nextStage).orElse(null);
 
-            if (nextMilestone == null) {
-                return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No next milestone", null);
+            if (nextMilestone != null) {
+                nextMilestone.setStatus(Status.MILESTONE_PROCESSING);
+                milestoneRepo.save(nextMilestone);
             }
-
-            nextMilestone.setStatus(Status.MILESTONE_PROCESSING);
-            milestoneRepo.save(nextMilestone);
 
             return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
         }
