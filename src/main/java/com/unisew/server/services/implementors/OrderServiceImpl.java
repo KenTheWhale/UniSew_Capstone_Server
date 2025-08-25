@@ -284,10 +284,10 @@ public class OrderServiceImpl implements OrderService {
                 milestoneRepo.save(nextMilestone);
             }
 
-            return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
+
         }
 
-        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are already at the end phase", null);
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
     }
 
     @Override
