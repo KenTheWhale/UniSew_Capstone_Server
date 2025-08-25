@@ -94,7 +94,7 @@ public class OrderController {
         return orderService.viewPhase(request);
     }
 
-    @PostMapping("/milestone/assigment")
+    @PostMapping("/milestone/assignment")
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, @RequestBody AssignMilestoneRequest request) {
         return orderService.assignMilestone(httpServletRequest, request);
