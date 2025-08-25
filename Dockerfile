@@ -18,7 +18,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime stage
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre
 
 # Set working directory
 WORKDIR /app
