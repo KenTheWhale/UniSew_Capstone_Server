@@ -155,7 +155,7 @@ public class EntityResponseBuilder {
 
         return quotations.stream()
                 .peek(quotation -> {
-                    if(LocalDate.now().isAfter(quotation.getAcceptanceDeadline())){
+                    if (LocalDate.now().isAfter(quotation.getAcceptanceDeadline())) {
                         quotation.setStatus(Status.DESIGN_QUOTATION_REJECTED);
                         designQuotationRepo.save(quotation);
                     }
@@ -295,7 +295,7 @@ public class EntityResponseBuilder {
                 .toList();
     }
 
-    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo){
+    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo) {
         Partner partner;
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
@@ -380,7 +380,7 @@ public class EntityResponseBuilder {
 
     //-------Partner---------
     public static Map<String, Object> buildPartnerResponse(Partner partner) {
-        if(partner == null) return null;
+        if (partner == null) return null;
         List<String> keys = List.of(
                 "id", "customer",
                 "preview",
@@ -488,7 +488,7 @@ public class EntityResponseBuilder {
         );
         List<Object> values = List.of(
                 transaction.getId(), buildCustomerResponse(transaction.getSender()), buildCustomerResponse(transaction.getReceiver()),
-                Objects.requireNonNullElse(transaction.getWallet().getCardOwner(),""),
+                Objects.requireNonNullElse(transaction.getWallet().getCardOwner(), ""),
                 transaction.getAmount(), transaction.getCreationDate(),
                 transaction.getServiceFee(), transaction.getBalanceType(),
                 transaction.getStatus().getValue(), transaction.getPaymentType().getValue(),

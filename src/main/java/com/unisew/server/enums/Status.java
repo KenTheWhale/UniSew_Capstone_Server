@@ -68,6 +68,5 @@ public enum Status {
     WITHDRAW_PENDING("pending");
 
 
-
     private final String value;
 }

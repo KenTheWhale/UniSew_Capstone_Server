@@ -55,13 +55,12 @@ public class PaymentServiceImpl implements PaymentService {
     private final TransactionRepo transactionRepo;
 
 
-
     @Override
     public ResponseEntity<ResponseObject> getPaymentURL(GetPaymentURLRequest request, HttpServletRequest httpRequest) {
         return createUrl(request, httpRequest);
     }
 
-    private ResponseEntity<ResponseObject> createUrl(GetPaymentURLRequest request, HttpServletRequest httpRequest){
+    private ResponseEntity<ResponseObject> createUrl(GetPaymentURLRequest request, HttpServletRequest httpRequest) {
         String vnp_Version = "2.1.1";
         String vnp_Command = "pay";
         String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
@@ -130,12 +129,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, HttpServletRequest httpRequest) {
         String error = validateCreateTransaction(request);
-        if(!error.isEmpty()){
+        if (!error.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         Account sender = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-        if(sender == null){
+        if (sender == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Sender not found", null);
         }
 
@@ -150,12 +149,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         long amount = request.getTotalPrice() - request.getServiceFee();
 
-        if(isPaymentSuccess){
+        if (isPaymentSuccess) {
             adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
-            if(request.getType().equalsIgnoreCase(PaymentType.WALLET.name())){
+            if (request.getType().equalsIgnoreCase(PaymentType.WALLET.name())) {
                 receiverWallet.setBalance(receiverWallet.getBalance() + amount);
                 balanceType = "balance";
-            }else {
+            } else {
                 receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
             }
 
@@ -163,16 +162,16 @@ public class PaymentServiceImpl implements PaymentService {
             receiverWallet = walletRepo.save(receiverWallet);
         }
 
-        if(!isPaymentSuccess) balanceType = "fail";
+        if (!isPaymentSuccess) balanceType = "fail";
 
-        if(request.isPayFromWallet()){
+        if (request.isPayFromWallet()) {
             return payFromWallet(request, senderWallet, receiverWallet, balanceType);
         }
         return payFromGateway(request, senderWallet, receiverWallet, balanceType);
     }
 
-    private String validateCreateTransaction(CreateTransactionRequest request){
-        if(checkIfNullOrEmpty(request.getType())){
+    private String validateCreateTransaction(CreateTransactionRequest request) {
+        if (checkIfNullOrEmpty(request.getType())) {
             return "Type is required";
         }
 
@@ -181,47 +180,47 @@ public class PaymentServiceImpl implements PaymentService {
                 .findFirst()
                 .orElse(null);
 
-        if(paymentType == null){
+        if (paymentType == null) {
             return "Type invalid";
         }
 
-        if(!customerRepo.existsById(request.getReceiverId())){
+        if (!customerRepo.existsById(request.getReceiverId())) {
             return "Receiver not found";
         }
 
-        if(request.getType().equalsIgnoreCase("design") && !designRequestRepo.existsById(request.getItemId())){
+        if (request.getType().equalsIgnoreCase("design") && !designRequestRepo.existsById(request.getItemId())) {
             return "Design request not found";
         }
 
-        if(request.getType().equalsIgnoreCase("order") && !orderRepo.existsById(request.getItemId())){
+        if (request.getType().equalsIgnoreCase("order") && !orderRepo.existsById(request.getItemId())) {
             return "Order not found";
         }
 
-        if(request.getTotalPrice() < 0) {
+        if (request.getTotalPrice() < 0) {
             return "Total price must be greater than 0";
         }
 
-        if(checkIfNullOrEmpty(request.getGatewayCode())){
+        if (checkIfNullOrEmpty(request.getGatewayCode())) {
             return "Payment gateway is required";
         }
 
-        if(request.getServiceFee() < 0){
+        if (request.getServiceFee() < 0) {
             return "Service fee must be greater than 0";
         }
 
         return "";
     }
 
-    private boolean checkIfNullOrEmpty(String value){
+    private boolean checkIfNullOrEmpty(String value) {
         return value == null || value.isEmpty();
     }
 
-    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType)  {
+    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
         boolean isPaymentSuccess = request.getGatewayCode().equalsIgnoreCase("00");
 
-        if(isPaymentSuccess){
-            if(senderWallet.getBalance() < amount){
+        if (isPaymentSuccess) {
+            if (senderWallet.getBalance() < amount) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
             }
 
@@ -232,7 +231,7 @@ public class PaymentServiceImpl implements PaymentService {
         return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
     }
 
-    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType){
+    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
 
         return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
@@ -260,7 +259,7 @@ public class PaymentServiceImpl implements PaymentService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Transaction created", null);
     }
 
-    private Wallet getAdminWallet(){
+    private Wallet getAdminWallet() {
         return walletRepo.findByAccount_Role(Role.ADMIN);
     }
 

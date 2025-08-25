@@ -104,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
         int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
         List<Integer> filteredOrderItemID = new ArrayList<>();
         request.getOrderDetails().forEach(orderItem -> {
-            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+            if (!filteredOrderItemID.contains(orderItem.getDeliveryItemId())) {
                 filteredOrderItemID.add(orderItem.getDeliveryItemId());
             }
         });
@@ -478,11 +478,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-        if(account == null){
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         Order order = orderRepo.findByIdAndSchoolDesign_Customer_Account_Id(orderId, account.getId()).orElse(null);
-        if(order == null){
+        if (order == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
         }
 

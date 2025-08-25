@@ -1,7 +1,10 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.models.WithdrawRequest;
-import com.unisew.server.requests.*;
+import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
+import com.unisew.server.requests.ApproveCreateAccountRequest;
+import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CreateWithDrawRequest;
+import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,7 +13,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -28,7 +36,7 @@ public class AccountController {
 
     @PostMapping("/access")
     @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
-    public ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request){
+    public ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request) {
         return accountService.getAccessToken(request);
     }
 
@@ -40,15 +48,16 @@ public class AccountController {
 
     @PostMapping("/profile/school")
     @PreAuthorize("hasRole('SCHOOL')")
-    public ResponseEntity<ResponseObject> getSchoolProfile(HttpServletRequest request){
+    public ResponseEntity<ResponseObject> getSchoolProfile(HttpServletRequest request) {
         return accountService.getProfile(request, "school");
     }
 
     @PostMapping("/profile/partner")
     @PreAuthorize("hasAnyRole('DESIGNER', 'GARMENT')")
-    public ResponseEntity<ResponseObject> getPartnerProfile(HttpServletRequest request){
+    public ResponseEntity<ResponseObject> getPartnerProfile(HttpServletRequest request) {
         return accountService.getProfile(request, "partner");
     }
+
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> getAccountList() {
@@ -63,9 +72,10 @@ public class AccountController {
 
     @PostMapping("/withdraw")
     @PreAuthorize("hasAnyRole('DESIGNER', 'SCHOOL', 'GARMENT')")
-    public ResponseEntity<ResponseObject> withdraw(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request ) {
+    public ResponseEntity<ResponseObject> withdraw(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request) {
         return accountService.createWithDrawRequest(httpRequest, request);
     }
+
     @GetMapping("/withdraw/all-list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> getWithdrawList() {
@@ -92,7 +102,7 @@ public class AccountController {
 
     @PostMapping("/new")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseObject> ApproveCreateAccount(@RequestBody ApproveCreateAccountRequest request) {
-        return accountService.approveCreateAccount(request);
+    public ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(@RequestBody ApproveCreateAccountRequest request) {
+        return accountService.ApproveOrRejectCreateAccount(request);
     }
 }

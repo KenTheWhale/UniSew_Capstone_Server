@@ -1,9 +1,45 @@
 package com.unisew.server.services.implementors;
 
-import com.unisew.server.enums.*;
-import com.unisew.server.models.*;
-import com.unisew.server.repositories.*;
-import com.unisew.server.requests.*;
+import com.unisew.server.enums.DesignItemCategory;
+import com.unisew.server.enums.DesignItemType;
+import com.unisew.server.enums.Gender;
+import com.unisew.server.enums.Role;
+import com.unisew.server.enums.Status;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.DeliveryItem;
+import com.unisew.server.models.DesignDelivery;
+import com.unisew.server.models.DesignItem;
+import com.unisew.server.models.DesignQuotation;
+import com.unisew.server.models.DesignRequest;
+import com.unisew.server.models.Fabric;
+import com.unisew.server.models.Feedback;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.RevisionRequest;
+import com.unisew.server.models.SampleImage;
+import com.unisew.server.models.SchoolDesign;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignDeliveryRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.FabricRepo;
+import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.RevisionRequestRepo;
+import com.unisew.server.repositories.SampleImageRepo;
+import com.unisew.server.repositories.SchoolDesignRepo;
+import com.unisew.server.requests.CancelRequest;
+import com.unisew.server.requests.CreateDesignQuotationRequest;
+import com.unisew.server.requests.CreateDesignRequest;
+import com.unisew.server.requests.CreateNewDeliveryRequest;
+import com.unisew.server.requests.CreateRevisionRequest;
+import com.unisew.server.requests.DuplicateRequest;
+import com.unisew.server.requests.GetListDeliveryRequest;
+import com.unisew.server.requests.GetUnUseListRevisionRequest;
+import com.unisew.server.requests.MakeDesignFinalRequest;
+import com.unisew.server.requests.PickDesignQuotationRequest;
+import com.unisew.server.requests.UpdateRequestByDeadline;
+import com.unisew.server.requests.UpdateRevisionTimeRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
 import com.unisew.server.services.JWTService;
@@ -23,9 +59,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -249,9 +287,9 @@ public class DesignServiceImpl implements DesignService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Design quotation not found", null);
         }
 
-        String message = BuyRevisionValidation.validate(designRequest,request, designQuotation);
+        String message = BuyRevisionValidation.validate(designRequest, request, designQuotation);
 
-        if(message != null) {
+        if (message != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, message, null);
         }
 
@@ -396,7 +434,6 @@ public class DesignServiceImpl implements DesignService {
 
         return ResponseBuilder.build(HttpStatus.CREATED, "Upload delivery successfully", null);
     }
-
 
 
     //-----------------------REVISION_REQUEST-------------------------//
@@ -579,7 +616,7 @@ public class DesignServiceImpl implements DesignService {
         }
 
         Partner designer = partnerRepo.findById(request.getCreateTransactionRequest().getReceiverId()).orElse(null);
-        if(designer == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer not found", null);
+        if (designer == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer not found", null);
 
         request.getCreateTransactionRequest().setReceiverId(designer.getCustomer().getId());
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);

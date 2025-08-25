@@ -1,8 +1,10 @@
 package com.unisew.server.requests;
 
-import com.unisew.server.enums.Role;
-import com.unisew.server.enums.Status;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
