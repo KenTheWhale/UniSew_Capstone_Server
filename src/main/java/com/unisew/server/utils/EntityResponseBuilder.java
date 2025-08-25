@@ -20,6 +20,7 @@ import com.unisew.server.models.SampleImage;
 import com.unisew.server.models.SchoolDesign;
 import com.unisew.server.models.SewingPhase;
 import com.unisew.server.models.ThumbnailImage;
+import com.unisew.server.models.Transaction;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
