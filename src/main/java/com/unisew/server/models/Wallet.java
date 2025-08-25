@@ -1,7 +1,21 @@
 package com.unisew.server.models;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
@@ -28,14 +42,14 @@ public class Wallet {
     @Column(name = "`pending_balance`")
     long pendingBalance;
 
-    @Column(name = "`card_number`")
-    String cardNumber;
+    @Column(name = "`card_owner`")
+    String cardOwner;
 
-    @Column(name = "`card_name`")
-    String cardName;
+    @Column(name = "`bank`")
+    String bank;
 
-    @Column(name = "`card_expired_date`")
-    String cardExpiredDate;
+    @Column(name = "`bank_account_number`")
+    String bankAccountNumber;
 
     @OneToMany(mappedBy = "wallet")
     @ToString.Exclude

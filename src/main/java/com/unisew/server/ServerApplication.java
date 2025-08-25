@@ -1,8 +1,34 @@
 package com.unisew.server;
 
-import com.unisew.server.enums.*;
-import com.unisew.server.models.*;
-import com.unisew.server.repositories.*;
+import com.unisew.server.enums.DesignItemCategory;
+import com.unisew.server.enums.DesignItemType;
+import com.unisew.server.enums.Role;
+import com.unisew.server.enums.Status;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.Fabric;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.Wallet;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignDeliveryRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.FabricRepo;
+import com.unisew.server.repositories.FeedbackImageRepo;
+import com.unisew.server.repositories.FeedbackRepo;
+import com.unisew.server.repositories.GarmentQuotationRepo;
+import com.unisew.server.repositories.OrderDetailRepo;
+import com.unisew.server.repositories.OrderRepo;
+import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.RevisionRequestRepo;
+import com.unisew.server.repositories.SampleImageRepo;
+import com.unisew.server.repositories.SchoolDesignRepo;
+import com.unisew.server.repositories.ThumbnailImageRepo;
+import com.unisew.server.repositories.TransactionRepo;
+import com.unisew.server.repositories.WalletRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -93,18 +119,18 @@ public class ServerApplication {
                                     .account(customer1Account)
                                     .balance(500_000L)
                                     .pendingBalance(200_000L)
-                                    .cardNumber("1234-5678-9012-3456")
-                                    .cardName("Nguyen Van A")
-                                    .cardExpiredDate("12/27")
+                                    .cardOwner("Nguyen Van A")
+                                    .bankAccountNumber("123456789")
+                                    .bank("ABBank")
                                     .build();
 
                             Wallet walletAccount2 = Wallet.builder()
                                     .account(customer2Account)
                                     .balance(600_000L)
                                     .pendingBalance(200_000L)
-                                    .cardNumber("1234-5678-9012-3456")
-                                    .cardName("Nguyen Van A")
-                                    .cardExpiredDate("12/27")
+                                    .cardOwner("Nguyen Van B")
+                                    .bankAccountNumber("123456722289")
+                                    .bank("VCB")
                                     .build();
 
                             walletRepo.saveAll(List.of(walletAccount1, walletAccount2));
@@ -249,7 +275,6 @@ public class ServerApplication {
 
                                     fabricRepo.saveAll(fabrics);
                                 }
-
 
 
                                 // DESIGN_REQUEST

@@ -1,6 +1,17 @@
 package com.unisew.server.services;
 
-import com.unisew.server.requests.*;
+import com.unisew.server.requests.CancelRequest;
+import com.unisew.server.requests.CreateDesignQuotationRequest;
+import com.unisew.server.requests.CreateDesignRequest;
+import com.unisew.server.requests.CreateNewDeliveryRequest;
+import com.unisew.server.requests.CreateRevisionRequest;
+import com.unisew.server.requests.DuplicateRequest;
+import com.unisew.server.requests.GetListDeliveryRequest;
+import com.unisew.server.requests.GetUnUseListRevisionRequest;
+import com.unisew.server.requests.MakeDesignFinalRequest;
+import com.unisew.server.requests.PickDesignQuotationRequest;
+import com.unisew.server.requests.UpdateRequestByDeadline;
+import com.unisew.server.requests.UpdateRevisionTimeRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +39,7 @@ public interface DesignService {
     ResponseEntity<ResponseObject> buyRevisionTime(UpdateRevisionTimeRequest request, HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> cancelRequest(CancelRequest request, HttpServletRequest httpServletRequest);
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
