@@ -52,8 +52,7 @@ public class OrderValidation {
 
     public static String validateAssignMilestone(Order order, AssignMilestoneRequest request, SewingPhaseRepo sewingPhaseRepo) {
         List<AssignMilestoneRequest.Phase> phases = request.getPhaseList();
-        if (phases == null || phases.isEmpty()) return "Please assign at least one phase";
-        if (request.getPhaseList().size() > 5) return "Maximum 5 phases being assigned milestones";
+        if (phases == null || phases.isEmpty()) return "Phase list is empty";
 
         for (AssignMilestoneRequest.Phase p : phases) {
             if (p.getId() == null) return "Phase id is required for every milestone";

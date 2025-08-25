@@ -3,9 +3,31 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.*;
-import com.unisew.server.repositories.*;
-import com.unisew.server.requests.*;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.DesignDelivery;
+import com.unisew.server.models.GarmentQuotation;
+import com.unisew.server.models.Milestone;
+import com.unisew.server.models.Order;
+import com.unisew.server.models.OrderDetail;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.SchoolDesign;
+import com.unisew.server.models.SewingPhase;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignDeliveryRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.GarmentQuotationRepo;
+import com.unisew.server.repositories.MilestoneRepo;
+import com.unisew.server.repositories.OrderDetailRepo;
+import com.unisew.server.repositories.OrderRepo;
+import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.SewingPhaseRepo;
+import com.unisew.server.requests.ApproveQuotationRequest;
+import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
@@ -27,7 +49,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +63,6 @@ public class OrderServiceImpl implements OrderService {
 
     OrderRepo orderRepo;
     PartnerRepo partnerRepo;
-    SchoolDesignRepo schoolDesignRepo;
     OrderDetailRepo orderDetailRepo;
     GarmentQuotationRepo garmentQuotationRepo;
     JWTService jwtService;
@@ -149,6 +175,12 @@ public class OrderServiceImpl implements OrderService {
                 .filter(schoolDesign -> schoolDesign.getOrders() != null && !schoolDesign.getOrders().isEmpty())
                 .map(SchoolDesign::getOrders)
                 .flatMap(List::stream)
+                .peek(order -> {
+                    if (!LocalDate.now().isBefore(order.getDeadline()) && order.getStatus().equals(Status.ORDER_PENDING)) {
+                        order.setStatus(Status.ORDER_CANCELED);
+                        orderRepo.save(order);
+                    }
+                })
                 .toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
@@ -216,8 +248,9 @@ public class OrderServiceImpl implements OrderService {
                     .stage(phase.getStage())
                     .startDate(phase.getStartDate())
                     .endDate(phase.getEndDate())
-                    .status(Status.MILESTONE_ASSIGNED)
+                    .status(phase.getStartDate().isAfter(LocalDate.now()) ? Status.MILESTONE_ASSIGNED : Status.MILESTONE_PROCESSING)
                     .phase(sewingPhase)
+                    .completedDate(null)
                     .order(order)
                     .build());
         }
@@ -228,55 +261,49 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, UpdateMilestoneStatusRequest request) {
-        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
-        if (account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
-        }
-        Milestone milestone = milestoneRepo.findById(request.getMilestoneId()).orElse(null);
-        if (milestone == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
-        }
-        Order order = milestone.getOrder();
+        // Update current milestone
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
-        if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
-                    "You are not allowed to update a milestone for an order that does not belong to your garment", null);
+
+        Milestone milestone = milestoneRepo.findByOrder_IdAndStatus(order.getId(), Status.MILESTONE_PROCESSING).orElse(null);
+        if (milestone == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No active milestone", null);
         }
 
         if (milestone.getEndDate() != null && LocalDate.now().isAfter(milestone.getEndDate())) {
             milestone.setStatus(Status.MILESTONE_LATE);
         } else {
-            switch (milestone.getStatus()) {
-                case MILESTONE_ASSIGNED:
-                    milestone.setStatus(Status.MILESTONE_PROCESSING);
-                    break;
-                case MILESTONE_PROCESSING:
-                    milestone.setStatus(Status.MILESTONE_COMPLETED);
-                    break;
-                default:
-            }
+            milestone.setStatus(Status.MILESTONE_COMPLETED);
         }
 
-        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+        milestone.setCompletedDate(LocalDate.now());
+
+        if (request.getImageUrl() != null) {
             milestone.setImgUrl(request.getImageUrl());
         }
 
-        milestoneRepo.save(milestone);
+        milestone = milestoneRepo.save(milestone);
 
-        List<Milestone> milestones = milestoneRepo.findAllByPhase_Id(milestone.getPhase().getId());
+        //Update the next milestone
 
-        boolean isHighestStage = milestones.stream()
-                .allMatch(m -> m.getStage() <= milestone.getStage());
+        //Check not final stage
+        if (order.getMilestones().size() > milestone.getStage()) {
+            int nextStage = milestone.getStage() + 1;
+            Milestone nextMilestone = milestoneRepo.findByOrder_IdAndStage(order.getId(), nextStage).orElse(null);
 
-        if (isHighestStage) {
-            order.setStatus(Status.ORDER_COMPLETED);
+            if (nextMilestone == null) {
+                return ResponseBuilder.build(HttpStatus.NOT_FOUND, "No next milestone", null);
+            }
+
+            nextMilestone.setStatus(Status.MILESTONE_PROCESSING);
+            milestoneRepo.save(nextMilestone);
+
+            return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
         }
 
-        orderRepo.save(order);
-
-        return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
+        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are already at the end phase", null);
     }
 
     @Override
@@ -294,7 +321,7 @@ public class OrderServiceImpl implements OrderService {
                     "You are not allowed to view milestones for an order that does not belong to your garment", null);
         }
         List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream()
-                .sorted((m1, m2) -> Integer.compare(m1.getStage(), m2.getStage()))
+                .sorted(Comparator.comparingInt(Milestone::getStage))
                 .toList();
         if (milestones.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.OK, "Milestone not found", null);
@@ -339,7 +366,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
-        if(garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)){
+        if (garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
         }
 
@@ -366,11 +393,12 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
         GarmentQuotation garmentQuotation = garmentQuotationRepo.findById(request.getQuotationId()).orElse(null);
+
         String error = ApproveQuotationValidation.validate(garmentQuotation);
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
-        if(!garmentQuotation.getGarment().getId().equals(account.getCustomer().getPartner().getId())) {
+        if (!garmentQuotation.getOrder().getSchoolDesign().getCustomer().getId().equals(account.getCustomer().getId())) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are not authorized to approve this quotation", null);
         }
 
@@ -393,6 +421,7 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(order.getNote());
         orderRepo.save(order);
 
+        request.getCreateTransactionRequest().setReceiverId(garmentQuotation.getGarment().getCustomer().getId());
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpServletRequest);
     }
 
@@ -446,5 +475,18 @@ public class OrderServiceImpl implements OrderService {
         return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if(account == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+        Order order = orderRepo.findByIdAndSchoolDesign_Customer_Account_Id(orderId, account.getId()).orElse(null);
+        if(order == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
+        }
 
+        Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo);
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
 }
