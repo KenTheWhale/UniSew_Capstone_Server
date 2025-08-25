@@ -124,9 +124,9 @@ public class AuthServiceImpl implements AuthService {
                         .account(account)
                         .balance(0)
                         .pendingBalance(0)
-                        .cardNumber("N/A")
-                        .cardName("N/A")
-                        .cardExpiredDate(null)
+                        .cardOwner("hihi")
+                        .bankAccountNumber("01234567789")
+                        .bank("ABB")
                         .build()
         );
 

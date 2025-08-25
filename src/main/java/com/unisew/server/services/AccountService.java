@@ -1,9 +1,6 @@
 package com.unisew.server.services;
 
-import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
-import com.unisew.server.requests.ChangeAccountStatusRequest;
-import com.unisew.server.requests.CreateWithDrawRequest;
-import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,4 +27,10 @@ public interface AccountService {
     ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request);
+
+    ResponseEntity<ResponseObject> getAllAccountsRequest();
+
+    ResponseEntity<ResponseObject> approveCreateAccount(ApproveCreateAccountRequest request);
+
+
 }

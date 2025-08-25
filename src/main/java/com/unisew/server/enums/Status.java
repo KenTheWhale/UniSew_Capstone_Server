@@ -13,8 +13,8 @@ public enum Status {
 
     //ACCOUNT REQUEST
     ACCOUNT_REQUEST_PENDING("pending"),
-    ACCOUNT_REQUEST_PENDING_VERIFIED("pending verified"),
-    ACCOUNT_REQUEST_COMPLETED("completed"),
+    ACCOUNT_REQUEST_REJECTED("rejected"),
+    ACCOUNT_REQUEST_APPROVED("approved"),
 
     //SERVICE
     SERVICE_ACTIVE("active"),

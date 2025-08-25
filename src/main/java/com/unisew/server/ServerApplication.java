@@ -93,18 +93,18 @@ public class ServerApplication {
                                     .account(customer1Account)
                                     .balance(500_000L)
                                     .pendingBalance(200_000L)
-                                    .cardNumber("1234-5678-9012-3456")
-                                    .cardName("Nguyen Van A")
-                                    .cardExpiredDate("12/27")
+                                    .cardOwner("Nguyen Van A")
+                                    .bankAccountNumber("123456789")
+                                    .bank("ABBank")
                                     .build();
 
                             Wallet walletAccount2 = Wallet.builder()
                                     .account(customer2Account)
                                     .balance(600_000L)
                                     .pendingBalance(200_000L)
-                                    .cardNumber("1234-5678-9012-3456")
-                                    .cardName("Nguyen Van A")
-                                    .cardExpiredDate("12/27")
+                                    .cardOwner("Nguyen Van B")
+                                    .bankAccountNumber("123456722289")
+                                    .bank("VCB")
                                     .build();
 
                             walletRepo.saveAll(List.of(walletAccount1, walletAccount2));

@@ -1,10 +1,7 @@
 package com.unisew.server.controllers;
 
 import com.unisew.server.models.WithdrawRequest;
-import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
-import com.unisew.server.requests.ChangeAccountStatusRequest;
-import com.unisew.server.requests.CreateWithDrawRequest;
-import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
+import com.unisew.server.requests.*;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -85,5 +82,17 @@ public class AccountController {
     @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
     public ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request) {
         return accountService.getAllMyWithdraw(request);
+    }
+
+    @GetMapping("/account-request")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getAllAccountRequest() {
+        return accountService.getAllAccountsRequest();
+    }
+
+    @PostMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> ApproveCreateAccount(@RequestBody ApproveCreateAccountRequest request) {
+        return accountService.approveCreateAccount(request);
     }
 }
