@@ -149,12 +149,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         long amount = request.getTotalPrice() - request.getServiceFee();
 
-        if(isPaymentSuccess){
+        if (isPaymentSuccess) {
             adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
-            if(request.getType().equalsIgnoreCase(PaymentType.WALLET.name())){
+            if (request.getType().equalsIgnoreCase(PaymentType.WALLET.name())) {
                 receiverWallet.setBalance(receiverWallet.getBalance() + amount);
                 balanceType = "balance";
-            }else {
+            } else {
                 receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
             }
 
@@ -162,7 +162,7 @@ public class PaymentServiceImpl implements PaymentService {
             receiverWallet = walletRepo.save(receiverWallet);
         }
 
-        if(!isPaymentSuccess) balanceType = "fail";
+        if (!isPaymentSuccess) balanceType = "fail";
 
         if (request.isPayFromWallet()) {
             return payFromWallet(request, senderWallet, receiverWallet, balanceType);
@@ -215,12 +215,12 @@ public class PaymentServiceImpl implements PaymentService {
         return value == null || value.isEmpty();
     }
 
-    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType)  {
+    private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
         boolean isPaymentSuccess = request.getGatewayCode().equalsIgnoreCase("00");
 
-        if(isPaymentSuccess){
-            if(senderWallet.getBalance() < amount){
+        if (isPaymentSuccess) {
+            if (senderWallet.getBalance() < amount) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
             }
 

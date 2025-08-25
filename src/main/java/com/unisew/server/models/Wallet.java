@@ -42,14 +42,14 @@ public class Wallet {
     @Column(name = "`pending_balance`")
     long pendingBalance;
 
-    @Column(name = "`card_number`")
-    String cardNumber;
+    @Column(name = "`card_owner`")
+    String cardOwner;
 
-    @Column(name = "`card_name`")
-    String cardName;
+    @Column(name = "`bank`")
+    String bank;
 
-    @Column(name = "`card_expired_date`")
-    String cardExpiredDate;
+    @Column(name = "`bank_account_number`")
+    String bankAccountNumber;
 
     @OneToMany(mappedBy = "wallet")
     @ToString.Exclude

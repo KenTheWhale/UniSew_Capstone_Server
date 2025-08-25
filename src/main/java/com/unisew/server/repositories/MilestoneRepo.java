@@ -11,6 +11,8 @@ public interface MilestoneRepo extends JpaRepository<Milestone, Integer> {
     List<Milestone> findAllByPhase_Id(Integer phaseId);
 
     List<Milestone> findAllByOrder_Id(Integer orderId);
+
     Optional<Milestone> findByOrder_IdAndStatus(int orderId, Status status);
+
     Optional<Milestone> findByOrder_IdAndStage(int orderId, int stage);
 }

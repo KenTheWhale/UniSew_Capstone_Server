@@ -1,7 +1,7 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.models.WithdrawRequest;
 import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
+import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
@@ -36,7 +36,7 @@ public class AccountController {
 
     @PostMapping("/access")
     @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
-    public ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request){
+    public ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request) {
         return accountService.getAccessToken(request);
     }
 
@@ -72,9 +72,10 @@ public class AccountController {
 
     @PostMapping("/withdraw")
     @PreAuthorize("hasAnyRole('DESIGNER', 'SCHOOL', 'GARMENT')")
-    public ResponseEntity<ResponseObject> withdraw(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request ) {
+    public ResponseEntity<ResponseObject> withdraw(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request) {
         return accountService.createWithDrawRequest(httpRequest, request);
     }
+
     @GetMapping("/withdraw/all-list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> getWithdrawList() {
@@ -91,5 +92,17 @@ public class AccountController {
     @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
     public ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request) {
         return accountService.getAllMyWithdraw(request);
+    }
+
+    @GetMapping("/account-request")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getAllAccountRequest() {
+        return accountService.getAllAccountsRequest();
+    }
+
+    @PostMapping("/new")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(@RequestBody ApproveCreateAccountRequest request) {
+        return accountService.ApproveOrRejectCreateAccount(request);
     }
 }

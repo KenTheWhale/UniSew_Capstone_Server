@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AcceptOrRejectWithDrawRequest {
-    int withdrawId;
-    String decision;
+public class ApproveCreateAccountRequest {
+    int accountRequestId;
+    String status;
 }

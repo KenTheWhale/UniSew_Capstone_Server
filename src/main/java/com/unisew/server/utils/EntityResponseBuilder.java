@@ -295,7 +295,7 @@ public class EntityResponseBuilder {
                 .toList();
     }
 
-    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo){
+    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo) {
         Partner partner;
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
@@ -480,7 +480,7 @@ public class EntityResponseBuilder {
         if (transaction == null) return null;
         List<String> keys = List.of(
                 "id", "sender", "receiver",
-                "cardNumber",
+                "cardOwner",
                 "amount", "creationDate",
                 "serviceFee", "balanceType",
                 "status", "paymentType",
@@ -488,7 +488,7 @@ public class EntityResponseBuilder {
         );
         List<Object> values = List.of(
                 transaction.getId(), buildCustomerResponse(transaction.getSender()), buildCustomerResponse(transaction.getReceiver()),
-                transaction.getWallet().getCardNumber(),
+                Objects.requireNonNullElse(transaction.getWallet().getCardOwner(), ""),
                 transaction.getAmount(), transaction.getCreationDate(),
                 transaction.getServiceFee(), transaction.getBalanceType(),
                 transaction.getStatus().getValue(), transaction.getPaymentType().getValue(),
