@@ -23,39 +23,19 @@ public class CookieUtil {
     }
 
     public static void createCookies(HttpServletResponse response, String accessValue, String refreshValue, long accessExp, long refreshExp) {
-        Cookie access = new Cookie("access", accessValue);
-        access.setPath("/");
-        access.setMaxAge((int) (accessExp / 1000));
-        response.addCookie(access);
+        String accessCookie = String.format("access=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=None; Secure", accessValue, accessExp / 1000);
+        response.addHeader("Set-Cookie", accessCookie);
 
-        Cookie refresh = new Cookie("refresh", refreshValue);
-        refresh.setHttpOnly(true);
-        refresh.setPath("/");
-        refresh.setMaxAge((int) (refreshExp / 1000));
-        response.addCookie(refresh);
-
-        Cookie checkCookie = new Cookie("check", "true");
-        checkCookie.setPath("/");
-        checkCookie.setMaxAge((int) (refreshExp / 1000));
-        response.addCookie(checkCookie);
+        String refreshCookie = String.format("refresh=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=None; Secure", refreshValue, refreshExp / 1000);
+        response.addHeader("Set-Cookie", refreshCookie);
     }
 
     public static void removeCookies(HttpServletResponse response) {
-        Cookie access = new Cookie("access", null);
-        access.setPath("/");
-        access.setMaxAge(0);
-        response.addCookie(access);
+        // Xóa cookie "access"
+        response.addHeader("Set-Cookie", "access=; Path=/; Max-Age=0; HttpOnly; SameSite=None; Secure");
 
-        Cookie refresh = new Cookie("refresh", null);
-        refresh.setHttpOnly(true);
-        refresh.setPath("/");
-        refresh.setMaxAge(0);
-        response.addCookie(refresh);
-
-        Cookie checkCookie = new Cookie("check", null);
-        checkCookie.setPath("/");
-        checkCookie.setMaxAge(0);
-        response.addCookie(checkCookie);
+        // Xóa cookie "refresh"
+        response.addHeader("Set-Cookie", "refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=None; Secure");
     }
 
     public static Account extractAccountFromCookie(HttpServletRequest request, JWTService jwtService, AccountRepo accountRepo) {
