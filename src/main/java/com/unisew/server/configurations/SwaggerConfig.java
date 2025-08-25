@@ -14,6 +14,10 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 @Server(
                         description = "Local host",
                         url = "http://localhost:8080/"
+                ),
+                @Server(
+                        description = "Server",
+                        url = "https://unisew-server.onrender.com"
                 )
         }
 )
