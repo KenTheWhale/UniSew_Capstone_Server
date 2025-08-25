@@ -40,4 +40,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> viewGarmentOrder(HttpServletRequest request);
+
+    ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId);
 }
