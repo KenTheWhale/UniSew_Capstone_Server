@@ -26,6 +26,7 @@ import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.requests.DeleteSewingPhaseRequest;
 import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -449,5 +450,45 @@ public class OrderServiceImpl implements OrderService {
 
         Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo);
         return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> deleteSewingPhase(int sewingPhaseId, HttpServletRequest httpServletRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+
+        List<SewingPhase> sewingPhaseList = sewingPhaseRepo.findAllByGarment_Customer_Account_Id(account.getId());
+
+        if (sewingPhaseList == null || sewingPhaseList.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "This garment factory doesn't have any sewing phase", null);
+        }
+
+        SewingPhase sewingPhase = sewingPhaseRepo.findById(sewingPhaseId).orElse(null);
+        if (sewingPhase == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
+        }
+
+        boolean belong = sewingPhaseList.stream()
+                .anyMatch(sp -> sp.getId().equals(sewingPhase.getId()));
+
+        if (!belong) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You don't have permission to delete this sewing phase", null);
+        }
+
+        List<Milestone> milestones = sewingPhase.getMilestones();
+
+        boolean allCompleted = milestones.stream()
+                .allMatch(milestone -> milestone.getStatus().equals(Status.MILESTONE_COMPLETED));
+
+        if (!allCompleted) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST,
+                    "Cannot delete sewing phase because some milestones are not completed", null);
+        }
+
+        sewingPhase.setStatus(Status.SEWING_PHASE_INACTIVE);
+        sewingPhaseRepo.save(sewingPhase);
+        return ResponseBuilder.build(HttpStatus.OK, "Sewing phase deleted successfully", null);
     }
 }
