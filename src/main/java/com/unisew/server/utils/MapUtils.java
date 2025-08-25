@@ -3,11 +3,10 @@ package com.unisew.server.utils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class MapUtils {
 
-    public static Map<String, Object> build(List<String> keys, List<Object> values){
+    public static Map<String, Object> build(List<String> keys, List<Object> values) {
         if (keys.size() != values.size()) {
             return null;
         }

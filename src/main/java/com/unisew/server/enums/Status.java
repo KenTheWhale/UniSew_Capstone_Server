@@ -60,7 +60,8 @@ public enum Status {
     FEEDBACK_APPROVED("approved"),
     FEEDBACK_REPORT_UNDER_REVIEW("under-review"),
     FEEDBACK_REPORT_RESOLVED_ACCEPTED("accepted"),
-    FEEDBACK_REPORT_RESOLVED_REJECTED("rejected"),;
+    FEEDBACK_REPORT_RESOLVED_REJECTED("rejected"),
+    ;
 
     private final String value;
 }

@@ -5,7 +5,6 @@ import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestParam;
 
 public interface FeedbackService {
 

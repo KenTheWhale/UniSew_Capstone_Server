@@ -1,7 +1,14 @@
 package com.unisew.server;
 
-import com.unisew.server.enums.*;
-import com.unisew.server.models.*;
+import com.unisew.server.enums.DesignItemCategory;
+import com.unisew.server.enums.DesignItemType;
+import com.unisew.server.enums.Role;
+import com.unisew.server.enums.Status;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.Fabric;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

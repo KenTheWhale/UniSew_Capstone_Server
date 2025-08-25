@@ -2,7 +2,11 @@ package com.unisew.server.services.implementors;
 
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.*;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.DeactivateTicket;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.DeactivateTicketRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
@@ -24,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -120,7 +123,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         if (account.getStatus().getValue().equalsIgnoreCase(request.getStatus())) {
-            return ResponseBuilder.build(HttpStatus.CONFLICT, "Account is already " +  account.getStatus().getValue(), null);
+            return ResponseBuilder.build(HttpStatus.CONFLICT, "Account is already " + account.getStatus().getValue(), null);
         }
 
         account.setStatus(Status.valueOf(request.getStatus()));
@@ -145,7 +148,7 @@ public class AccountServiceImpl implements AccountService {
         );
         List<Object> values = List.of(
                 account.getId(), account.getRegisterDate(),
-                account.getEmail(),account.getRole(),account.getStatus()
+                account.getEmail(), account.getRole(), account.getStatus()
         );
         return MapUtils.build(keys, values);
     }

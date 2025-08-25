@@ -3,9 +3,32 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.*;
-import com.unisew.server.repositories.*;
-import com.unisew.server.requests.*;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.DesignDelivery;
+import com.unisew.server.models.GarmentQuotation;
+import com.unisew.server.models.Milestone;
+import com.unisew.server.models.Order;
+import com.unisew.server.models.OrderDetail;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.SchoolDesign;
+import com.unisew.server.models.SewingPhase;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignDeliveryRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.GarmentQuotationRepo;
+import com.unisew.server.repositories.MilestoneRepo;
+import com.unisew.server.repositories.OrderDetailRepo;
+import com.unisew.server.repositories.OrderRepo;
+import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.SchoolDesignRepo;
+import com.unisew.server.repositories.SewingPhaseRepo;
+import com.unisew.server.requests.ApproveQuotationRequest;
+import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.CreateOrderRequest;
+import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.requests.QuotationRequest;
+import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.OrderService;
@@ -27,7 +50,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
         int expectedOrderDetailsSize = delivery.getDeliveryItems().size();
         List<Integer> filteredOrderItemID = new ArrayList<>();
         request.getOrderDetails().forEach(orderItem -> {
-            if(!filteredOrderItemID.contains(orderItem.getDeliveryItemId())){
+            if (!filteredOrderItemID.contains(orderItem.getDeliveryItemId())) {
                 filteredOrderItemID.add(orderItem.getDeliveryItemId());
             }
         });
@@ -87,29 +114,12 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size!", null);
         }
 
-        Order order = orderRepo.save(
-                Order.builder()
-                        .schoolDesign(schoolDesign)
-                        .feedback(null)
-                        .garmentId(null)
-                        .garmentName("")
-                        .deadline(request.getDeadline())
-                        .price(0)
-                        .orderDate(LocalDate.now())
-                        .note(request.getNote())
-                        .status(Status.ORDER_PENDING)
-                        .build()
-        );
+        Order order = orderRepo.save(Order.builder().schoolDesign(schoolDesign).feedback(null).garmentId(null).garmentName("").deadline(request.getDeadline()).price(0).orderDate(LocalDate.now()).note(request.getNote()).status(Status.ORDER_PENDING).build());
 
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
             for (CreateOrderRequest.OrderItem item : request.getOrderDetails()) {
-                OrderDetail detail = OrderDetail.builder()
-                        .order(order)
-                        .deliveryItemId(item.getDeliveryItemId())
-                        .size(DeliveryItemSize.valueOf(item.getSize()))
-                        .quantity(item.getQuantity())
-                        .build();
+                OrderDetail detail = OrderDetail.builder().order(order).deliveryItemId(item.getDeliveryItemId()).size(DeliveryItemSize.valueOf(item.getSize())).quantity(item.getQuantity()).build();
                 orderDetailEntities.add(detail);
             }
             orderDetailRepo.saveAll(orderDetailEntities);
@@ -144,12 +154,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
 
-        List<Order> orders = account.getCustomer().getSchoolDesigns()
-                .stream()
-                .filter(schoolDesign -> schoolDesign.getOrders() != null && !schoolDesign.getOrders().isEmpty())
-                .map(SchoolDesign::getOrders)
-                .flatMap(List::stream)
-                .toList();
+        List<Order> orders = account.getCustomer().getSchoolDesigns().stream().filter(schoolDesign -> schoolDesign.getOrders() != null && !schoolDesign.getOrders().isEmpty()).map(SchoolDesign::getOrders).flatMap(List::stream).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
     }
@@ -174,14 +179,7 @@ public class OrderServiceImpl implements OrderService {
         if (activePhasesCount == 10) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Maximum sewing phases reached!", null);
         }
-        sewingPhaseRepo.save(
-                SewingPhase.builder()
-                        .name(request.getName())
-                        .description(request.getDescription())
-                        .status(Status.SEWING_PHASE_ACTIVE)
-                        .garment(partner)
-                        .build()
-        );
+        sewingPhaseRepo.save(SewingPhase.builder().name(request.getName()).description(request.getDescription()).status(Status.SEWING_PHASE_ACTIVE).garment(partner).build());
         return ResponseBuilder.build(HttpStatus.CREATED, "Sewing phase created successfully", null);
     }
 
@@ -198,8 +196,7 @@ public class OrderServiceImpl implements OrderService {
         }
         Partner currentGarment = account.getCustomer().getPartner();
         if (order.getGarmentId() == null || !order.getGarmentId().equals(currentGarment.getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
-                    "You are not allowed to assign milestones for an order that does not belong to your garment", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to assign milestones for an order that does not belong to your garment", null);
         }
         String error = OrderValidation.validateAssignMilestone(order, request, sewingPhaseRepo);
         if (error != null) {
@@ -212,14 +209,7 @@ public class OrderServiceImpl implements OrderService {
                 return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Sewing phase not found", null);
             }
 
-            milestoneRepo.save(Milestone.builder()
-                    .stage(phase.getStage())
-                    .startDate(phase.getStartDate())
-                    .endDate(phase.getEndDate())
-                    .status(Status.MILESTONE_ASSIGNED)
-                    .phase(sewingPhase)
-                    .order(order)
-                    .build());
+            milestoneRepo.save(Milestone.builder().stage(phase.getStage()).startDate(phase.getStartDate()).endDate(phase.getEndDate()).status(Status.MILESTONE_ASSIGNED).phase(sewingPhase).order(order).build());
         }
 
         return ResponseBuilder.build(HttpStatus.OK, "Milestone assigned successfully", null);
@@ -241,8 +231,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
         }
         if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
-                    "You are not allowed to update a milestone for an order that does not belong to your garment", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to update a milestone for an order that does not belong to your garment", null);
         }
 
         if (milestone.getEndDate() != null && LocalDate.now().isAfter(milestone.getEndDate())) {
@@ -267,8 +256,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<Milestone> milestones = milestoneRepo.findAllByPhase_Id(milestone.getPhase().getId());
 
-        boolean isHighestStage = milestones.stream()
-                .allMatch(m -> m.getStage() <= milestone.getStage());
+        boolean isHighestStage = milestones.stream().allMatch(m -> m.getStage() <= milestone.getStage());
 
         if (isHighestStage) {
             order.setStatus(Status.ORDER_COMPLETED);
@@ -290,12 +278,9 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
         if (order.getGarmentId() == null || !order.getGarmentId().equals(account.getCustomer().getPartner().getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN,
-                    "You are not allowed to view milestones for an order that does not belong to your garment", null);
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not allowed to view milestones for an order that does not belong to your garment", null);
         }
-        List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream()
-                .sorted((m1, m2) -> Integer.compare(m1.getStage(), m2.getStage()))
-                .toList();
+        List<Milestone> milestones = milestoneRepo.findAllByOrder_Id(orderId).stream().sorted((m1, m2) -> Integer.compare(m1.getStage(), m2.getStage())).toList();
         if (milestones.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.OK, "Milestone not found", null);
         }
@@ -310,10 +295,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
-        List<SewingPhase> phases = sewingPhaseRepo.findAll().stream()
-                .filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE)
-                .filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId()))
-                .toList();
+        List<SewingPhase> phases = sewingPhaseRepo.findAll().stream().filter(phase -> phase.getStatus() == Status.SEWING_PHASE_ACTIVE).filter(phase -> phase.getGarment() != null && phase.getGarment().getId().equals(account.getCustomer().getPartner().getId())).toList();
         if (phases.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.OK, "No active sewing phases found", null);
         }
@@ -339,19 +321,11 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
-        if(garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)){
+        if (garmentQuotationRepo.existsByOrder_IdAndGarment_IdAndStatus(order.getId(), account.getCustomer().getPartner().getId(), Status.GARMENT_QUOTATION_PENDING)) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
         }
 
-        GarmentQuotation garmentQuotation = GarmentQuotation.builder()
-                .order(order)
-                .garment(account.getCustomer().getPartner())
-                .earlyDeliveryDate(request.getEarlyDeliveryDate())
-                .acceptanceDeadline(request.getAcceptanceDeadline())
-                .price(request.getPrice())
-                .note(request.getNote())
-                .status(Status.GARMENT_QUOTATION_PENDING)
-                .build();
+        GarmentQuotation garmentQuotation = GarmentQuotation.builder().order(order).garment(account.getCustomer().getPartner()).earlyDeliveryDate(request.getEarlyDeliveryDate()).acceptanceDeadline(request.getAcceptanceDeadline()).price(request.getPrice()).note(request.getNote()).status(Status.GARMENT_QUOTATION_PENDING).build();
 
         garmentQuotationRepo.save(garmentQuotation);
 
@@ -370,7 +344,7 @@ public class OrderServiceImpl implements OrderService {
         if (error != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
-        if(!garmentQuotation.getGarment().getId().equals(account.getCustomer().getPartner().getId())) {
+        if (!garmentQuotation.getGarment().getId().equals(account.getCustomer().getPartner().getId())) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are not authorized to approve this quotation", null);
         }
 
@@ -408,26 +382,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public ResponseEntity<ResponseObject> getSizes() {
-        List<Map<String, Object>> data = Arrays.stream(DeliveryItemSize.values())
-                .map(this::buildSize)
-                .toList();
+        List<Map<String, Object>> data = Arrays.stream(DeliveryItemSize.values()).map(this::buildSize).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
     private Map<String, Object> buildSize(DeliveryItemSize size) {
-        List<String> keys = List.of(
-                "type", "size", "gender",
-                "maxHeight", "minHeight",
-                "maxWeight", "minWeight",
-                "enumName"
-        );
-        List<Object> values = List.of(
-                size.getType(), size.getSize(), size.getGender(),
-                size.getMaxHeight(), size.getMinHeight(),
-                size.getMaxWeight(), size.getMinWeight(),
-                size.name()
-        );
+        List<String> keys = List.of("type", "size", "gender", "maxHeight", "minHeight", "maxWeight", "minWeight", "enumName");
+        List<Object> values = List.of(size.getType(), size.getSize(), size.getGender(), size.getMaxHeight(), size.getMinHeight(), size.getMaxWeight(), size.getMinWeight(), size.name());
         return MapUtils.build(keys, values);
     }
 

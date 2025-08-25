@@ -9,7 +9,11 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class EntityResponseBuilder {
 
@@ -132,7 +136,7 @@ public class EntityResponseBuilder {
 
         return quotations.stream()
                 .peek(quotation -> {
-                    if(LocalDate.now().isAfter(quotation.getAcceptanceDeadline())){
+                    if (LocalDate.now().isAfter(quotation.getAcceptanceDeadline())) {
                         quotation.setStatus(Status.DESIGN_QUOTATION_REJECTED);
                         designQuotationRepo.save(quotation);
                     }
@@ -353,7 +357,7 @@ public class EntityResponseBuilder {
 
     //-------Partner---------
     public static Map<String, Object> buildPartnerResponse(Partner partner) {
-        if(partner == null) return null;
+        if (partner == null) return null;
         List<String> keys = List.of(
                 "id", "customer",
                 "preview",

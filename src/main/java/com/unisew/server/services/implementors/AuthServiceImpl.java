@@ -4,7 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.*;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.AccountRequest;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.AccountRequestRepo;
 import com.unisew.server.repositories.CustomerRepo;
@@ -16,7 +20,6 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AuthService;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.utils.CookieUtil;
-import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -72,11 +75,11 @@ public class AuthServiceImpl implements AuthService {
         Account account = accountRepo.findByEmail(request.getEmail()).orElse(null);
         AccountRequest accountRequest = accountRequestRepo.findByEmail(request.getEmail()).orElse(null);
 
-        if(accountRequest != null){
+        if (accountRequest != null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This email is requested to be a partner", null);
         }
 
-        if(request.getEmail() == null || request.getEmail().isEmpty()){
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Email is required", null);
         }
 
@@ -242,7 +245,8 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // Use a Map to deserialize the JSON, which includes the expirationTime
-            Map<String, Object> decryptedDataMap = objectMapper.readValue(decryptedString, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> decryptedDataMap = objectMapper.readValue(decryptedString, new TypeReference<Map<String, Object>>() {
+            });
 
             //Check for Expiration
             if (decryptedDataMap.containsKey("expirationTime")) {
@@ -297,7 +301,7 @@ public class AuthServiceImpl implements AuthService {
         List<Account> designerAccount = accounts.stream().filter(a -> a.getRole().equals(Role.DESIGNER)).toList();
         List<Account> garmentAccount = accounts.stream().filter(a -> a.getRole().equals(Role.GARMENT)).toList();
 
-        Map<String,Object> responseData = new HashMap<>();
+        Map<String, Object> responseData = new HashMap<>();
         responseData.put("numberSchoolAccount", schoolAccount.size());
         responseData.put("numberDesignerAccount", designerAccount.size());
         responseData.put("numberGarmentAccount", garmentAccount.size());
@@ -307,31 +311,31 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String validateCreatePartnerAccountRequest(EncryptPartnerDataRequest data) {
-        if(data.getEmail() == null || data.getEmail().isEmpty()){
+        if (data.getEmail() == null || data.getEmail().isEmpty()) {
             return "Email is required";
         }
 
-        if(accountRepo.existsByEmail(data.getEmail())){
+        if (accountRepo.existsByEmail(data.getEmail())) {
             return "This email is already used";
         }
 
-        if(accountRequestRepo.existsByEmail(data.getEmail())){
+        if (accountRequestRepo.existsByEmail(data.getEmail())) {
             return "This email is already requested";
         }
 
-        if(data.getRole() == null || data.getRole().isEmpty()){
+        if (data.getRole() == null || data.getRole().isEmpty()) {
             return "Role is required";
         }
 
-        if(data.getAddress() == null || data.getAddress().isEmpty()){
+        if (data.getAddress() == null || data.getAddress().isEmpty()) {
             return "Address is required";
         }
 
-        if(data.getTaxCode() == null || data.getTaxCode().isEmpty()){
+        if (data.getTaxCode() == null || data.getTaxCode().isEmpty()) {
             return "Tax code is required";
         }
 
-        if(data.getPhone() == null || data.getPhone().isEmpty()){
+        if (data.getPhone() == null || data.getPhone().isEmpty()) {
             return "Phone is required";
         }
 
