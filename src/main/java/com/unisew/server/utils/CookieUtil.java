@@ -23,25 +23,19 @@ public class CookieUtil {
     }
 
     public static void createCookies(HttpServletResponse response, String accessValue, String refreshValue, long accessExp, long refreshExp) {
-        String accessCookie = String.format("access=%s; Path=/; Max-Age=%d; SameSite=None; Secure", accessValue, accessExp / 1000);
+        String accessCookie = String.format("access=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=None; Secure", accessValue, accessExp / 1000);
         response.addHeader("Set-Cookie", accessCookie);
 
         String refreshCookie = String.format("refresh=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=None; Secure", refreshValue, refreshExp / 1000);
         response.addHeader("Set-Cookie", refreshCookie);
-
-        String checkCookie = String.format("check=true; Path=/; Max-Age=%d; SameSite=None; Secure", refreshExp / 1000);
-        response.addHeader("Set-Cookie", checkCookie);
     }
 
     public static void removeCookies(HttpServletResponse response) {
         // Xóa cookie "access"
-        response.addHeader("Set-Cookie", "access=; Path=/; Max-Age=0; SameSite=None; Secure");
+        response.addHeader("Set-Cookie", "access=; Path=/; Max-Age=0; HttpOnly; SameSite=None; Secure");
 
         // Xóa cookie "refresh"
         response.addHeader("Set-Cookie", "refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=None; Secure");
-
-        // Xóa cookie "check"
-        response.addHeader("Set-Cookie", "check=; Path=/; Max-Age=0; SameSite=None; Secure");
     }
 
     public static Account extractAccountFromCookie(HttpServletRequest request, JWTService jwtService, AccountRepo accountRepo) {
