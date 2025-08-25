@@ -21,7 +21,6 @@ import com.unisew.server.repositories.MilestoneRepo;
 import com.unisew.server.repositories.OrderDetailRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
-import com.unisew.server.repositories.SchoolDesignRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
@@ -237,6 +236,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, UpdateMilestoneStatusRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
         // Update current milestone
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
@@ -247,7 +250,7 @@ public class OrderServiceImpl implements OrderService {
         if (milestone == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
         }
-        Order order = milestone.getOrder();
+        order = milestone.getOrder();
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found for the milestone", null);
         }
@@ -436,11 +439,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-        if(account == null){
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         Order order = orderRepo.findByIdAndSchoolDesign_Customer_Account_Id(orderId, account.getId()).orElse(null);
-        if(order == null){
+        if (order == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
         }
 
