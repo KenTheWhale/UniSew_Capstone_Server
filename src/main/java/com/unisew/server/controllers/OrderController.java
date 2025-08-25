@@ -4,6 +4,7 @@ import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.requests.DeleteSewingPhaseRequest;
 import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -123,5 +125,9 @@ public class OrderController {
         return orderService.viewMilestone(httpServletRequest, orderId);
     }
 
-
+    @DeleteMapping("/phase")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> deleteSewingPhase(HttpServletRequest httpServletRequest,@RequestParam int phaseId) {
+        return orderService.deleteSewingPhase(phaseId, httpServletRequest );
+    }
 }

@@ -4,6 +4,7 @@ import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.requests.DeleteSewingPhaseRequest;
 import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -42,4 +43,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> viewGarmentOrder(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId);
+
+    ResponseEntity<ResponseObject> deleteSewingPhase(int sewingPhaseId, HttpServletRequest httpServletRequest);
 }
