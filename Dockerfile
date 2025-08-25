@@ -20,9 +20,6 @@ RUN mvn clean package -DskipTests
 # Stage 2: Runtime stage
 FROM eclipse-temurin:17-jre
 
-# Install curl for health check
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
 # Set working directory
 WORKDIR /app
 
@@ -43,12 +40,6 @@ EXPOSE 8080
 
 # Set JVM options for production
 ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport"
-
-# Environment variables will be set via Render dashboard
-
-# Health check to ensure application is ready
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Run the application with proper signal handling
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"] 
