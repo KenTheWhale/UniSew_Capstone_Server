@@ -187,12 +187,13 @@ public class EntityResponseBuilder {
         List<String> keys = List.of(
                 "id", "school",
                 "name", "creationDate", "logoImage",
-                "privacy", "status", "items"
+                "privacy", "status", "items", "feedback"
         );
         List<Object> values = List.of(
                 request.getId(), buildCustomerResponse(request.getSchool()),
                 request.getName(), request.getCreationDate(), request.getLogoImage(),
-                request.isPrivacy(), request.getStatus().getValue(), buildDesignItemListResponse(request.getDesignItems())
+                request.isPrivacy(), request.getStatus().getValue(), buildDesignItemListResponse(request.getDesignItems()),
+                Objects.requireNonNullElse(buildFeedbackResponse(request.getFeedback()), "")
         );
 
         return MapUtils.build(keys, values);
@@ -314,6 +315,7 @@ public class EntityResponseBuilder {
         orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
         orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
         orderMap.put("selectedDesign", EntityResponseBuilder.buildDesignDeliveryResponse(order.getSchoolDesign().getDesignDelivery(), designItemRepo));
+        orderMap.put("feedback", Objects.requireNonNullElse(buildFeedbackResponse(order.getFeedback()), ""));
         return orderMap;
     }
 

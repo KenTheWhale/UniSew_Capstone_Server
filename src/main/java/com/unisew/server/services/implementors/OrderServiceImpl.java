@@ -274,7 +274,6 @@ public class OrderServiceImpl implements OrderService {
         milestone = milestoneRepo.save(milestone);
 
         //Update the next milestone
-
         //Check not final stage
         if (order.getMilestones().size() > milestone.getStage()) {
             int nextStage = milestone.getStage() + 1;

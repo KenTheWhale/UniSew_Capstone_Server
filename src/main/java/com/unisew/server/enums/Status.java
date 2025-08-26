@@ -67,6 +67,5 @@ public enum Status {
     WITHDRAW_REJECTED("rejected"),
     WITHDRAW_PENDING("pending");
 
-
     private final String value;
 }
