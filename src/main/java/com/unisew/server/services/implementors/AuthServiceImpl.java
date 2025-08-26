@@ -12,6 +12,7 @@ import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.AccountRequestRepo;
 import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.WalletRepo;
 import com.unisew.server.requests.CreatePartnerAccountRequestRequest;
 import com.unisew.server.requests.EncryptPartnerDataRequest;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.Map;
 public class AuthServiceImpl implements AuthService {
 
 
+    private final PartnerRepo partnerRepo;
     @Value("${jwt.expiration.access-token}")
     private long accessExpiration;
 
@@ -205,19 +208,39 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<ResponseObject> encryptPartnerData(EncryptPartnerDataRequest request) {
         try {
             Map<String, Object> dataToEncrypt = new HashMap<>();
-            dataToEncrypt.put("email", request.getEmail());
-            dataToEncrypt.put("role", request.getRole());
-            dataToEncrypt.put("address", request.getAddress());
-            dataToEncrypt.put("taxCode", request.getTaxCode());
-            dataToEncrypt.put("phone", request.getPhone());
 
+            // Truy cập các thuộc tính thông qua các đối tượng con
+            if (request.getAccountData() != null) {
+                dataToEncrypt.put("email", request.getAccountData().getEmail());
+                dataToEncrypt.put("role", request.getAccountData().getRole());
+            }
+
+            if (request.getCustomerData() != null) {
+                dataToEncrypt.put("address", request.getCustomerData().getAddress());
+                dataToEncrypt.put("taxCode", request.getCustomerData().getTaxCode());
+                dataToEncrypt.put("phone", request.getCustomerData().getPhone());
+            }
+
+            // Tùy chọn: Thêm các dữ liệu khác nếu cần
+            if (request.getPartnerData() != null) {
+                dataToEncrypt.put("startTime", request.getPartnerData().getStartTime());
+                dataToEncrypt.put("endTime", request.getPartnerData().getEndTime());
+            }
+
+            if (request.getWalletData() != null) {
+                dataToEncrypt.put("bank", request.getWalletData().getBank());
+                dataToEncrypt.put("bankAccountNumber", request.getWalletData().getBankAccountNumber());
+                dataToEncrypt.put("cardOwner", request.getWalletData().getCardOwner());
+            }
+
+            // Đặt thời gian hết hạn (expirationTime)
             long expirationTimeMillis = System.currentTimeMillis() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
             dataToEncrypt.put("expirationTime", expirationTimeMillis);
 
-            // Convert the map to a JSON string
+            // Chuyển đổi map thành JSON string
             String jsonString = objectMapper.writeValueAsString(dataToEncrypt);
 
-            // Encrypt the string
+            // Mã hóa chuỗi
             String encryptedString = encrypt(jsonString);
 
             Map<String, Object> responseData = new HashMap<>();
@@ -258,31 +281,76 @@ public class AuthServiceImpl implements AuthService {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Missing expiration timestamp", null);
             }
 
-            EncryptPartnerDataRequest data = EncryptPartnerDataRequest.builder()
+            EncryptPartnerDataRequest.AccountData accountData = EncryptPartnerDataRequest.AccountData.builder()
                     .email((String) decryptedDataMap.get("email"))
                     .role((String) decryptedDataMap.get("role"))
+                    .build();
+
+            EncryptPartnerDataRequest.CustomerData customerData = EncryptPartnerDataRequest.CustomerData.builder()
                     .address((String) decryptedDataMap.get("address"))
                     .taxCode((String) decryptedDataMap.get("taxCode"))
                     .phone((String) decryptedDataMap.get("phone"))
                     .build();
 
-            String error = validateCreatePartnerAccountRequest(data);
+            EncryptPartnerDataRequest.PartnerData partnerData = EncryptPartnerDataRequest.PartnerData.builder()
+                    .startTime(LocalTime.parse((String) decryptedDataMap.get("startTime")))
+                    .endTime(LocalTime.parse((String) decryptedDataMap.get("endTime")))
+                    .build();
+
+            EncryptPartnerDataRequest.WalletData walletData = EncryptPartnerDataRequest.WalletData.builder()
+                    .bank((String) decryptedDataMap.get("bank"))
+                    .bankAccountNumber((String) decryptedDataMap.get("bankAccountNumber"))
+                    .cardOwner((String) decryptedDataMap.get("cardOwner"))
+                    .build();
+
+            String error = validateCreatePartnerAccountRequest(accountData, customerData, partnerData, walletData);
             if (!error.isEmpty()) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
             }
 
-            accountRequestRepo.save(
-                    AccountRequest.builder()
-                            .email(data.getEmail())
-                            .role(Role.valueOf(data.getRole()))
-                            .address(data.getAddress())
-                            .taxCode(data.getTaxCode())
-                            .phone(data.getPhone())
-                            .status(Status.ACCOUNT_REQUEST_PENDING)
+            Account account = accountRepo.save(
+                    Account.builder()
+                            .email(accountData.getEmail())
+                            .role(Role.valueOf(accountData.getRole()))
+                            .registerDate(LocalDate.now())
+                            .status(Status.ACCOUNT_ACTIVE)
+                            .build()
+            );
+            Customer customer = customerRepo.save(
+                    Customer.builder()
+                            .account(account)
+                            .address(customerData.getAddress())
+                            .taxCode(customerData.getTaxCode())
+                            .name(customerData.getName())
+                            .businessName(customerData.getBusinessName())
+                            .phone(customerData.getPhone())
+                            .avatar(customerData.getAvatar())
+                            .build()
+            );
+            partnerRepo.save(
+                    Partner.builder()
+                            .customer(customer)
+                            .outsidePreview("")
+                            .insidePreview("")
+                            .shippingUid("")
+                            .startTime(partnerData.getStartTime())
+                            .endTime(partnerData.getEndTime())
+                            .rating(0)
+                            .busy(false)
+                            .build()
+            );
+            walletRepo.save(
+                    Wallet.builder()
+                            .account(account)
+                            .balance(0)
+                            .pendingBalance(0)
+                            .bank(walletData.getBank())
+                            .bankAccountNumber(walletData.getBankAccountNumber())
+                            .cardOwner(walletData.getCardOwner())
                             .build()
             );
 
-            return ResponseBuilder.build(HttpStatus.CREATED, "Request sent", null);
+            return ResponseBuilder.build(HttpStatus.CREATED, "", null);
         } catch (Exception e) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Something wrong", null);
         }
@@ -310,32 +378,37 @@ public class AuthServiceImpl implements AuthService {
         return ResponseBuilder.build(HttpStatus.OK, "Number of account", responseData);
     }
 
-    private String validateCreatePartnerAccountRequest(EncryptPartnerDataRequest data) {
-        if (data.getEmail() == null || data.getEmail().isEmpty()) {
+    private String validateCreatePartnerAccountRequest(
+            EncryptPartnerDataRequest.AccountData accountData,
+            EncryptPartnerDataRequest.CustomerData customerData,
+            EncryptPartnerDataRequest.PartnerData partnerData,
+            EncryptPartnerDataRequest.WalletData walletData
+    ) {
+        if (accountData.getEmail() == null || accountData.getEmail().isEmpty()) {
             return "Email is required";
         }
 
-        if (accountRepo.existsByEmail(data.getEmail())) {
+        if (accountRepo.existsByEmail(accountData.getEmail())) {
             return "This email is already used";
         }
 
-        if (accountRequestRepo.existsByEmail(data.getEmail())) {
+        if (accountRequestRepo.existsByEmail(accountData.getEmail())) {
             return "This email is already requested";
         }
 
-        if (data.getRole() == null || data.getRole().isEmpty()) {
+        if (accountData.getRole() == null || accountData.getRole().isEmpty()) {
             return "Role is required";
         }
 
-        if (data.getAddress() == null || data.getAddress().isEmpty()) {
+        if (customerData.getAddress() == null || customerData.getAddress().isEmpty()) {
             return "Address is required";
         }
 
-        if (data.getTaxCode() == null || data.getTaxCode().isEmpty()) {
+        if (customerData.getTaxCode() == null || customerData.getTaxCode().isEmpty()) {
             return "Tax code is required";
         }
 
-        if (data.getPhone() == null || data.getPhone().isEmpty()) {
+        if (customerData.getPhone() == null || customerData.getPhone().isEmpty()) {
             return "Phone is required";
         }
 
