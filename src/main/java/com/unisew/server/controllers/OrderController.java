@@ -2,9 +2,9 @@ package com.unisew.server.controllers;
 
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.ConfirmDeliveredOrderRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
-import com.unisew.server.requests.DeleteSewingPhaseRequest;
 import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -66,6 +66,12 @@ public class OrderController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> cancelOrder(@RequestParam(name = "orderId") int orderId) {
         return orderService.cancelOrder(orderId);
+    }
+
+    @PutMapping("/status/delivery")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> confirmDeliveredOrder(@RequestBody ConfirmDeliveredOrderRequest request, HttpServletRequest httpRequest) {
+        return orderService.confirmDeliveredOrder(request, httpRequest);
     }
 
     //----------------------------QUOTATION----------------------------//

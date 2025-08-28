@@ -24,6 +24,7 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.ConfirmDeliveredOrderRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
 import com.unisew.server.requests.DeleteSewingPhaseRequest;
@@ -284,10 +285,10 @@ public class OrderServiceImpl implements OrderService {
                 milestoneRepo.save(nextMilestone);
             }
 
-            return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
+
         }
 
-        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are already at the end phase", null);
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
     }
 
     @Override
@@ -487,5 +488,27 @@ public class OrderServiceImpl implements OrderService {
         sewingPhase.setStatus(Status.SEWING_PHASE_INACTIVE);
         sewingPhaseRepo.save(sewingPhase);
         return ResponseBuilder.build(HttpStatus.OK, "Sewing phase deleted successfully", null);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> confirmDeliveredOrder(ConfirmDeliveredOrderRequest request, HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if(account == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
+        }
+
+        Order order = orderRepo.findBySchoolDesign_Customer_Account_IdAndId(account.getId(), request.getOrderId()).orElse(null);
+        if(order == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
+        }
+
+        order.setStatus(Status.ORDER_DELIVERING);
+        orderRepo.save(order);
+
+        Partner garment = partnerRepo.findById(request.getCreateTransactionRequest().getReceiverId()).orElse(null);
+        if (garment == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Garment not found", null);
+        request.getCreateTransactionRequest().setReceiverId(garment.getCustomer().getId());
+        return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
 }

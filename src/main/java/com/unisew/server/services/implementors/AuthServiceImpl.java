@@ -12,8 +12,9 @@ import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.AccountRequestRepo;
 import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.WalletRepo;
-import com.unisew.server.requests.CreatePartnerAccountRequestRequest;
+import com.unisew.server.requests.CreatePartnerAccountRequest;
 import com.unisew.server.requests.EncryptPartnerDataRequest;
 import com.unisew.server.requests.LoginRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.Map;
 public class AuthServiceImpl implements AuthService {
 
 
+    private final PartnerRepo partnerRepo;
     @Value("${jwt.expiration.access-token}")
     private long accessExpiration;
 
@@ -205,25 +208,57 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<ResponseObject> encryptPartnerData(EncryptPartnerDataRequest request) {
         try {
             Map<String, Object> dataToEncrypt = new HashMap<>();
-            dataToEncrypt.put("email", request.getEmail());
-            dataToEncrypt.put("role", request.getRole());
-            dataToEncrypt.put("address", request.getAddress());
-            dataToEncrypt.put("taxCode", request.getTaxCode());
-            dataToEncrypt.put("phone", request.getPhone());
 
-            long expirationTimeMillis = System.currentTimeMillis() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+            if (request.getAccountData() != null) {
+                EncryptPartnerDataRequest.AccountData data = request.getAccountData();
+                dataToEncrypt.put("email", data.getEmail());
+                dataToEncrypt.put("role", data.getRole());
+            }
+
+            if (request.getCustomerData() != null) {
+                EncryptPartnerDataRequest.CustomerData data = request.getCustomerData();
+                dataToEncrypt.put("address", data.getAddress());
+                dataToEncrypt.put("taxCode", data.getTaxCode());
+                dataToEncrypt.put("name", data.getName());
+                dataToEncrypt.put("businessName", data.getBusinessName());
+                dataToEncrypt.put("phone", data.getPhone());
+                dataToEncrypt.put("avatar", data.getAvatar());
+            }
+
+            if (request.getPartnerData() != null) {
+                EncryptPartnerDataRequest.PartnerData data = request.getPartnerData();
+                dataToEncrypt.put("startTime", data.getStartTime());
+                dataToEncrypt.put("endTime", data.getEndTime());
+            }
+
+            if (request.getWalletData() != null) {
+                EncryptPartnerDataRequest.WalletData data = request.getWalletData();
+                dataToEncrypt.put("bank", data.getBank());
+                dataToEncrypt.put("bankAccountNumber", data.getBankAccountNumber());
+                dataToEncrypt.put("cardOwner", data.getCardOwner());
+            }
+
+            if(request.getStoreData() != null){
+                EncryptPartnerDataRequest.StoreData data = request.getStoreData();
+                dataToEncrypt.put("districtId", data.getDistrictId());
+                dataToEncrypt.put("wardCode", data.getWardCode());
+                dataToEncrypt.put("address", data.getAddress());
+                dataToEncrypt.put("name", data.getName());
+                dataToEncrypt.put("phone", data.getPhone());
+            }
+
+            // Set expiration time
+            long expirationTimeMillis = System.currentTimeMillis() + (5 * 60 * 1000); // 5 minutes in milliseconds
             dataToEncrypt.put("expirationTime", expirationTimeMillis);
 
-            // Convert the map to a JSON string
+            // Exchange map to JSON String
             String jsonString = objectMapper.writeValueAsString(dataToEncrypt);
 
-            // Encrypt the string
+            // Encrypt string
             String encryptedString = encrypt(jsonString);
 
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("encryptData", encryptedString);
-
-            System.out.println("Encrypt Data: " + encryptedString);
 
             return ResponseBuilder.build(HttpStatus.OK, "Data encrypted successfully", responseData);
         } catch (Exception e) {
@@ -232,12 +267,10 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> createPartnerAccountRequest(CreatePartnerAccountRequestRequest request) {
+    public ResponseEntity<ResponseObject> createPartnerAccountRequest(CreatePartnerAccountRequest request) {
         try {
-
             // Decrypt the string
             String decryptedString = decrypt(request.getEncryptedData().replaceAll(" ", "+"));
             if (decryptedString == null) {
@@ -245,8 +278,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // Use a Map to deserialize the JSON, which includes the expirationTime
-            Map<String, Object> decryptedDataMap = objectMapper.readValue(decryptedString, new TypeReference<Map<String, Object>>() {
-            });
+            Map<String, Object> decryptedDataMap = objectMapper.readValue(decryptedString, new TypeReference<Map<String, Object>>() {});
 
             //Check for Expiration
             if (decryptedDataMap.containsKey("expirationTime")) {
@@ -258,34 +290,114 @@ public class AuthServiceImpl implements AuthService {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Missing expiration timestamp", null);
             }
 
-            EncryptPartnerDataRequest data = EncryptPartnerDataRequest.builder()
+            EncryptPartnerDataRequest.AccountData accountData = EncryptPartnerDataRequest.AccountData.builder()
                     .email((String) decryptedDataMap.get("email"))
                     .role((String) decryptedDataMap.get("role"))
+                    .build();
+
+            EncryptPartnerDataRequest.CustomerData customerData = EncryptPartnerDataRequest.CustomerData.builder()
                     .address((String) decryptedDataMap.get("address"))
                     .taxCode((String) decryptedDataMap.get("taxCode"))
+                    .name((String) decryptedDataMap.get("name"))
+                    .businessName((String) decryptedDataMap.get("businessName"))
+                    .phone((String) decryptedDataMap.get("phone"))
+                    .avatar((String) decryptedDataMap.get("avatar"))
+                    .build();
+
+            EncryptPartnerDataRequest.PartnerData partnerData = EncryptPartnerDataRequest.PartnerData.builder()
+                    .startTime(LocalTime.parse((String) decryptedDataMap.get("startTime")))
+                    .endTime(LocalTime.parse((String) decryptedDataMap.get("endTime")))
+                    .build();
+
+            EncryptPartnerDataRequest.WalletData walletData = EncryptPartnerDataRequest.WalletData.builder()
+                    .bank((String) decryptedDataMap.get("bank"))
+                    .bankAccountNumber((String) decryptedDataMap.get("bankAccountNumber"))
+                    .cardOwner((String) decryptedDataMap.get("cardOwner"))
+                    .build();
+
+            EncryptPartnerDataRequest.StoreData storeData = EncryptPartnerDataRequest.StoreData.builder()
+                    .districtId((Integer) decryptedDataMap.get("districtId"))
+                    .wardCode((Integer) decryptedDataMap.get("wardCode"))
+                    .address((String) decryptedDataMap.get("address"))
+                    .name((String) decryptedDataMap.get("name"))
                     .phone((String) decryptedDataMap.get("phone"))
                     .build();
 
-            String error = validateCreatePartnerAccountRequest(data);
+            String error = validateCreatePartnerAccountRequest(accountData);
             if (!error.isEmpty()) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
             }
 
-            accountRequestRepo.save(
-                    AccountRequest.builder()
-                            .email(data.getEmail())
-                            .role(Role.valueOf(data.getRole()))
-                            .address(data.getAddress())
-                            .taxCode(data.getTaxCode())
-                            .phone(data.getPhone())
-                            .status(Status.ACCOUNT_REQUEST_PENDING)
+            Account account = accountRepo.save(
+                    Account.builder()
+                            .email(accountData.getEmail())
+                            .role(Role.valueOf(accountData.getRole()))
+                            .registerDate(LocalDate.now())
+                            .status(Status.ACCOUNT_ACTIVE)
+                            .build()
+            );
+            Customer customer = customerRepo.save(
+                    Customer.builder()
+                            .account(account)
+                            .address(customerData.getAddress())
+                            .taxCode(customerData.getTaxCode())
+                            .name(customerData.getName())
+                            .businessName(customerData.getBusinessName())
+                            .phone(customerData.getPhone())
+                            .avatar(customerData.getAvatar())
+                            .build()
+            );
+            Partner partner = partnerRepo.save(
+                    Partner.builder()
+                            .customer(customer)
+                            .outsidePreview("")
+                            .insidePreview("")
+                            .shippingUid("")
+                            .startTime(partnerData.getStartTime())
+                            .endTime(partnerData.getEndTime())
+                            .rating(0)
+                            .busy(false)
+                            .build()
+            );
+            walletRepo.save(
+                    Wallet.builder()
+                            .account(account)
+                            .balance(0)
+                            .pendingBalance(0)
+                            .bank(walletData.getBank())
+                            .bankAccountNumber(walletData.getBankAccountNumber())
+                            .cardOwner(walletData.getCardOwner())
                             .build()
             );
 
-            return ResponseBuilder.build(HttpStatus.CREATED, "Request sent", null);
+            Map<String, Object> data = new HashMap<>();
+            data.put("pid", partner.getId());
+            data.put("districtId", storeData.getDistrictId());
+            data.put("wardCode", storeData.getWardCode());
+            data.put("address", storeData.getAddress());
+            data.put("name", storeData.getName());
+            data.put("phone", storeData.getPhone());
+
+            return ResponseBuilder.build(HttpStatus.CREATED, "", data);
         } catch (Exception e) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Something wrong", null);
         }
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, int pid) {
+        Partner partner = partnerRepo.findById(pid).orElse(null);
+        if(partner == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Partner invalid", null);
+        }
+
+        if(partnerRepo.existsByShippingUid(suid)){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "UID existed", null);
+        }
+
+        partner.setShippingUid(suid);
+        partnerRepo.save(partner);
+        return ResponseBuilder.build(HttpStatus.OK, "Update successfully", null);
     }
 
     @Override
@@ -310,33 +422,9 @@ public class AuthServiceImpl implements AuthService {
         return ResponseBuilder.build(HttpStatus.OK, "Number of account", responseData);
     }
 
-    private String validateCreatePartnerAccountRequest(EncryptPartnerDataRequest data) {
-        if (data.getEmail() == null || data.getEmail().isEmpty()) {
-            return "Email is required";
-        }
-
-        if (accountRepo.existsByEmail(data.getEmail())) {
-            return "This email is already used";
-        }
-
-        if (accountRequestRepo.existsByEmail(data.getEmail())) {
-            return "This email is already requested";
-        }
-
-        if (data.getRole() == null || data.getRole().isEmpty()) {
-            return "Role is required";
-        }
-
-        if (data.getAddress() == null || data.getAddress().isEmpty()) {
-            return "Address is required";
-        }
-
-        if (data.getTaxCode() == null || data.getTaxCode().isEmpty()) {
-            return "Tax code is required";
-        }
-
-        if (data.getPhone() == null || data.getPhone().isEmpty()) {
-            return "Phone is required";
+    private String validateCreatePartnerAccountRequest(EncryptPartnerDataRequest.AccountData accountData) {
+        if (accountData.getEmail() == null || accountData.getEmail().isEmpty() || accountRepo.existsByEmail(accountData.getEmail())) {
+            return "Email invalid";
         }
 
         return "";
@@ -367,5 +455,12 @@ public class AuthServiceImpl implements AuthService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> checkEmail(String email) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("existed", accountRepo.existsByEmail(email));
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 }

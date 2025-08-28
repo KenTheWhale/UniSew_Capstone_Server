@@ -19,6 +19,7 @@ import java.util.Random;
 public class VNPayConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     public static String vnp_ReturnUrl = "http://localhost:5173";
+//    public static String vnp_ReturnUrl = "https://unisew.onrender.com/";
     public static String vnp_TmnCode = "EM5944BD";
     public static String vnp_HashSecret = "WEMLSYYM57QYLQZ5PSOJJF0XS1LCAYE9";
     public static String vnp_apiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
