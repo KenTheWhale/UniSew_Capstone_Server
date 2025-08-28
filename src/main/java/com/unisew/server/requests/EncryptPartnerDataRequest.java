@@ -20,6 +20,7 @@ public class EncryptPartnerDataRequest {
     CustomerData customerData;
     PartnerData partnerData;
     WalletData walletData;
+    StoreData storeData;
 
     @Data
     @AllArgsConstructor
@@ -64,5 +65,18 @@ public class EncryptPartnerDataRequest {
         String bank;
         String bankAccountNumber;
         String cardOwner;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class StoreData{
+        int districtId;
+        int wardCode;
+        String address;
+        String name;
+        String phone;
     }
 }
