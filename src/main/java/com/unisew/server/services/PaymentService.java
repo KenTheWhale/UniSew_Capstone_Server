@@ -2,6 +2,7 @@ package com.unisew.server.services;
 
 import com.unisew.server.requests.CreateTransactionRequest;
 import com.unisew.server.requests.GetPaymentURLRequest;
+import com.unisew.server.requests.RefundRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -13,4 +14,5 @@ public interface PaymentService {
 
     ResponseEntity<ResponseObject> getAllTransaction(HttpServletRequest httpRequest);
 
+    ResponseEntity<ResponseObject> refundTransaction(RefundRequest request, HttpServletRequest httpRequest);
 }
