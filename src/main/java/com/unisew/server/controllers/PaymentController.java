@@ -2,6 +2,7 @@ package com.unisew.server.controllers;
 
 import com.unisew.server.requests.CreateTransactionRequest;
 import com.unisew.server.requests.GetPaymentURLRequest;
+import com.unisew.server.requests.RefundRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,4 +41,11 @@ public class PaymentController {
     public ResponseEntity<ResponseObject> createTransaction(@RequestBody CreateTransactionRequest request, HttpServletRequest httpRequest) {
         return paymentService.createTransaction(request, httpRequest);
     }
+
+    @PostMapping("/transaction/refund")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> refundTransaction(@RequestBody RefundRequest request, HttpServletRequest httpRequest) {
+        return paymentService.refundTransaction(request, httpRequest);
+    }
+
 }
