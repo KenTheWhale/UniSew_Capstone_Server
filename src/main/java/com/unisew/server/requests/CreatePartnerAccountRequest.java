@@ -12,6 +12,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreatePartnerAccountRequestRequest {
+public class CreatePartnerAccountRequest {
     String encryptedData;
 }

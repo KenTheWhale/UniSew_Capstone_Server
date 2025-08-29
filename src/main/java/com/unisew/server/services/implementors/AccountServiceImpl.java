@@ -20,6 +20,7 @@ import com.unisew.server.repositories.WithdrawRequestRepo;
 import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
 import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.requests.UpdatePartnerProfileRequest;
@@ -518,5 +519,41 @@ public class AccountServiceImpl implements AccountService {
         partnerRepo.save(partner);
 
         return ResponseBuilder.build(HttpStatus.OK, "Partner profile updated successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> checkSchoolInit(CheckSchoolInitRequest request) {
+        Customer school = customerRepo.findByBusinessName(request.getSchoolName()).orElse(null);
+        if(request.getStep() == 1){
+            if(school == null){
+                if(customerRepo.existsByAddress(request.getAddress())){
+                    return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Address is used", null);
+                }
+
+                return ResponseBuilder.build(HttpStatus.OK, "", null);
+            }
+
+            if(request.getAddress().equalsIgnoreCase(school.getAddress())){
+                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This school is registered", null);
+            }
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("taxCode", school.getTaxCode().equals("N/A") ? "" : school.getTaxCode());
+            data.put("phone", school.getPhone().equals("N/A") ? "" : school.getPhone());
+            return ResponseBuilder.build(HttpStatus.OK, "", data);
+        }
+
+        if(school == null){
+            if(customerRepo.existsByTaxCode(request.getTaxCode())){
+                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Tax code is used", null);
+            }
+
+            if(customerRepo.existsByPhone(request.getPhone())){
+                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Phone is used", null);
+            }
+
+            return ResponseBuilder.build(HttpStatus.OK, "", null);
+        }
+        return ResponseBuilder.build(HttpStatus.OK, "", null);
     }
 }

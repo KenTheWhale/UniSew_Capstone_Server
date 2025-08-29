@@ -392,6 +392,13 @@ public class DesignServiceImpl implements DesignService {
 
         RevisionRequest revisionRequest = revisionRequestRepo.findById(request.getRevisionId()).orElse(null);
 
+        List<DesignDelivery> deliveries = designDeliveryRepo.findAllByDesignRequest_Id(request.getDesignRequestId());
+
+        boolean existName = deliveries.stream().anyMatch(designDelivery -> designDelivery.getName().equals(request.getName()));
+
+        if (existName) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This delivery name already exist", null);
+        }
         if (designRequest == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "request not found", null);
         }

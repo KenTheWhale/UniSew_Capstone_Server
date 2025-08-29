@@ -13,4 +13,6 @@ public interface OrderRepo extends JpaRepository<Order, Integer> {
     List<Order> findAllByGarmentId(Integer garmentId);
 
     Optional<Order> findByIdAndSchoolDesign_Customer_Account_Id(int orderId, int accountId);
+
+    Optional<Order> findBySchoolDesign_Customer_Account_IdAndId(int accountId, int orderId);
 }

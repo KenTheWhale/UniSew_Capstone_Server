@@ -14,7 +14,11 @@ public interface AccountRepo extends JpaRepository<Account, Integer> {
 
     Optional<Account> findByEmailAndStatus(String email, Status status);
 
+    boolean existsByEmailOrCustomer_Phone(String email, String phone);
+
     boolean existsByEmail(String email);
+
+    boolean existsByCustomer_TaxCode(String taxCode);
 
     List<Account> findAllByRegisterDateBetween(LocalDate from, LocalDate to);
 

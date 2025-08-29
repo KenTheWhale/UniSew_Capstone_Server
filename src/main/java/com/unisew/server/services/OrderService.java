@@ -2,6 +2,7 @@ package com.unisew.server.services;
 
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.ConfirmDeliveredOrderRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
 import com.unisew.server.requests.DeleteSewingPhaseRequest;
@@ -45,4 +46,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> viewSchoolOrderDetail(HttpServletRequest request, int orderId);
 
     ResponseEntity<ResponseObject> deleteSewingPhase(int sewingPhaseId, HttpServletRequest httpServletRequest);
+
+    ResponseEntity<ResponseObject> confirmDeliveredOrder(ConfirmDeliveredOrderRequest request, HttpServletRequest httpRequest);
 }

@@ -1,6 +1,6 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.requests.CreatePartnerAccountRequestRequest;
+import com.unisew.server.requests.CreatePartnerAccountRequest;
 import com.unisew.server.requests.EncryptPartnerDataRequest;
 import com.unisew.server.requests.LoginRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -29,6 +30,16 @@ public class AuthController {
         return authService.login(request, response);
     }
 
+    @GetMapping("/partner/info")
+    public ResponseEntity<ResponseObject> checkPartnerRegisterInfo(@RequestParam String email, @RequestParam String phone){
+        return authService.checkPartnerRegisterInfo(email, phone);
+    }
+
+    @GetMapping("/partner/tax")
+    public ResponseEntity<ResponseObject> checkPartnerRegisterTaxCode(@RequestParam String taxCode){
+        return authService.checkPartnerRegisterTaxCode(taxCode);
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<ResponseObject> refresh(HttpServletRequest request, HttpServletResponse response) {
         return authService.refresh(request, response);
@@ -40,8 +51,13 @@ public class AuthController {
     }
 
     @PostMapping("/partner/register")
-    public ResponseEntity<ResponseObject> createPartnerAccountRequest(@RequestBody CreatePartnerAccountRequestRequest request) {
+    public ResponseEntity<ResponseObject> createPartnerAccount(@RequestBody CreatePartnerAccountRequest request) {
         return authService.createPartnerAccountRequest(request);
+    }
+
+    @GetMapping("/partner/suid")
+    public ResponseEntity<ResponseObject> updatePartnerShippingUID(@RequestParam String suid, @RequestParam int pid) {
+        return authService.updatePartnerShippingUID(suid, pid);
     }
 
     @GetMapping("/number")

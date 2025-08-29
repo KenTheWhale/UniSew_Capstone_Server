@@ -1,6 +1,6 @@
 package com.unisew.server.services;
 
-import com.unisew.server.requests.CreatePartnerAccountRequestRequest;
+import com.unisew.server.requests.CreatePartnerAccountRequest;
 import com.unisew.server.requests.EncryptPartnerDataRequest;
 import com.unisew.server.requests.LoginRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -15,7 +15,13 @@ public interface AuthService {
 
     ResponseEntity<ResponseObject> encryptPartnerData(EncryptPartnerDataRequest request);
 
-    ResponseEntity<ResponseObject> createPartnerAccountRequest(CreatePartnerAccountRequestRequest request);
+    ResponseEntity<ResponseObject> createPartnerAccountRequest(CreatePartnerAccountRequest request);
 
     ResponseEntity<ResponseObject> getNumberAccountRole();
+
+    ResponseEntity<ResponseObject> checkPartnerRegisterInfo(String email, String phone);
+
+    ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, int pid);
+
+    ResponseEntity<ResponseObject> checkPartnerRegisterTaxCode(String taxCode);
 }
