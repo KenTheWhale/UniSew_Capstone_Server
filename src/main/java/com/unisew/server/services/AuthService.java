@@ -19,7 +19,9 @@ public interface AuthService {
 
     ResponseEntity<ResponseObject> getNumberAccountRole();
 
-    ResponseEntity<ResponseObject> checkEmail(String email);
+    ResponseEntity<ResponseObject> checkPartnerRegisterInfo(String email, String phone);
 
     ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, int pid);
+
+    ResponseEntity<ResponseObject> checkPartnerRegisterTaxCode(String taxCode);
 }

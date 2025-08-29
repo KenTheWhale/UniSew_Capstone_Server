@@ -3,6 +3,7 @@ package com.unisew.server.services;
 import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
 import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.requests.UpdatePartnerProfileRequest;
@@ -39,4 +40,5 @@ public interface AccountService {
 
     ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request, UpdatePartnerProfileRequest updatePartnerProfileRequest);
 
+    ResponseEntity<ResponseObject> checkSchoolInit(CheckSchoolInitRequest request);
 }

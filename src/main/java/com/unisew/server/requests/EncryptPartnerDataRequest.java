@@ -39,6 +39,9 @@ public class EncryptPartnerDataRequest {
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class CustomerData{
         String address;
+        String ward;
+        String district;
+        String province;
         String taxCode;
         String name;
         String businessName;

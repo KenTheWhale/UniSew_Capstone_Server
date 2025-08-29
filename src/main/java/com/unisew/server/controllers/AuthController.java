@@ -30,9 +30,14 @@ public class AuthController {
         return authService.login(request, response);
     }
 
-    @GetMapping("/email")
-    public ResponseEntity<ResponseObject> checkEmail(@RequestParam String email){
-        return authService.checkEmail(email);
+    @GetMapping("/partner/info")
+    public ResponseEntity<ResponseObject> checkPartnerRegisterInfo(@RequestParam String email, @RequestParam String phone){
+        return authService.checkPartnerRegisterInfo(email, phone);
+    }
+
+    @GetMapping("/partner/tax")
+    public ResponseEntity<ResponseObject> checkPartnerRegisterTaxCode(@RequestParam String taxCode){
+        return authService.checkPartnerRegisterTaxCode(taxCode);
     }
 
     @PostMapping("/refresh")
