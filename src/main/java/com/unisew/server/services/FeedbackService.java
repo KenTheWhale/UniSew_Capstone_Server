@@ -14,9 +14,9 @@ public interface FeedbackService {
 
     ResponseEntity<ResponseObject> getFeedbacksByDesign(Integer designRequestId);
 
-    ResponseEntity<ResponseObject> getFeedbackByGarment(Integer garmentId);
+    ResponseEntity<ResponseObject> getFeedbackByGarment(HttpServletRequest httpServletRequest);
 
-    ResponseEntity<ResponseObject> getFeedbackByDesigner(Integer designerId);
+    ResponseEntity<ResponseObject> getFeedbackByDesigner(HttpServletRequest httpServletRequest);
 
     ResponseEntity<ResponseObject> approveReport(ApproveReportRequest request);
 

@@ -24,6 +24,7 @@ import com.unisew.server.models.Transaction;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
 
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class EntityResponseBuilder {
 
@@ -151,7 +153,7 @@ public class EntityResponseBuilder {
     }
 
     //-------Design Quotation---------
-    public static List<Map<String, Object>> buildDesignQuotationListResponse(List<DesignQuotation> quotations, DesignQuotationRepo designQuotationRepo) {
+    public static List<Map<String, Object>> buildDesignQuotationListResponse(List<DesignQuotation> quotations, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
 
         return quotations.stream()
                 .peek(quotation -> {
@@ -161,11 +163,11 @@ public class EntityResponseBuilder {
                     }
                 })
                 .filter(quotation -> quotation.getStatus().equals(Status.DESIGN_QUOTATION_PENDING))
-                .map(EntityResponseBuilder::buildDesignQuotationResponse)
+                .map(quotation -> buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo))
                 .toList();
     }
 
-    public static Map<String, Object> buildDesignQuotationResponse(DesignQuotation quotation) {
+    public static Map<String, Object> buildDesignQuotationResponse(DesignQuotation quotation, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
         List<String> keys = List.of(
                 "id", "designer", "note",
                 "deliveryWithIn", "revisionTime",
@@ -173,7 +175,7 @@ public class EntityResponseBuilder {
                 "acceptanceDeadline", "status"
         );
         List<Object> values = List.of(
-                quotation.getId(), buildPartnerResponse(quotation.getDesigner()), quotation.getNote(),
+                quotation.getId(), Objects.requireNonNull(buildPartnerResponse(quotation.getDesigner(), designQuotationRepo, designRequestRepo)), quotation.getNote(),
                 quotation.getDeliveryWithIn(), quotation.getRevisionTime(),
                 quotation.getExtraRevisionPrice(), quotation.getPrice(),
                 quotation.getAcceptanceDeadline(), quotation.getStatus().getValue()
@@ -290,13 +292,13 @@ public class EntityResponseBuilder {
     }
 
     //-------Order---------
-    public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, SewingPhaseRepo sewingPhaseRepo) {
+    public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, SewingPhaseRepo sewingPhaseRepo, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
         return orders.stream()
-                .map(order -> buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo))
+                .map(order -> buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo))
                 .toList();
     }
 
-    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo) {
+    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
         Partner partner;
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
@@ -305,7 +307,7 @@ public class EntityResponseBuilder {
         orderMap.put("id", order.getId());
         orderMap.put("deadline", order.getDeadline());
         orderMap.put("school", buildCustomerResponse(order.getSchoolDesign().getCustomer()));
-        orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner));
+        orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner, designQuotationRepo, designRequestRepo));
         orderMap.put("note", order.getNote());
         orderMap.put("orderDate", order.getOrderDate());
         orderMap.put("price", order.getPrice());
@@ -381,32 +383,51 @@ public class EntityResponseBuilder {
     }
 
     //-------Partner---------
-    public static Map<String, Object> buildPartnerResponse(Partner partner) {
+    public static Map<String, Object> buildPartnerResponse(Partner partner, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
         if (partner == null) return null;
+        List<Feedback> feedbacks = getDesignerFeedbacks(partner.getId(), designQuotationRepo, designRequestRepo);
         List<String> keys = List.of(
                 "id", "customer",
                 "preview",
                 "startTime", "endTime",
-                "rating", "busy", "thumbnails"
+                "rating", "busy", "thumbnails", "feedbacks"
         );
         List<Object> values = List.of(
                 partner.getId(), buildCustomerResponse(partner.getCustomer()),
                 partner.getInsidePreview(),
                 partner.getStartTime(), partner.getEndTime(),
-                partner.getRating(), partner.isBusy(), buildThumbnailImageListResponse(partner.getThumbnailImages())
+                partner.getRating(), partner.isBusy(), buildThumbnailImageListResponse(partner.getThumbnailImages()),
+                Objects.requireNonNullElse(buildListFeedbackResponse(feedbacks), new ArrayList<>())
         );
 
         return MapUtils.build(keys, values);
     }
 
+    private static List<Feedback> getDesignerFeedbacks(Integer designerId, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+        Set<Integer> designerQuotationIds = designQuotationRepo.findAllByDesigner_Id(designerId)
+                .stream()
+                .map(DesignQuotation::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        List<DesignRequest> requestsWithFeedback = designRequestRepo.findAllByFeedbackIsNotNull()
+                .stream()
+                .filter(dr -> dr.getDesignQuotationId() != null && designerQuotationIds.contains(dr.getDesignQuotationId()))
+                .toList();
+
+        return requestsWithFeedback.stream()
+                .map(DesignRequest::getFeedback)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     //-------Quotation---------
 
-    public static List<Map<String, Object>> buildQuotationResponse(List<GarmentQuotation> garmentQuotations) {
+    public static List<Map<String, Object>> buildQuotationResponse(List<GarmentQuotation> garmentQuotations, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
         return (garmentQuotations != null) ?
                 garmentQuotations.stream().map(item -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", item.getId());
-                    map.put("garment", buildPartnerResponse(item.getGarment()));
+                    map.put("garment", buildPartnerResponse(item.getGarment(), designQuotationRepo, designRequestRepo));
                     map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
                     map.put("acceptanceDeadline", item.getAcceptanceDeadline());
                     map.put("price", item.getPrice());

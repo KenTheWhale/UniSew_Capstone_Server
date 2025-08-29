@@ -16,6 +16,8 @@ import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignDeliveryRepo;
 import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.GarmentQuotationRepo;
 import com.unisew.server.repositories.MilestoneRepo;
 import com.unisew.server.repositories.OrderDetailRepo;
@@ -74,6 +76,8 @@ public class OrderServiceImpl implements OrderService {
     SewingPhaseRepo sewingPhaseRepo;
     MilestoneRepo milestoneRepo;
     PaymentService paymentService;
+    DesignRequestRepo designRequestRepo;
+    DesignQuotationRepo designQuotationRepo;
 
 
     @Override
@@ -135,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> viewAllOrder() {
 
         List<Order> orders = orderRepo.findAll().stream().filter(order -> order.getStatus().equals(Status.ORDER_PENDING)).toList();
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo, designRequestRepo, designQuotationRepo));
     }
 
     @Override
@@ -145,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         List<Order> orders = orderRepo.findAllByGarmentId(account.getCustomer().getPartner().getId());
-        return ResponseBuilder.build(HttpStatus.OK, "Get garment order list successfully", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "Get garment order list successfully", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo, designRequestRepo, designQuotationRepo));
     }
 
     @Override
@@ -167,7 +171,7 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
 
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo, designRequestRepo, designQuotationRepo));
     }
 
     @Override
@@ -249,7 +253,7 @@ public class OrderServiceImpl implements OrderService {
 
         Milestone milestone = milestoneRepo.findByOrder_IdAndStatus(order.getId(), Status.MILESTONE_PROCESSING).orElse(null);
         if (milestone == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Milestone has been completed", null);
         }
         order = milestone.getOrder();
         if (order == null) {
@@ -283,11 +287,9 @@ public class OrderServiceImpl implements OrderService {
                 nextMilestone.setStatus(Status.MILESTONE_PROCESSING);
                 milestoneRepo.save(nextMilestone);
             }
-
-            return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
         }
 
-        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are already at the end phase", null);
+        return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
     }
 
     @Override
@@ -403,7 +405,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
 
-        return ResponseBuilder.build(HttpStatus.OK, "List of quotations", EntityResponseBuilder.buildQuotationResponse(order.getGarmentQuotations()));
+        return ResponseBuilder.build(HttpStatus.OK, "List of quotations", EntityResponseBuilder.buildQuotationResponse(order.getGarmentQuotations(), designRequestRepo, designQuotationRepo));
     }
 
     @Override
@@ -445,7 +447,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
         }
 
-        Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo);
+        Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo);
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 

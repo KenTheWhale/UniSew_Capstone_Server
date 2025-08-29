@@ -84,15 +84,19 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getFeedbackByGarment(Integer garmentId) {
-        Partner garment = partnerRepo.findById(garmentId).orElse(null);
+    public ResponseEntity<ResponseObject> getFeedbackByGarment(HttpServletRequest httpServletRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account/Partner not found", null);
+        }
+        Partner garment = partnerRepo.findById(account.getCustomer().getPartner().getId()).orElse(null);
         if (garment == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment not found", null);
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment (partner) not found", null);
         }
 
         List<Map<String, Object>> data = orderRepo.findAll().stream()
                 .filter(Objects::nonNull)
-                .filter(o -> Objects.equals(o.getGarmentId(), garmentId))
+                .filter(o -> Objects.equals(o.getGarmentId(), garment.getId()))
                 .filter(o -> o.getFeedback() != null)
                 .map(o -> {
                     Feedback fb = o.getFeedback();
@@ -134,13 +138,17 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getFeedbackByDesigner(Integer designerId) {
-        Partner designer = partnerRepo.findById(designerId).orElse(null);
+    public ResponseEntity<ResponseObject> getFeedbackByDesigner(HttpServletRequest httpServletRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account/Partner not found", null);
+        }
+        Partner designer = partnerRepo.findById(account.getCustomer().getPartner().getId()).orElse(null);
         if (designer == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Designer (partner) not found", null);
         }
 
-        Set<Integer> designerQuotationIds = designQuotationRepo.findAllByDesigner_Id(designerId)
+        Set<Integer> designerQuotationIds = designQuotationRepo.findAllByDesigner_Id(designer.getId())
                 .stream()
                 .map(DesignQuotation::getId)
                 .collect(java.util.stream.Collectors.toSet());
@@ -229,18 +237,16 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Design request not found", null);
         }
         if (!Objects.equals(dr.getSchool().getId(), school.getId())) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not the owner of this request", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You are not the owner of this request", null);
         }
         if (dr.getFeedback() != null) {
-            return ResponseBuilder.build(HttpStatus.CONFLICT, "Feedback already exists for this design request", null);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Feedback already exists for this design request", null);
         }
 
         Partner designer = resolveDesignerPartner(dr);
         if (designer == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Designer partner could not be resolved for this request", null);
         }
-
-        ;
 
         Feedback feedback = feedbackRepo.save(
                 Feedback.builder()

@@ -276,12 +276,6 @@ public class ServerApplication {
                                     fabricRepo.saveAll(fabrics);
                                 }
 
-
-                                // DESIGN_REQUEST
-
-                                //----------------------DESIGN_ITEM--------------------//
-
-
                             }
                         }
                     }

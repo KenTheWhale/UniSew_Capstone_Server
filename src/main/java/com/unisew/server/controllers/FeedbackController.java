@@ -34,16 +34,16 @@ public class FeedbackController {
         return feedbackService.getFeedbacksByDesign(designRequestId);
     }
 
-    @GetMapping("/garment")
+    @PostMapping("/garment")
     @PreAuthorize("hasAnyRole('ADMIN', 'GARMENT')")
-    public ResponseEntity<ResponseObject> getFeedbackByGarment(@RequestParam(name = "garmentId") Integer garmentId) {
-        return feedbackService.getFeedbackByGarment(garmentId);
+    public ResponseEntity<ResponseObject> getFeedbackByGarment(HttpServletRequest httpServletRequest) {
+        return feedbackService.getFeedbackByGarment(httpServletRequest);
     }
 
-    @GetMapping("/designer")
+    @PostMapping("/designer")
     @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER')")
-    public ResponseEntity<ResponseObject> getFeedbackByDesigner(@RequestParam(name = "designerId") Integer designerId) {
-        return feedbackService.getFeedbackByDesigner(designerId);
+    public ResponseEntity<ResponseObject> getFeedbackByDesigner(HttpServletRequest httpServletRequest) {
+        return feedbackService.getFeedbackByDesigner(httpServletRequest);
     }
 
     @GetMapping("/report")
