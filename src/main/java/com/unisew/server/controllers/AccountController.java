@@ -3,6 +3,7 @@ package com.unisew.server.controllers;
 import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
 import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.requests.UpdatePartnerProfileRequest;
@@ -111,5 +112,11 @@ public class AccountController {
     @PreAuthorize("hasAnyRole( 'DESIGNER', 'GARMENT')")
     public ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request,@RequestBody UpdatePartnerProfileRequest updatePartnerProfileRequest) {
         return accountService.updatePartnerProfile(request, updatePartnerProfileRequest);
+    }
+
+    @PostMapping("/school/first/profile")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> checkSchoolInit(@RequestBody CheckSchoolInitRequest request){
+        return accountService.checkSchoolInit(request);
     }
 }

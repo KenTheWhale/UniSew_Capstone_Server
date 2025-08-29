@@ -218,6 +218,9 @@ public class AuthServiceImpl implements AuthService {
             if (request.getCustomerData() != null) {
                 EncryptPartnerDataRequest.CustomerData data = request.getCustomerData();
                 dataToEncrypt.put("address", data.getAddress());
+                dataToEncrypt.put("ward", data.getWard());
+                dataToEncrypt.put("district", data.getDistrict());
+                dataToEncrypt.put("province", data.getProvince());
                 dataToEncrypt.put("taxCode", data.getTaxCode());
                 dataToEncrypt.put("name", data.getName());
                 dataToEncrypt.put("businessName", data.getBusinessName());
@@ -297,6 +300,9 @@ public class AuthServiceImpl implements AuthService {
 
             EncryptPartnerDataRequest.CustomerData customerData = EncryptPartnerDataRequest.CustomerData.builder()
                     .address((String) decryptedDataMap.get("address"))
+                    .ward((String) decryptedDataMap.get("ward"))
+                    .district((String) decryptedDataMap.get("district"))
+                    .province((String) decryptedDataMap.get("province"))
                     .taxCode((String) decryptedDataMap.get("taxCode"))
                     .name((String) decryptedDataMap.get("name"))
                     .businessName((String) decryptedDataMap.get("businessName"))
@@ -339,7 +345,7 @@ public class AuthServiceImpl implements AuthService {
             Customer customer = customerRepo.save(
                     Customer.builder()
                             .account(account)
-                            .address(customerData.getAddress())
+                            .address(customerData.getAddress() + ", " + customerData.getWard() + ", " + customerData.getDistrict() + ", " + customerData.getProvince())
                             .taxCode(customerData.getTaxCode())
                             .name(customerData.getName())
                             .businessName(customerData.getBusinessName())
@@ -458,9 +464,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> checkEmail(String email) {
+    public ResponseEntity<ResponseObject> checkPartnerRegisterInfo(String email, String phone) {
         Map<String, Object> data = new HashMap<>();
-        data.put("existed", accountRepo.existsByEmail(email));
+        data.put("existed", accountRepo.existsByEmailOrCustomer_Phone(email, phone));
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> checkPartnerRegisterTaxCode(String taxCode) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("existed", accountRepo.existsByCustomer_TaxCode(taxCode));
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 }
