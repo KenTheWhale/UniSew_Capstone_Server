@@ -32,8 +32,8 @@ public class PaymentController {
 
     @GetMapping("/transactions")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<ResponseObject> getAllTransaction(HttpServletRequest httpRequest) {
-        return paymentService.getAllTransaction(httpRequest);
+    public ResponseEntity<ResponseObject> getAllTransaction() {
+        return paymentService.getAllTransaction();
     }
 
     @PostMapping("/transaction")
@@ -46,6 +46,12 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> refundTransaction(@RequestBody RefundRequest request, HttpServletRequest httpRequest) {
         return paymentService.refundTransaction(request, httpRequest);
+    }
+
+    @PostMapping("/transactions")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getTransactions(HttpServletRequest httpRequest) {
+        return paymentService.getTransactions(httpRequest);
     }
 
 }

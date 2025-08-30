@@ -151,7 +151,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         boolean isPaymentSuccess = request.getGatewayCode().equalsIgnoreCase("00");
 
-        Account receiver = customerRepo.findById(request.getReceiverId()).get().getAccount();
+        Account receiver;
+        if (request.getType().equalsIgnoreCase(PaymentType.WALLET.name())) {
+            receiver = sender;
+        } else {
+           receiver = customerRepo.findById(request.getReceiverId()).get().getAccount();
+        }
 
         Wallet adminWallet = getAdminWallet();
         Wallet senderWallet = sender.getWallet();
@@ -195,7 +200,7 @@ public class PaymentServiceImpl implements PaymentService {
             return "Type invalid";
         }
 
-        if (!customerRepo.existsById(request.getReceiverId())) {
+        if (!request.getType().equalsIgnoreCase(PaymentType.WALLET.getValue()) && !customerRepo.existsById(request.getReceiverId())) {
             return "Receiver not found";
         }
 
@@ -274,17 +279,30 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getAllTransaction(HttpServletRequest httpRequest) {
+    public ResponseEntity<ResponseObject> getAllTransaction() {
         List<Transaction> transactions = transactionRepo.findAllByOrderByIdDesc();
         return ResponseBuilder.build(HttpStatus.OK, "Transactions", EntityResponseBuilder.buildListTransactionResponse(transactions));
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getTransactions(HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+        List<Transaction> transactions = transactionRepo.findAllByWallet_Id(account.getWallet().getId()).stream()
+                .sorted((t1, t2) -> Integer.compare(t2.getId(), t1.getId()))
+                .toList();
+
+        return ResponseBuilder.build(HttpStatus.OK, "Transactions get successfully", EntityResponseBuilder.buildListTransactionResponse(transactions));
     }
 
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> refundTransaction(RefundRequest request, HttpServletRequest httpRequest) {
         Account actor = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-        if (actor == null || actor.getRole() != Role.ADMIN) {
-            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Only ADMIN can refund/resolve report", null);
+        if (actor == null ) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
         String error = validateRefund(request);
@@ -309,7 +327,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .toList();
         }
 
-        boolean isMatching = feedbackMatchesDecision(transactions.get(0), "APPROVED".equalsIgnoreCase(request.getDecision()));
+        boolean isMatching = feedbackMatchesDecision(transactions.get(0), "ACCEPTED".equalsIgnoreCase(request.getDecision()));
         if (!isMatching) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Report status does not match the decision", null);
         }
@@ -362,8 +380,8 @@ public class PaymentServiceImpl implements PaymentService {
     private String validateRefund(RefundRequest request) {
         if (request == null) return "Request is required";
         if (request.getDecision() == null || request.getDecision().isBlank()) return "decision is required";
-        if (!"APPROVED".equalsIgnoreCase(request.getDecision()) && !"REJECTED".equalsIgnoreCase(request.getDecision())) {
-            return "decision must be APPROVED or REJECTED";
+        if (!"ACCEPTED".equalsIgnoreCase(request.getDecision()) && !"REJECTED".equalsIgnoreCase(request.getDecision())) {
+            return "decision must be ACCEPTED or REJECTED";
         }
         return null;
     }
