@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<ResponseObject> login(LoginRequest request, HttpServletResponse response) {
-        Account account = accountRepo.findByEmail(request.getEmail()).orElse(null);
+        Account account = accountRepo.findByEmail(request.getEmail().toLowerCase()).orElse(null);
         AccountRequest accountRequest = accountRequestRepo.findByEmail(request.getEmail()).orElse(null);
 
         if (accountRequest != null) {
@@ -106,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
 
         Account account = accountRepo.save(
                 Account.builder()
-                        .email(request.getEmail())
+                        .email(request.getEmail().toLowerCase())
                         .role(Role.SCHOOL)
                         .registerDate(LocalDate.now())
                         .status(Status.ACCOUNT_ACTIVE)
@@ -183,6 +183,7 @@ public class AuthServiceImpl implements AuthService {
         partnerData.put("endTime", partner.getEndTime());
         partnerData.put("rating", partner.getRating());
         partnerData.put("busy", partner.isBusy());
+        partnerData.put("shippingUID", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getShippingUid() : "");
         return partnerData;
     }
 
@@ -211,7 +212,7 @@ public class AuthServiceImpl implements AuthService {
 
             if (request.getAccountData() != null) {
                 EncryptPartnerDataRequest.AccountData data = request.getAccountData();
-                dataToEncrypt.put("email", data.getEmail());
+                dataToEncrypt.put("email", data.getEmail().toLowerCase());
                 dataToEncrypt.put("role", data.getRole());
             }
 
@@ -272,7 +273,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> createPartnerAccountRequest(CreatePartnerAccountRequest request) {
+    public ResponseEntity<ResponseObject> createPartnerAccount(CreatePartnerAccountRequest request) {
         try {
             // Decrypt the string
             String decryptedString = decrypt(request.getEncryptedData().replaceAll(" ", "+"));
@@ -294,7 +295,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             EncryptPartnerDataRequest.AccountData accountData = EncryptPartnerDataRequest.AccountData.builder()
-                    .email((String) decryptedDataMap.get("email"))
+                    .email(((String) decryptedDataMap.get("email")).toLowerCase())
                     .role((String) decryptedDataMap.get("role"))
                     .build();
 

@@ -1,5 +1,6 @@
 package com.unisew.server.utils;
 
+import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
 import com.unisew.server.repositories.DeliveryItemRepo;
@@ -399,14 +400,15 @@ public class EntityResponseBuilder {
                 "id", "customer",
                 "preview",
                 "startTime", "endTime",
-                "rating", "busy", "thumbnails", "feedbacks"
+                "rating", "busy", "thumbnails", "feedbacks", "shippingUID"
         );
         List<Object> values = List.of(
                 partner.getId(), buildCustomerResponse(partner.getCustomer()),
                 partner.getInsidePreview(),
                 partner.getStartTime(), partner.getEndTime(),
                 partner.getRating(), partner.isBusy(), buildThumbnailImageListResponse(partner.getThumbnailImages()),
-                Objects.requireNonNullElse(buildListFeedbackResponse(feedbacks), new ArrayList<>())
+                Objects.requireNonNullElse(buildListFeedbackResponse(feedbacks), new ArrayList<>()),
+                partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getShippingUid() : ""
         );
 
         return MapUtils.build(keys, values);
