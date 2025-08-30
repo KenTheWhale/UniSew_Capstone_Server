@@ -506,6 +506,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus(Status.ORDER_DELIVERING);
+        order.setShippingCode(request.getShippingCode());
+        order.setShippingFee(request.getShippingFee());
         orderRepo.save(order);
 
         Partner garment = partnerRepo.findById(request.getCreateTransactionRequest().getReceiverId()).orElse(null);

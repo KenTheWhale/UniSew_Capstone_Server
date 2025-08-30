@@ -14,5 +14,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConfirmDeliveredOrderRequest {
     int orderId;
+    String shippingCode;
+    long shippingFee;
     CreateTransactionRequest createTransactionRequest;
 }

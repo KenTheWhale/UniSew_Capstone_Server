@@ -247,7 +247,7 @@ public class AuthServiceImpl implements AuthService {
                 dataToEncrypt.put("districtId", data.getDistrictId());
                 dataToEncrypt.put("wardCode", data.getWardCode());
                 dataToEncrypt.put("address", data.getAddress());
-                dataToEncrypt.put("name", data.getName());
+                dataToEncrypt.put("storeName", data.getName());
                 dataToEncrypt.put("phone", data.getPhone());
             }
 
@@ -326,7 +326,7 @@ public class AuthServiceImpl implements AuthService {
                     .districtId((Integer) decryptedDataMap.get("districtId"))
                     .wardCode((Integer) decryptedDataMap.get("wardCode"))
                     .address((String) decryptedDataMap.get("address"))
-                    .name((String) decryptedDataMap.get("name"))
+                    .name((String) decryptedDataMap.get("storeName"))
                     .phone((String) decryptedDataMap.get("phone"))
                     .build();
 
