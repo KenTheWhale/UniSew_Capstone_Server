@@ -290,7 +290,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
-        List<Transaction> transactions = transactionRepo.findAllByWallet_Id(account.getWallet().getId()).stream()
+        List<Transaction> transactions = transactionRepo.findAllBySender_IdOrReceiver_Id(account.getCustomer().getId(), account.getCustomer().getId()).stream()
                 .sorted((t1, t2) -> Integer.compare(t2.getId(), t1.getId()))
                 .toList();
 
