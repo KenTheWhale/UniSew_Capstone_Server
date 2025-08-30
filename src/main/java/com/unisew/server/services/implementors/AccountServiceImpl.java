@@ -28,7 +28,6 @@ import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.utils.CookieUtil;
-import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -106,19 +105,17 @@ public class AccountServiceImpl implements AccountService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
         }
 
-        List<String> keys = List.of(
-                "id", "email", "registerDate",
-                "role", "status",
-                "profile",
-                "wallet"
-        );
-        List<Object> values = List.of(
-                account.getId(), account.getEmail(), account.getRegisterDate(),
-                account.getRole().getValue(), account.getStatus().getValue(),
-                buildCustomerResponse(account.getCustomer(), userType),
-                buildWalletResponse(account.getWallet())
-        );
-        return ResponseBuilder.build(HttpStatus.OK, "", MapUtils.build(keys, values));
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", account.getId());
+        data.put("email", account.getEmail());
+        data.put("registerDate", account.getRegisterDate());
+        data.put("role", account.getRole().getValue());
+        data.put("status", account.getStatus().getValue());
+        data.put("profile", buildCustomerResponse(account.getCustomer(), userType));
+        data.put("wallet", buildWalletResponse(account.getWallet()));
+
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
     @Override
@@ -260,107 +257,92 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private Map<String, Object> buildWithdrawResponse(WithdrawRequest withdrawRequest, boolean simpleMode) {
-        if (withdrawRequest == null) return null;
-
-        List<String> keys;
-        List<Object> values;
-
-        if (simpleMode) {
-            keys = List.of("id", "creationDate", "withdrawAmount", "status");
-            values = List.of(
-                    withdrawRequest.getId(),
-                    withdrawRequest.getCreationDate(),
-                    withdrawRequest.getWithdrawAmount(),
-                    withdrawRequest.getStatus().getValue()
-            );
-        } else {
-            keys = List.of("id", "creationDate", "account", "withdrawAmount", "status");
-            values = List.of(
-                    withdrawRequest.getId(),
-                    withdrawRequest.getCreationDate(),
-                    buildAccountResponse(withdrawRequest.getWallet().getAccount()),
-                    withdrawRequest.getWithdrawAmount(),
-                    withdrawRequest.getStatus().getValue()
-            );
+        if (withdrawRequest == null) {
+            return null;
         }
 
-        return MapUtils.build(keys, values);
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", withdrawRequest.getId());
+        data.put("creationDate", withdrawRequest.getCreationDate());
+        data.put("withdrawAmount", withdrawRequest.getWithdrawAmount());
+        data.put("status", withdrawRequest.getStatus().getValue());
+
+        if (!simpleMode) {
+            data.put("account", buildAccountResponse(withdrawRequest.getWallet().getAccount()));
+        }
+
+        return data;
     }
 
     private Map<String, Object> buildAccountResponse(Account account) {
-        if (account == null) return null;
+        if (account == null) {
+            return null;
+        }
 
-        List<String> keys = List.of(
-                "id", "registerDate", "email", "role", "status"
-        );
-        List<Object> values = List.of(
-                account.getId(), account.getRegisterDate(),
-                account.getEmail(), account.getRole(), account.getStatus()
-        );
-        return MapUtils.build(keys, values);
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", account.getId());
+        data.put("registerDate", account.getRegisterDate());
+        data.put("email", account.getEmail());
+        data.put("role", account.getRole());
+        data.put("status", account.getStatus());
+
+        return data;
     }
 
     private Map<String, Object> buildCustomerResponse(Customer customer, String userType) {
-        if (customer == null) return null;
-        List<String> keys = List.of(
-                "address", "avatar", "businessName",
-                "name", "phone", "taxCode"
-        );
-        List<Object> values = List.of(
-                customer.getAddress(), customer.getAvatar(), customer.getBusinessName(),
-                customer.getName(), customer.getPhone(), customer.getTaxCode()
-        );
-
-        if (!userType.equalsIgnoreCase(Role.SCHOOL.getValue())) {
-            keys = List.of(
-                    "address", "avatar", "businessName",
-                    "name", "phone", "taxCode",
-                    "partner"
-            );
-
-            values = List.of(
-                    customer.getAddress(), customer.getAvatar(), customer.getBusinessName(),
-                    customer.getName(), customer.getPhone(), customer.getTaxCode(),
-                    buildPartnerResponse(customer.getPartner())
-            );
+        if (customer == null) {
+            return null;
         }
 
-        return MapUtils.build(keys, values);
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("address", customer.getAddress());
+        data.put("avatar", customer.getAvatar());
+        data.put("businessName", customer.getBusinessName());
+        data.put("name", customer.getName());
+        data.put("phone", customer.getPhone());
+        data.put("taxCode", customer.getTaxCode());
+
+        if (!userType.equalsIgnoreCase(Role.SCHOOL.getValue())) {
+            data.put("partner", buildPartnerResponse(customer.getPartner()));
+        }
+
+        return data;
     }
 
     private Map<String, Object> buildPartnerResponse(Partner partner) {
-        if (partner == null) return null;
-        List<String> keys = List.of(
-                "busy", "endTime", "startTime",
-                "preview", "rating"
-        );
+        if (partner == null) {
+            return null;
+        }
 
-        List<Object> values = List.of(
-                partner.isBusy(), partner.getEndTime(), partner.getStartTime(),
-                partner.getInsidePreview(), partner.getRating()
-        );
+        Map<String, Object> data = new HashMap<>();
 
-        return MapUtils.build(keys, values);
+        data.put("busy", partner.isBusy());
+        data.put("endTime", partner.getEndTime());
+        data.put("startTime", partner.getStartTime());
+        data.put("preview", partner.getInsidePreview());
+        data.put("rating", partner.getRating());
+
+        return data;
     }
 
     private Map<String, Object> buildWalletResponse(Wallet wallet) {
-        if (wallet == null) return null;
-        List<String> keys = List.of(
-                "id", "balance", "pendingBalance",
-                "cardOwner", "bank",
-                "bankAccountNumber"
+        if (wallet == null) {
+            return null;
+        }
 
-        );
-        List<Object> values = List.of(
-                wallet.getId(),
-                wallet.getBalance(),
-                wallet.getPendingBalance(),
-                Objects.requireNonNullElse(wallet.getCardOwner(), ""),
-                Objects.requireNonNullElse(wallet.getBank(), ""),
-                Objects.requireNonNullElse(wallet.getBankAccountNumber(), "")
-        );
+        Map<String, Object> data = new HashMap<>();
 
-        return MapUtils.build(keys, values);
+        data.put("id", wallet.getId());
+        data.put("balance", wallet.getBalance());
+        data.put("pendingBalance", wallet.getPendingBalance());
+        data.put("cardOwner", Objects.requireNonNullElse(wallet.getCardOwner(), ""));
+        data.put("bank", Objects.requireNonNullElse(wallet.getBank(), ""));
+        data.put("bankAccountNumber", Objects.requireNonNullElse(wallet.getBankAccountNumber(), ""));
+
+        return data;
     }
 
     @Override
@@ -397,18 +379,20 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private Map<String, Object> buildAccountRequest(AccountRequest accountRequest) {
-        List<String> keys = List.of(
-                "email", "role", "address", "taxCode", "phone", "status"
-        );
-        List<Object> values = List.of(
-                Objects.requireNonNullElse(accountRequest.getEmail(), ""),
-                Objects.requireNonNullElse(accountRequest.getRole(), ""),
-                Objects.requireNonNullElse(accountRequest.getAddress(), ""),
-                Objects.requireNonNullElse(accountRequest.getTaxCode(), ""),
-                Objects.requireNonNullElse(accountRequest.getPhone(), ""),
-                Objects.requireNonNullElse(accountRequest.getStatus(), "")
-        );
-        return MapUtils.build(keys, values);
+        if (accountRequest == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("email", accountRequest.getEmail());
+        data.put("role", accountRequest.getRole());
+        data.put("address", accountRequest.getAddress());
+        data.put("taxCode", accountRequest.getTaxCode());
+        data.put("phone", accountRequest.getPhone());
+        data.put("status", accountRequest.getStatus());
+
+        return data;
     }
 
     @Override
