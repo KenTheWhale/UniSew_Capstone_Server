@@ -10,6 +10,8 @@ import com.unisew.server.models.FeedbackImage;
 import com.unisew.server.models.Order;
 import com.unisew.server.models.Partner;
 import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.FeedbackImageRepo;
@@ -57,6 +59,9 @@ public class FeedbackServiceImpl implements FeedbackService {
     DesignQuotationRepo designQuotationRepo;
     PartnerRepo partnerRepo;
     OrderRepo orderRepo;
+    DeliveryItemRepo deliveryItemRepo;
+    DesignItemRepo designItemRepo;
+
 
     @Override
     public ResponseEntity<ResponseObject> getFeedbacksByOrder(Integer orderId) {
@@ -207,7 +212,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public ResponseEntity<ResponseObject> getAllReport() {
         List<Feedback> reports = feedbackRepo.findAllByReportIsTrue();
-        return ResponseBuilder.build(HttpStatus.OK, "List of all feedback reports", EntityResponseBuilder.buildListFeedbackResponse(reports));
+        return ResponseBuilder.build(HttpStatus.OK, "List of all feedback reports", EntityResponseBuilder.buildListReportResponse(reports, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo) );
     }
 
     @Override

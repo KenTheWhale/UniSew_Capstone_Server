@@ -16,5 +16,5 @@ public class ApproveReportRequest {
     Integer feedbackId;
     String messageForSchool;
     String messageForPartner;
-    boolean isApproved;
+    boolean approved;
 }

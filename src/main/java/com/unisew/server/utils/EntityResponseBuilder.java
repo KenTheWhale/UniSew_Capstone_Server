@@ -212,7 +212,27 @@ public class EntityResponseBuilder {
     public static Map<String, Object> buildFeedbackResponse(Feedback feedback) {
         if (feedback == null) return null;
         List<String> keys = List.of("id", "rating", "content", "creationDate", "images", "status", "sender", "receiver");
-        List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(), buildFeedbackImageListResponse(feedback.getFeedbackImages()), feedback.getStatus(), Objects.requireNonNull(buildSenderMap(feedback)), Objects.requireNonNull(buildReceiverMap(feedback)));
+        List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(),
+                buildFeedbackImageListResponse(feedback.getFeedbackImages()), feedback.getStatus().getValue(), Objects.requireNonNullElse(buildSenderMap(feedback), ""),
+                Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
+        return MapUtils.build(keys, values);
+    }
+
+    public static List<Map<String, Object>> buildListReportResponse(List<Feedback> feedbacks, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+        return feedbacks.stream().map(
+                feedback -> buildReportResponse(feedback, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo)
+        ).toList();
+    }
+
+    public static Map<String, Object> buildReportResponse(Feedback feedback, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+        if (feedback == null) return null;
+        List<String> keys = List.of("id", "rating", "content", "creationDate", "images", "status", "sender", "receiver", "order", "designRequest");
+        List<Object> values = List.of(feedback.getId(), feedback.getRating(), feedback.getContent(), feedback.getCreationDate(),
+                buildFeedbackImageListResponse(feedback.getFeedbackImages()), feedback.getStatus().getValue(), Objects.requireNonNullElse(buildSenderMap(feedback), ""),
+                Objects.requireNonNullElse(buildReceiverMap(feedback), ""),
+                feedback.getOrder() != null ? Objects.requireNonNullElse(buildOrder(feedback.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo), "") : "",
+                feedback.getDesignRequest() != null ? Objects.requireNonNullElse(buildDesignRequestResponse(feedback.getDesignRequest()), "") : ""
+        );
         return MapUtils.build(keys, values);
     }
 
@@ -270,10 +290,18 @@ public class EntityResponseBuilder {
 
         if (fb.getOrder() != null) {
             Order order = fb.getOrder();
+            GarmentQuotation gq = order.getGarmentQuotations().stream()
+                    .filter(o -> o.getGarment().getId().equals(order.getGarmentId()))
+                    .findFirst()
+                    .orElse(null);
+            Partner garment = gq != null ? gq.getGarment() : null;
+            assert garment != null;
             Map<String, Object> receiver = new HashMap<>();
             receiver.put("type", "garment");
             receiver.put("id", order.getGarmentId());
             receiver.put("name", order.getGarmentName());
+            receiver.put("avatar", garment.getCustomer().getAvatar());
+            receiver.put("email", garment.getCustomer().getAccount().getEmail());
             return receiver;
         }
 
