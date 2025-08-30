@@ -341,12 +341,12 @@ public class EntityResponseBuilder {
         orderMap.put("orderDate", order.getOrderDate());
         orderMap.put("price", order.getPrice());
         orderMap.put("shippingFee", order.getShippingFee());
-        orderMap.put("shippingCode", order.getShippingCode());
         orderMap.put("status", order.getStatus().getValue());
         orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
         orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
         orderMap.put("selectedDesign", EntityResponseBuilder.buildDesignDeliveryResponse(order.getSchoolDesign().getDesignDelivery(), designItemRepo));
         orderMap.put("feedback", Objects.requireNonNullElse(buildFeedbackResponse(order.getFeedback()), ""));
+        orderMap.put("shippingCode", Objects.requireNonNullElse(order.getShippingCode(), ""));
         return orderMap;
     }
 
