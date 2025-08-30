@@ -29,7 +29,6 @@ import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.ConfirmDeliveredOrderRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
-import com.unisew.server.requests.DeleteSewingPhaseRequest;
 import com.unisew.server.requests.QuotationRequest;
 import com.unisew.server.requests.UpdateMilestoneStatusRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -38,7 +37,6 @@ import com.unisew.server.services.OrderService;
 import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
-import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.ApproveQuotationValidation;
 import com.unisew.server.validations.OrderValidation;
@@ -56,6 +54,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -417,9 +416,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Map<String, Object> buildSize(DeliveryItemSize size) {
-        List<String> keys = List.of("type", "size", "gender", "maxHeight", "minHeight", "maxWeight", "minWeight", "enumName");
-        List<Object> values = List.of(size.getType(), size.getSize(), size.getGender(), size.getMaxHeight(), size.getMinHeight(), size.getMaxWeight(), size.getMinWeight(), size.name());
-        return MapUtils.build(keys, values);
+        if (size == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("type", size.getType());
+        data.put("size", size.getSize());
+        data.put("gender", size.getGender());
+        data.put("maxHeight", size.getMaxHeight());
+        data.put("minHeight", size.getMinHeight());
+        data.put("maxWeight", size.getMaxWeight());
+        data.put("minWeight", size.getMinWeight());
+        data.put("enumName", size.name());
+
+        return data;
     }
 
     @Override

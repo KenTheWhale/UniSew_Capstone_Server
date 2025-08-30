@@ -46,7 +46,6 @@ import com.unisew.server.services.JWTService;
 import com.unisew.server.services.PaymentService;
 import com.unisew.server.utils.CookieUtil;
 import com.unisew.server.utils.EntityResponseBuilder;
-import com.unisew.server.utils.MapUtils;
 import com.unisew.server.utils.ResponseBuilder;
 import com.unisew.server.validations.BuyRevisionValidation;
 import com.unisew.server.validations.CancelRequestValidation;
@@ -640,21 +639,17 @@ public class DesignServiceImpl implements DesignService {
 
         List<Map<String, Object>> designQuotation = designQuotationList.stream().map(
                 quotation -> {
-                    List<String> keys = List.of(
-                            "id", "designRequest",
-                            "note", "deliveryWithIn",
-                            "revisionTime", "extraRevisionPrice",
-                            "price", "acceptanceDeadline",
-                            "status"
-                    );
-                    List<Object> values = List.of(
-                            quotation.getId(), EntityResponseBuilder.buildDesignRequestResponse(quotation.getDesignRequest()),
-                            quotation.getNote(), quotation.getDeliveryWithIn(),
-                            quotation.getRevisionTime(), quotation.getExtraRevisionPrice(),
-                            quotation.getPrice(), quotation.getAcceptanceDeadline(),
-                            quotation.getStatus()
-                    );
-                    return MapUtils.build(keys, values);
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("id", quotation.getId());
+                    data.put("designRequest", EntityResponseBuilder.buildDesignRequestResponse(quotation.getDesignRequest()));
+                    data.put("note", quotation.getNote());
+                    data.put("deliveryWithIn", quotation.getDeliveryWithIn());
+                    data.put("revisionTime", quotation.getRevisionTime());
+                    data.put("extraRevisionPrice", quotation.getExtraRevisionPrice());
+                    data.put("price", quotation.getPrice());
+                    data.put("acceptanceDeadline", quotation.getAcceptanceDeadline());
+                    data.put("status", quotation.getStatus());
+                    return data;
                 }
         ).toList();
         return ResponseBuilder.build(HttpStatus.OK, "", designQuotation);
@@ -731,173 +726,110 @@ public class DesignServiceImpl implements DesignService {
     }
 
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(List<DesignRequest> designRequests, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
-        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
-                designRequest -> {
-                    boolean completed = designRequest.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED);
+        List<Map<String, Object>> designRequestMaps = designRequests.stream()
+                .map(designRequest -> {
+                    Map<String, Object> data = new HashMap<>();
 
-                    List<String> keys = List.of(
-                            "id",
-                            "feedback",
-                            "finalDesignQuotation",
-                            "designQuotations",
-                            "name", "creationDate", "logoImage",
-                            "privacy", "status", "items",
-                            "revisionTime", "price"
-                    );
+                    // Common fields
+                    data.put("id", designRequest.getId());
 
-                    if (completed) {
-                        keys = List.of(
-                                "id",
-                                "feedback",
-                                "finalDesignQuotation",
-                                "designQuotations",
-                                "name", "creationDate", "logoImage",
-                                "privacy", "status", "items",
-                                "revisionTime", "price",
-                                "resultDelivery"
-                        );
+                    Feedback feedback = designRequest.getFeedback();
+                    data.put("feedback", EntityResponseBuilder.buildFeedbackResponse(feedback));
+
+                    data.put("name", designRequest.getName());
+                    data.put("creationDate", designRequest.getCreationDate());
+                    data.put("logoImage", designRequest.getLogoImage());
+                    data.put("privacy", designRequest.isPrivacy());
+                    data.put("status", designRequest.getStatus().getValue());
+                    data.put("items", EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()));
+                    data.put("revisionTime", designRequest.getRevisionTime());
+                    data.put("price", designRequest.getPrice());
+
+                    // Conditional fields based on DesignQuotation
+                    DesignQuotation finalQuotation = null;
+                    if (designRequest.getDesignQuotationId() != null) {
+                        finalQuotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
                     }
 
-                    List<Object> values;
-
-                    if (designRequest.getDesignQuotationId() == null) {
-                        Feedback feedback = designRequest.getFeedback();
-                        values = List.of(
-                                designRequest.getId(),
-                                feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
-                                "",
-                                EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                                designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                                designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                                designRequest.getRevisionTime(), designRequest.getPrice()
-                        );
+                    if (finalQuotation != null) {
+                        data.put("finalDesignQuotation", EntityResponseBuilder.buildDesignQuotationResponse(finalQuotation, designQuotationRepo, designRequestRepo));
                     } else {
-                        DesignQuotation quotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
-
-                        if (quotation == null) {
-                            Feedback feedback = designRequest.getFeedback();
-                            values = List.of(
-                                    designRequest.getId(),
-                                    feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
-                                    "",
-                                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                                    designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                                    designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                                    designRequest.getRevisionTime(), designRequest.getPrice()
-                            );
-                        } else {
-                            Feedback feedback = designRequest.getFeedback();
-                            values = List.of(
-                                    designRequest.getId(),
-                                    feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
-                                    EntityResponseBuilder.buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo),
-                                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                                    designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                                    designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                                    designRequest.getRevisionTime(), designRequest.getPrice()
-                            );
-
-                            if (completed) {
-                                values = List.of(
-                                        designRequest.getId(),
-                                        feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
-                                        EntityResponseBuilder.buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo),
-                                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                                        designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                                        designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                                        designRequest.getRevisionTime(), designRequest.getPrice(),
-                                        buildResultDeliveryResponse(designRequest)
-                                );
-                            }
-                        }
+                        data.put("finalDesignQuotation", "");
                     }
 
-                    return MapUtils.build(keys, values);
-                }
-        ).toList();
+                    data.put("designQuotations", EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo));
+
+                    // Conditional field for completed status
+                    boolean completed = designRequest.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED);
+                    if (completed) {
+                        data.put("resultDelivery", buildResultDeliveryResponse(designRequest));
+                    }
+
+                    return data;
+                })
+                .toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
 
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(DesignRequest designRequest) {
-        List<String> keys = List.of(
-                "id",
-                "feedback",
-                "finalDesignQuotation",
-                "designQuotations",
-                "name", "creationDate", "logoImage",
-                "privacy", "status", "items",
-                "revisionTime", "price"
-        );
-
-        List<Object> values;
-
-        if (designRequest.getDesignQuotationId() == null) {
-            Feedback feedback = designRequest.getFeedback();
-            values = List.of(
-                    designRequest.getId(),
-                    Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""),
-                    "",
-                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                    designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                    designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                    designRequest.getRevisionTime(), designRequest.getPrice()
-            );
-        } else {
-            DesignQuotation quotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
-
-            if (quotation == null) {
-                Feedback feedback = designRequest.getFeedback();
-                values = List.of(
-                        designRequest.getId(),
-                        Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""),
-                        "",
-                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                        designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                        designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                        designRequest.getRevisionTime(), designRequest.getPrice()
-                );
-            } else {
-                Feedback feedback = designRequest.getFeedback();
-                values = List.of(
-                        designRequest.getId(),
-                        Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""),
-                        EntityResponseBuilder.buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo),
-                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
-                        designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
-                        designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
-                        designRequest.getRevisionTime(), designRequest.getPrice()
-                );
-            }
+        if (designRequest == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Design request not found", null);
         }
 
-        return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", MapUtils.build(keys, values));
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", designRequest.getId());
+
+        Feedback feedback = designRequest.getFeedback();
+        data.put("feedback", Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""));
+
+        // Tối ưu hóa việc tìm quotation và bỏ lặp code
+        DesignQuotation finalQuotation = null;
+        if (designRequest.getDesignQuotationId() != null) {
+            finalQuotation = designQuotationRepo.findById(designRequest.getDesignQuotationId()).orElse(null);
+        }
+
+        data.put("finalDesignQuotation", Objects.requireNonNullElse(EntityResponseBuilder.buildDesignQuotationResponse(finalQuotation, designQuotationRepo, designRequestRepo), ""));
+        data.put("designQuotations", EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo));
+
+        data.put("name", designRequest.getName());
+        data.put("creationDate", designRequest.getCreationDate());
+        data.put("logoImage", designRequest.getLogoImage());
+        data.put("privacy", designRequest.isPrivacy());
+        data.put("status", designRequest.getStatus().getValue());
+        data.put("items", EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()));
+        data.put("revisionTime", designRequest.getRevisionTime());
+        data.put("price", designRequest.getPrice());
+
+        return ResponseBuilder.build(HttpStatus.OK, "Design request retrieved successfully", data);
     }
 
     //-------Result Delivery---------
     private Map<String, Object> buildResultDeliveryResponse(DesignRequest request) {
-        if (request == null || !request.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED)) return null;
+        if (request == null || !request.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED)) {
+            return null;
+        }
+
         SchoolDesign design = schoolDesignRepo.findByDesignDelivery_DesignRequest_Id(request.getId()).orElse(null);
-        assert design != null;
+        if (design == null) {
+            return null;
+        }
+
         DesignDelivery delivery = design.getDesignDelivery();
+        if (delivery == null) {
+            return null;
+        }
 
-        List<String> keys = List.of(
-                "id",
-                "name",
-                "submitDate",
-                "note",
-                "items"
-        );
+        Map<String, Object> data = new HashMap<>();
 
-        List<Object> values = List.of(
-                delivery.getId(),
-                delivery.getName(),
-                delivery.getSubmitDate(),
-                delivery.getNote() == null ? "" : delivery.getNote(),
-                EntityResponseBuilder.buildDeliveryItemListResponse(delivery.getDeliveryItems(), designItemRepo)
-        );
+        data.put("id", delivery.getId());
+        data.put("name", delivery.getName());
+        data.put("submitDate", delivery.getSubmitDate());
+        data.put("note", delivery.getNote() == null ? "" : delivery.getNote());
+        data.put("items", EntityResponseBuilder.buildDeliveryItemListResponse(delivery.getDeliveryItems(), designItemRepo));
 
-        return MapUtils.build(keys, values);
+        return data;
     }
 
 }
