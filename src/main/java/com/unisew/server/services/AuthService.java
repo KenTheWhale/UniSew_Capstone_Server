@@ -15,7 +15,7 @@ public interface AuthService {
 
     ResponseEntity<ResponseObject> encryptPartnerData(EncryptPartnerDataRequest request);
 
-    ResponseEntity<ResponseObject> createPartnerAccountRequest(CreatePartnerAccountRequest request);
+    ResponseEntity<ResponseObject> createPartnerAccount(CreatePartnerAccountRequest request);
 
     ResponseEntity<ResponseObject> getNumberAccountRole();
 

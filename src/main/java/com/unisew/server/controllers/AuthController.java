@@ -52,7 +52,7 @@ public class AuthController {
 
     @PostMapping("/partner/register")
     public ResponseEntity<ResponseObject> createPartnerAccount(@RequestBody CreatePartnerAccountRequest request) {
-        return authService.createPartnerAccountRequest(request);
+        return authService.createPartnerAccount(request);
     }
 
     @GetMapping("/partner/suid")
