@@ -89,15 +89,15 @@ public class DesignServiceImpl implements DesignService {
     @Transactional
     public ResponseEntity<ResponseObject> createDesignRequest(CreateDesignRequest createDesignRequest, HttpServletRequest httpRequest) {
 
-        String errorMessage = CreateDesignValidation.validate(createDesignRequest);
-
-        if (!errorMessage.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, errorMessage, null);
-        }
-
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        String errorMessage = CreateDesignValidation.validate(createDesignRequest, designRequestRepo, account.getCustomer());
+
+        if (!errorMessage.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, errorMessage, null);
         }
 
         if (account.getStatus().equals(Status.ACCOUNT_INACTIVE)) {

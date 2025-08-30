@@ -2,13 +2,15 @@ package com.unisew.server.validations;
 
 import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.Gender;
+import com.unisew.server.models.Customer;
+import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.requests.CreateDesignRequest;
 
 import java.util.List;
 import java.util.Set;
 
 public class CreateDesignValidation {
-    public static String validate(CreateDesignRequest createDesignRequest) {
+    public static String validate(CreateDesignRequest createDesignRequest, DesignRequestRepo designRequestRepo, Customer school) {
 
         Set<String> validTypes = Set.of(DesignItemType.SHIRT.getValue(), DesignItemType.PANTS.getValue(), DesignItemType.SKIRT.getValue());
 
@@ -18,6 +20,10 @@ public class CreateDesignValidation {
 
         if (createDesignRequest.getDesignName() == null || createDesignRequest.getDesignName().isEmpty()) {
             return "Design name is required";
+        }
+
+        if(designRequestRepo.existsBySchool_IdAndName(school.getId(), createDesignRequest.getDesignName())){
+            return "Design name existed";
         }
 
         if (createDesignRequest.getLogoImage() == null || createDesignRequest.getLogoImage().isEmpty()) {
