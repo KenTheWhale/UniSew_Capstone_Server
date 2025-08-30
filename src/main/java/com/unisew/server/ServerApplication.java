@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.TimeZone;
 
 @SpringBootApplication
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class ServerApplication {
 
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SpringApplication.run(ServerApplication.class, args);
     }
 
