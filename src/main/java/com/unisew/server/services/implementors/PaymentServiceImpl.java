@@ -309,7 +309,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .toList();
         }
 
-        boolean isMatching = feedbackMatchesDecision(transactions.get(0), "APPROVED".equalsIgnoreCase(request.getDecision()));
+        boolean isMatching = feedbackMatchesDecision(transactions.get(0), "ACCEPTED".equalsIgnoreCase(request.getDecision()));
         if (!isMatching) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Report status does not match the decision", null);
         }
@@ -362,8 +362,8 @@ public class PaymentServiceImpl implements PaymentService {
     private String validateRefund(RefundRequest request) {
         if (request == null) return "Request is required";
         if (request.getDecision() == null || request.getDecision().isBlank()) return "decision is required";
-        if (!"APPROVED".equalsIgnoreCase(request.getDecision()) && !"REJECTED".equalsIgnoreCase(request.getDecision())) {
-            return "decision must be APPROVED or REJECTED";
+        if (!"ACCEPTED".equalsIgnoreCase(request.getDecision()) && !"REJECTED".equalsIgnoreCase(request.getDecision())) {
+            return "decision must be ACCEPTED or REJECTED";
         }
         return null;
     }
