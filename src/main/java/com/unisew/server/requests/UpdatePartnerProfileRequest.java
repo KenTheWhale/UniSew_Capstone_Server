@@ -50,6 +50,5 @@ public class UpdatePartnerProfileRequest {
     public static class PartnerDTO {
         LocalTime startTime;
         LocalTime endTime;
-        String shippingUid;
     }
 }

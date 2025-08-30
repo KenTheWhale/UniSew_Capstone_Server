@@ -12,7 +12,9 @@ public interface PaymentService {
 
     ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, HttpServletRequest httpRequest);
 
-    ResponseEntity<ResponseObject> getAllTransaction(HttpServletRequest httpRequest);
+    ResponseEntity<ResponseObject> getAllTransaction();
 
     ResponseEntity<ResponseObject> refundTransaction(RefundRequest request, HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> getTransactions(HttpServletRequest httpRequest);
 }

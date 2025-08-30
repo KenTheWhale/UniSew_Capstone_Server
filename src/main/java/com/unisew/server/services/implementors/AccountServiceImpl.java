@@ -89,6 +89,12 @@ public class AccountServiceImpl implements AccountService {
         account.getCustomer().setAddress(request.getAddress());
         account.getCustomer().setTaxCode(request.getTaxCode());
         account.getCustomer().setPhone(request.getPhone());
+        account.getCustomer().setAvatar(request.getAvatar());
+        account.getCustomer().setName(request.getName());
+        account.getCustomer().setAvatar(request.getAvatar());
+        account.getWallet().setBank(request.getBank());
+        account.getWallet().setBankAccountNumber(request.getBankNumber());
+        account.getWallet().setCardOwner(request.getCardOwner());
         accountRepo.save(account);
         return ResponseBuilder.build(HttpStatus.OK, "Update information successfully", null);
     }
@@ -515,7 +521,6 @@ public class AccountServiceImpl implements AccountService {
 
         partner.setStartTime(partnerRequest.getStartTime());
         partner.setEndTime(partnerRequest.getEndTime());
-        partner.setShippingUid(partnerRequest.getShippingUid());
         partnerRepo.save(partner);
 
         return ResponseBuilder.build(HttpStatus.OK, "Partner profile updated successfully", null);
