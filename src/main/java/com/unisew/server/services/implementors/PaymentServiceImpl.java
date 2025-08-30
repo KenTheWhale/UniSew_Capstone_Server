@@ -2,19 +2,27 @@ package com.unisew.server.services.implementors;
 
 import com.unisew.server.configurations.VNPayConfig;
 import com.unisew.server.enums.PaymentType;
+import com.unisew.server.enums.ProblemLevel;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.DesignRequest;
+import com.unisew.server.models.Feedback;
+import com.unisew.server.models.Order;
+import com.unisew.server.models.Partner;
 import com.unisew.server.models.Transaction;
 import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.CustomerRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.FeedbackRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.TransactionRepo;
 import com.unisew.server.repositories.WalletRepo;
 import com.unisew.server.requests.CreateTransactionRequest;
 import com.unisew.server.requests.GetPaymentURLRequest;
+import com.unisew.server.requests.RefundRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.services.PaymentService;
@@ -25,6 +33,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.function.Predicate;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +63,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final JWTService jwtService;
     private final AccountRepo accountRepo;
     private final TransactionRepo transactionRepo;
+    private final FeedbackRepo feedbackRepo;
 
 
     @Override
@@ -267,4 +278,169 @@ public class PaymentServiceImpl implements PaymentService {
         List<Transaction> transactions = transactionRepo.findAllByOrderByIdDesc();
         return ResponseBuilder.build(HttpStatus.OK, "Transactions", EntityResponseBuilder.buildListTransactionResponse(transactions));
     }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> refundTransaction(RefundRequest request, HttpServletRequest httpRequest) {
+        Account actor = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (actor == null || actor.getRole() != Role.ADMIN) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Only ADMIN can refund/resolve report", null);
+        }
+
+        String error = validateRefund(request);
+        if (error != null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+
+        Feedback report = feedbackRepo.findById(request.getReportId()).orElse(null);
+        if (report == null || !report.isReport()) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Report not found", null);
+        }
+
+        List<Transaction> transactions;
+        if (report.getDesignRequest() != null) {
+
+            transactions = transactionRepo.findAllByItemId(report.getDesignRequest().getId()).stream()
+                    .filter(transaction -> transaction.getPaymentType().equals(PaymentType.DESIGN) && transaction.getBalanceType().equals("pending"))
+                    .toList();
+        } else {
+            transactions = transactionRepo.findAllByItemId(report.getOrder().getId()).stream()
+                    .filter(transaction -> (transaction.getPaymentType().equals(PaymentType.ORDER) || transaction.getPaymentType().equals(PaymentType.DEPOSIT)) && transaction.getBalanceType().equals("pending"))
+                    .toList();
+        }
+
+        boolean isMatching = feedbackMatchesDecision(transactions.get(0), "APPROVED".equalsIgnoreCase(request.getDecision()));
+        if (!isMatching) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Report status does not match the decision", null);
+        }
+
+        long totalAmount = 0;
+        for (Transaction transaction : transactions) {
+            totalAmount += transaction.getAmount();
+        }
+        long refundAmount = 0;
+
+        if (request.getProblemLevel().equals(ProblemLevel.LOW.getValue())) {
+            refundAmount = (long) Math.floor(totalAmount * 0.25);
+        } else if (request.getProblemLevel().equals(ProblemLevel.MEDIUM.getValue())) {
+            refundAmount = (long) Math.floor(totalAmount * 0.50);
+        } else if (request.getProblemLevel().equals(ProblemLevel.HIGH.getValue())) {
+            refundAmount = (long) Math.floor(totalAmount * 0.75);
+        } else if (request.getProblemLevel().equals(ProblemLevel.SERIOUS.getValue())) {
+            refundAmount = totalAmount;
+        }
+
+        Wallet partnerWallet = transactions.get(0).getReceiver().getAccount().getWallet();
+        Wallet schoolWallet = transactions.get(0).getSender().getAccount().getWallet();
+        partnerWallet.setPendingBalance(partnerWallet.getPendingBalance() - refundAmount);
+        schoolWallet.setBalance(schoolWallet.getBalance() + refundAmount);
+
+        walletRepo.save(partnerWallet);
+        walletRepo.save(schoolWallet);
+
+        transactionRepo.save(
+                Transaction.builder()
+                        .wallet(schoolWallet)
+                        .sender(partnerWallet.getAccount().getCustomer())
+                        .receiver(schoolWallet.getAccount().getCustomer())
+                        .itemId(transactions.get(0).getItemId())
+                        .senderName(partnerWallet.getAccount().getCustomer().getName())
+                        .receiverName(schoolWallet.getAccount().getCustomer().getName())
+                        .balanceType("balance")
+                        .amount(refundAmount)
+                        .paymentType(transactions.get(0).getPaymentType() == PaymentType.DESIGN ? PaymentType.DESIGN_RETURN : PaymentType.ORDER_RETURN)
+                        .serviceFee(0)
+                        .status(Status.TRANSACTION_SUCCESS)
+                        .creationDate(LocalDate.now())
+                        .paymentGatewayCode("00")
+                        .build()
+        );
+
+        return ResponseBuilder.build(HttpStatus.OK, "Refund successfully", null);
+    }
+
+    private String validateRefund(RefundRequest request) {
+        if (request == null) return "Request is required";
+        if (request.getDecision() == null || request.getDecision().isBlank()) return "decision is required";
+        if (!"APPROVED".equalsIgnoreCase(request.getDecision()) && !"REJECTED".equalsIgnoreCase(request.getDecision())) {
+            return "decision must be APPROVED or REJECTED";
+        }
+        return null;
+    }
+
+    private boolean feedbackMatchesDecision(Transaction tx, boolean approved) {
+        if (tx == null || tx.getItemId() == null) return false;
+        if (tx.getReceiver() == null || tx.getReceiver().getAccount() == null) return false;
+
+        Role receiverRole = tx.getReceiver().getAccount().getRole();
+        if (receiverRole == null) return false;
+
+        Predicate<Feedback> matches = fb -> {
+            if (fb == null || !fb.isReport()) return false;
+            return approved
+                    ? fb.getStatus() == Status.FEEDBACK_REPORT_RESOLVED_ACCEPTED
+                    : fb.getStatus() == Status.FEEDBACK_REPORT_RESOLVED_REJECTED;
+        };
+
+        if (receiverRole == Role.DESIGNER) {
+            DesignRequest dr = designRequestRepo.findById(tx.getItemId()).orElse(null);
+            return dr != null && matches.test(dr.getFeedback());
+        }
+
+        if (receiverRole == Role.GARMENT) {
+            Order od = orderRepo.findById(tx.getItemId()).orElse(null);
+            return od != null && matches.test(od.getFeedback());
+        }
+
+        return false;
+    }
+
+
+//    public ResponseEntity<ResponseObject> disburseTransaction(RefundRequest request, HttpServletRequest httpRequest) {
+//        Account actor = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+//        if (actor == null || actor.getRole() != Role.ADMIN) {
+//            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Only ADMIN can refund/resolve report", null);
+//        }
+//
+//        String error = validateRefund(request);
+//        if (error != null) {
+//            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+//        }
+//
+//        Feedback report = feedbackRepo.findById(request.getReportId()).orElse(null);
+//        if (report == null || !report.isReport()) {
+//            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Report not found", null);
+//        }
+//
+//        List<Transaction> transactions;
+//        if (report.getDesignRequest() != null) {
+//
+//            transactions = transactionRepo.findAllByItemId(report.getDesignRequest().getId()).stream()
+//                    .filter(transaction -> transaction.getPaymentType().equals(PaymentType.DESIGN) && !transaction.getBalanceType().equals("fail"))
+//                    .toList();
+//        } else {
+//            transactions = transactionRepo.findAllByItemId(report.getOrder().getId()).stream()
+//                    .filter(transaction -> (transaction.getPaymentType().equals(PaymentType.ORDER) || transaction.getPaymentType().equals(PaymentType.DEPOSIT)) && !transaction.getBalanceType().equals("fail"))
+//                    .toList();
+//        }
+//
+//        List<Transaction> balanceTransactions = new ArrayList<>();
+//        List<Transaction> pendingTransactions = new ArrayList<>();
+//        for (Transaction transaction : transactions) {
+//            if (transaction.getBalanceType().equals("pending")) {
+//                pendingTransactions.add(transaction);
+//            } else {
+//                balanceTransactions.add(transaction);
+//            }
+//        }
+//        int variance = pendingTransactions.size() - balanceTransactions.size(); //do lech
+//
+//        List<Transaction> refundTransaction = new ArrayList<>();
+//        for (int i = variance; i > 0; i++) {
+//            refundTransaction.add(pendingTransactions.get(pendingTransactions.size() - i));
+//        }
+//
+//    }
+
+
 }

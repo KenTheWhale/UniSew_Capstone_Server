@@ -162,7 +162,7 @@ public class DesignServiceImpl implements DesignService {
 
         List<DesignRequest> designRequests = designRequestRepo.findAllBySchool_Id(account.getCustomer().getId());
 
-        return buildDesignRequestResponseForSchool(designRequests);
+        return buildDesignRequestResponseForSchool(designRequests, designQuotationRepo, designRequestRepo);
     }
 
     @Override
@@ -730,7 +730,7 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", data);
     }
 
-    private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(List<DesignRequest> designRequests) {
+    private ResponseEntity<ResponseObject> buildDesignRequestResponseForSchool(List<DesignRequest> designRequests, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
         List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
                 designRequest -> {
                     boolean completed = designRequest.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED);
@@ -766,7 +766,7 @@ public class DesignServiceImpl implements DesignService {
                                 designRequest.getId(),
                                 feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
                                 "",
-                                EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                                EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                                 designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                                 designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                                 designRequest.getRevisionTime(), designRequest.getPrice()
@@ -780,7 +780,7 @@ public class DesignServiceImpl implements DesignService {
                                     designRequest.getId(),
                                     feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
                                     "",
-                                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                                     designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                                     designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                                     designRequest.getRevisionTime(), designRequest.getPrice()
@@ -790,8 +790,8 @@ public class DesignServiceImpl implements DesignService {
                             values = List.of(
                                     designRequest.getId(),
                                     feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
-                                    EntityResponseBuilder.buildDesignQuotationResponse(quotation),
-                                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                                    EntityResponseBuilder.buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo),
+                                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                                     designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                                     designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                                     designRequest.getRevisionTime(), designRequest.getPrice()
@@ -801,8 +801,8 @@ public class DesignServiceImpl implements DesignService {
                                 values = List.of(
                                         designRequest.getId(),
                                         feedback != null ? EntityResponseBuilder.buildFeedbackResponse(feedback) : "",
-                                        EntityResponseBuilder.buildDesignQuotationResponse(quotation),
-                                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                                        EntityResponseBuilder.buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo),
+                                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                                         designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                                         designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                                         designRequest.getRevisionTime(), designRequest.getPrice(),
@@ -838,7 +838,7 @@ public class DesignServiceImpl implements DesignService {
                     designRequest.getId(),
                     Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""),
                     "",
-                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                    EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                     designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                     designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                     designRequest.getRevisionTime(), designRequest.getPrice()
@@ -852,7 +852,7 @@ public class DesignServiceImpl implements DesignService {
                         designRequest.getId(),
                         Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""),
                         "",
-                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                         designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                         designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                         designRequest.getRevisionTime(), designRequest.getPrice()
@@ -862,8 +862,8 @@ public class DesignServiceImpl implements DesignService {
                 values = List.of(
                         designRequest.getId(),
                         Objects.requireNonNullElse(EntityResponseBuilder.buildFeedbackResponse(feedback), ""),
-                        EntityResponseBuilder.buildDesignQuotationResponse(quotation),
-                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo),
+                        EntityResponseBuilder.buildDesignQuotationResponse(quotation, designQuotationRepo, designRequestRepo),
+                        EntityResponseBuilder.buildDesignQuotationListResponse(designRequest.getDesignQuotations(), designQuotationRepo, designRequestRepo),
                         designRequest.getName(), designRequest.getCreationDate(), designRequest.getLogoImage(),
                         designRequest.isPrivacy(), designRequest.getStatus().getValue(), EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()),
                         designRequest.getRevisionTime(), designRequest.getPrice()

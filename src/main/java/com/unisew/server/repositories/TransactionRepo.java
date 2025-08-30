@@ -9,4 +9,6 @@ import java.util.List;
 public interface TransactionRepo extends JpaRepository<Transaction, Integer> {
     List<Transaction> findAllByOrderByIdDesc();
     List<Transaction> findAllByCreationDateBetween(LocalDate from, LocalDate to);
+    List<Transaction> findAllByItemId(Integer itemId);
+
 }
