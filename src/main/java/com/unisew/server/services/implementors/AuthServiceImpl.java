@@ -247,7 +247,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             // Set expiration time
-            long expirationTimeMillis = System.currentTimeMillis() + (5 * 60 * 1000); // 5 minutes in milliseconds
+            long expirationTimeMillis = System.currentTimeMillis() + (50 * 60 * 1000); // 5 minutes in milliseconds
             dataToEncrypt.put("expirationTime", expirationTimeMillis);
 
             // Exchange map to JSON String

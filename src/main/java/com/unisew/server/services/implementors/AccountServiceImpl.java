@@ -83,7 +83,6 @@ public class AccountServiceImpl implements AccountService {
         if (account == null || !account.getRole().equals(Role.SCHOOL)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid account", null);
         }
-
         account.getCustomer().setBusinessName(request.getBusiness());
         account.getCustomer().setAddress(request.getAddress());
         account.getCustomer().setTaxCode(request.getTaxCode());
