@@ -266,27 +266,24 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    @Override
-    @Transactional
-    public ResponseEntity<ResponseObject> createPartnerAccount(CreatePartnerAccountRequest request) {
+    private EncryptPartnerDataRequest decryptData(String encryptData, boolean checked){
         try {
-            // Decrypt the string
-            String decryptedString = decrypt(request.getEncryptedData().replaceAll(" ", "+"));
+            String decryptedString = decrypt(encryptData.replaceAll(" ", "+"));
             if (decryptedString == null) {
-                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid encrypted data", null);
+                return null;
             }
 
             // Use a Map to deserialize the JSON, which includes the expirationTime
             Map<String, Object> decryptedDataMap = objectMapper.readValue(decryptedString, new TypeReference<Map<String, Object>>() {});
 
             //Check for Expiration
-            if (decryptedDataMap.containsKey("expirationTime")) {
+            if (!checked && decryptedDataMap.containsKey("expirationTime")) {
                 long expirationTimeMillis = Long.parseLong(decryptedDataMap.get("expirationTime").toString());
                 if (System.currentTimeMillis() >= expirationTimeMillis) {
-                    return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "The request has expired", null);
+                    return null;
                 }
             } else {
-                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Missing expiration timestamp", null);
+                return null;
             }
 
             EncryptPartnerDataRequest.AccountData accountData = EncryptPartnerDataRequest.AccountData.builder()
@@ -325,81 +322,101 @@ public class AuthServiceImpl implements AuthService {
                     .phone((String) decryptedDataMap.get("phone"))
                     .build();
 
-            String error = validateCreatePartnerAccountRequest(accountData);
+            return EncryptPartnerDataRequest.builder()
+                    .accountData(accountData)
+                    .customerData(customerData)
+                    .partnerData(partnerData)
+                    .walletData(walletData)
+                    .storeData(storeData)
+                    .build();
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> createPartnerAccount(CreatePartnerAccountRequest request) {
+        try {
+            EncryptPartnerDataRequest data = decryptData(request.getEncryptedData(), false);
+
+            if(data == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "encrypt data corrupted", null);
+
+            String error = validateCreatePartnerAccountRequest(data.getAccountData());
             if (!error.isEmpty()) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
             }
 
-            Account account = accountRepo.save(
-                    Account.builder()
-                            .email(accountData.getEmail())
-                            .role(Role.valueOf(accountData.getRole()))
-                            .registerDate(LocalDate.now())
-                            .status(Status.ACCOUNT_ACTIVE)
-                            .build()
-            );
-            Customer customer = customerRepo.save(
-                    Customer.builder()
-                            .account(account)
-                            .address(customerData.getAddress() + ", " + customerData.getWard() + ", " + customerData.getDistrict() + ", " + customerData.getProvince())
-                            .taxCode(customerData.getTaxCode())
-                            .name(customerData.getName())
-                            .businessName(customerData.getBusinessName())
-                            .phone(customerData.getPhone())
-                            .avatar(customerData.getAvatar())
-                            .build()
-            );
-            Partner partner = partnerRepo.save(
-                    Partner.builder()
-                            .customer(customer)
-                            .outsidePreview("")
-                            .insidePreview("")
-                            .shippingUid("")
-                            .startTime(partnerData.getStartTime())
-                            .endTime(partnerData.getEndTime())
-                            .rating(0)
-                            .depositPercentage(0)
-                            .build()
-            );
-            walletRepo.save(
-                    Wallet.builder()
-                            .account(account)
-                            .balance(0)
-                            .pendingBalance(0)
-                            .bank(walletData.getBank())
-                            .bankAccountNumber(walletData.getBankAccountNumber())
-                            .cardOwner(walletData.getCardOwner())
-                            .build()
-            );
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("encryptString", request.getEncryptedData());
+            dataMap.put("districtId", data.getStoreData().getDistrictId());
+            dataMap.put("wardCode", data.getStoreData().getWardCode());
+            dataMap.put("address", data.getStoreData().getAddress());
+            dataMap.put("name", data.getStoreData().getName());
+            dataMap.put("phone", data.getStoreData().getPhone());
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("pid", partner.getId());
-            data.put("districtId", storeData.getDistrictId());
-            data.put("wardCode", storeData.getWardCode());
-            data.put("address", storeData.getAddress());
-            data.put("name", storeData.getName());
-            data.put("phone", storeData.getPhone());
-
-            return ResponseBuilder.build(HttpStatus.CREATED, "", data);
+            return ResponseBuilder.build(HttpStatus.OK, "", dataMap);
         } catch (Exception e) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Something wrong", null);
         }
     }
 
     @Override
-    public ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, int pid) {
-        Partner partner = partnerRepo.findById(pid).orElse(null);
-        if(partner == null){
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Partner invalid", null);
+    public ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, String encryptString) {
+
+        EncryptPartnerDataRequest data = decryptData(encryptString, true);
+
+        if(data == null){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Encrypt data corrupted", null);
         }
 
         if(partnerRepo.existsByShippingUid(suid)){
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "UID existed", null);
         }
 
-        partner.setShippingUid(suid);
-        partnerRepo.save(partner);
-        return ResponseBuilder.build(HttpStatus.OK, "Update successfully", null);
+        Account account = accountRepo.save(
+                Account.builder()
+                        .email(data.getAccountData().getEmail())
+                        .role(Role.valueOf(data.getAccountData().getRole()))
+                        .registerDate(LocalDate.now())
+                        .status(Status.ACCOUNT_ACTIVE)
+                        .build()
+        );
+        Customer customer = customerRepo.save(
+                Customer.builder()
+                        .account(account)
+                        .address(data.getCustomerData().getAddress() + ", " + data.getCustomerData().getWard() + ", " + data.getCustomerData().getDistrict() + ", " + data.getCustomerData().getProvince())
+                        .taxCode(data.getCustomerData().getTaxCode())
+                        .name(data.getCustomerData().getName())
+                        .businessName(data.getCustomerData().getBusinessName())
+                        .phone(data.getCustomerData().getPhone())
+                        .avatar(data.getCustomerData().getAvatar())
+                        .build()
+        );
+        partnerRepo.save(
+                Partner.builder()
+                        .customer(customer)
+                        .outsidePreview("")
+                        .insidePreview("")
+                        .shippingUid(suid)
+                        .startTime(data.getPartnerData().getStartTime())
+                        .endTime(data.getPartnerData().getEndTime())
+                        .rating(0)
+                        .depositPercentage(0)
+                        .build()
+        );
+        walletRepo.save(
+                Wallet.builder()
+                        .account(account)
+                        .balance(0)
+                        .pendingBalance(0)
+                        .bank(data.getWalletData().getBank())
+                        .bankAccountNumber(data.getWalletData().getBankAccountNumber())
+                        .cardOwner(data.getWalletData().getCardOwner())
+                        .build()
+        );
+
+        return ResponseBuilder.build(HttpStatus.CREATED, "Update successfully", null);
     }
 
     @Override
