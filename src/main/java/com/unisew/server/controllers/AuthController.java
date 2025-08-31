@@ -56,8 +56,8 @@ public class AuthController {
     }
 
     @GetMapping("/partner/suid")
-    public ResponseEntity<ResponseObject> updatePartnerShippingUID(@RequestParam String suid, @RequestParam int pid) {
-        return authService.updatePartnerShippingUID(suid, pid);
+    public ResponseEntity<ResponseObject> updatePartnerShippingUID(@RequestParam String suid, @RequestParam String encryptString) {
+        return authService.updatePartnerShippingUID(suid, encryptString);
     }
 
     @GetMapping("/number")
