@@ -5,14 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
-import com.unisew.server.models.AccountRequest;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.Partner;
 import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
-import com.unisew.server.repositories.AccountRequestRepo;
 import com.unisew.server.repositories.CustomerRepo;
 import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.PlatformConfigRepo;
 import com.unisew.server.repositories.WalletRepo;
 import com.unisew.server.requests.CreatePartnerAccountRequest;
 import com.unisew.server.requests.EncryptPartnerDataRequest;
@@ -69,18 +68,14 @@ public class AuthServiceImpl implements AuthService {
 
     private final WalletRepo walletRepo;
 
-    private final AccountRequestRepo accountRequestRepo;
+    private final PlatformConfigRepo platformConfigRepo;
 
     private final ObjectMapper objectMapper;
 
     @Override
     public ResponseEntity<ResponseObject> login(LoginRequest request, HttpServletResponse response) {
         Account account = accountRepo.findByEmail(request.getEmail().toLowerCase()).orElse(null);
-        AccountRequest accountRequest = accountRequestRepo.findByEmail(request.getEmail()).orElse(null);
 
-        if (accountRequest != null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This email is requested to be a partner", null);
-        }
 
         if (request.getEmail() == null || request.getEmail().isEmpty()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Email is required", null);
@@ -182,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
         partnerData.put("startTime", partner.getStartTime());
         partnerData.put("endTime", partner.getEndTime());
         partnerData.put("rating", partner.getRating());
-        partnerData.put("busy", partner.isBusy());
+        partnerData.put("depositPercentage", partner.getDepositPercentage());
         partnerData.put("shippingUID", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getShippingUid() : "");
         return partnerData;
     }
@@ -363,7 +358,7 @@ public class AuthServiceImpl implements AuthService {
                             .startTime(partnerData.getStartTime())
                             .endTime(partnerData.getEndTime())
                             .rating(0)
-                            .busy(false)
+                            .depositPercentage(0)
                             .build()
             );
             walletRepo.save(

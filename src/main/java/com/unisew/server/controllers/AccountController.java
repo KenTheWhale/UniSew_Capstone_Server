@@ -96,18 +96,6 @@ public class AccountController {
         return accountService.getAllMyWithdraw(request);
     }
 
-    @GetMapping("/account-request")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseObject> getAllAccountRequest() {
-        return accountService.getAllAccountsRequest();
-    }
-
-    @PostMapping("/new")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(@RequestBody ApproveCreateAccountRequest request) {
-        return accountService.ApproveOrRejectCreateAccount(request);
-    }
-
     @PutMapping("/partner/profile")
     @PreAuthorize("hasAnyRole( 'DESIGNER', 'GARMENT')")
     public ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request,@RequestBody UpdatePartnerProfileRequest updatePartnerProfileRequest) {

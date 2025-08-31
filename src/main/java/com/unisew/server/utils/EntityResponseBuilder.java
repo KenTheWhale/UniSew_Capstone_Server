@@ -227,6 +227,7 @@ public class EntityResponseBuilder {
         data.put("creationDate", feedback.getCreationDate());
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
+        data.put("videoUrl", feedback.getVideoUrl());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
 
@@ -469,7 +470,7 @@ public class EntityResponseBuilder {
         data.put("startTime", partner.getStartTime());
         data.put("endTime", partner.getEndTime());
         data.put("rating", partner.getRating());
-        data.put("busy", partner.isBusy());
+        data.put("depositPercentage", partner.getDepositPercentage());
         data.put("thumbnails", buildThumbnailImageListResponse(partner.getThumbnailImages()));
         data.put("feedbacks", Objects.requireNonNullElse(buildListFeedbackResponse(feedbacks), new ArrayList<>()));
         data.put("shippingUID", partner.getShippingUid());

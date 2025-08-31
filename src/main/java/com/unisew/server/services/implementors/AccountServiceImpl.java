@@ -3,14 +3,14 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
-import com.unisew.server.models.AccountRequest;
+import com.unisew.server.models.PlatformConfig;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.DeactivateTicket;
 import com.unisew.server.models.Partner;
 import com.unisew.server.models.Wallet;
 import com.unisew.server.models.WithdrawRequest;
 import com.unisew.server.repositories.AccountRepo;
-import com.unisew.server.repositories.AccountRequestRepo;
+import com.unisew.server.repositories.PlatformConfigRepo;
 import com.unisew.server.repositories.CustomerRepo;
 import com.unisew.server.repositories.DeactivateTicketRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
@@ -54,7 +54,7 @@ public class AccountServiceImpl implements AccountService {
     private final DeactivateTicketRepo deactivateTicketRepo;
     private final WalletRepo walletRepo;
     private final WithdrawRequestRepo withdrawRequestRepo;
-    private final AccountRequestRepo accountRequestRepo;
+    private final PlatformConfigRepo platformConfigRepo;
     private final CustomerRepo customerRepo;
     private final PartnerRepo partnerRepo;
 
@@ -313,7 +313,7 @@ public class AccountServiceImpl implements AccountService {
 
         Map<String, Object> data = new HashMap<>();
 
-        data.put("busy", partner.isBusy());
+        data.put("depositPercentage", partner.getDepositPercentage());
         data.put("endTime", partner.getEndTime());
         data.put("startTime", partner.getStartTime());
         data.put("preview", partner.getInsidePreview());
@@ -358,110 +358,6 @@ public class AccountServiceImpl implements AccountService {
         data.put("email", account.getEmail());
         data.put("role", account.getRole().getValue());
         return ResponseBuilder.build(HttpStatus.OK, "", data);
-    }
-
-    @Override
-    public ResponseEntity<ResponseObject> getAllAccountsRequest() {
-
-        List<AccountRequest> accountRequests = accountRequestRepo.findAll();
-
-        List<Map<String, Object>> mapList = accountRequests.stream()
-                .map(this::buildAccountRequest)
-                .toList();
-
-        return ResponseBuilder.build(HttpStatus.OK, "Get list account request successfully", mapList);
-    }
-
-    private Map<String, Object> buildAccountRequest(AccountRequest accountRequest) {
-        if (accountRequest == null) {
-            return null;
-        }
-
-        Map<String, Object> data = new HashMap<>();
-
-        data.put("email", accountRequest.getEmail());
-        data.put("role", accountRequest.getRole());
-        data.put("address", accountRequest.getAddress());
-        data.put("taxCode", accountRequest.getTaxCode());
-        data.put("phone", accountRequest.getPhone());
-        data.put("status", accountRequest.getStatus());
-
-        return data;
-    }
-
-    @Override
-    @Transactional
-    public ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(ApproveCreateAccountRequest request) {
-
-        AccountRequest accountRequest = accountRequestRepo.findById(request.getAccountRequestId()).orElse(null);
-
-        if (accountRequest == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Can not find account request", null);
-        }
-
-        if (request.getStatus().equalsIgnoreCase("reject")) {
-
-            if (!accountRequest.getStatus().getValue().equals(Status.ACCOUNT_REQUEST_PENDING.getValue())) {
-                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This account request has been processed", null);
-            }
-
-            accountRequest.setStatus(Status.ACCOUNT_REQUEST_REJECTED);
-            accountRequestRepo.save(accountRequest);
-            return ResponseBuilder.build(HttpStatus.OK,
-                    "Account creation request rejected", null);
-        }
-
-        if (request.getStatus().equalsIgnoreCase("approve")) {
-
-            if (!accountRequest.getStatus().getValue().equals(Status.ACCOUNT_REQUEST_PENDING.getValue())) {
-                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "This account request has been processed", null);
-            }
-
-            if (accountRepo.existsByEmail(accountRequest.getEmail())) {
-                return ResponseBuilder.build(HttpStatus.CONFLICT, "Email already exists", null);
-            }
-
-            accountRequest.setStatus(Status.ACCOUNT_REQUEST_APPROVED);
-            accountRequestRepo.save(accountRequest);
-
-            Account account = Account.builder()
-                    .email(accountRequest.getEmail())
-                    .role(accountRequest.getRole())
-                    .registerDate(LocalDate.now())
-                    .status(Status.ACCOUNT_ACTIVE)
-                    .build();
-            accountRepo.save(account);
-
-
-            Wallet wallet = Wallet.builder()
-                    .account(account)
-                    .balance(0)
-                    .pendingBalance(0)
-                    .build();
-            walletRepo.save(wallet);
-
-            Customer customer = Customer.builder()
-                    .account(account)
-                    .address(accountRequest.getAddress())
-                    .taxCode(accountRequest.getTaxCode())
-                    .phone(accountRequest.getPhone())
-                    .build();
-            customerRepo.save(customer);
-
-
-            Partner partner = Partner.builder()
-                    .customer(customer)
-                    .rating(0)
-                    .busy(false)
-                    .build();
-            partnerRepo.save(partner);
-
-
-            return ResponseBuilder.build(HttpStatus.CREATED, "Account created successfully", null);
-        }
-
-        return ResponseBuilder.build(HttpStatus.BAD_REQUEST,
-                "Status must be either 'approve' or 'reject'", null);
     }
 
     @Override

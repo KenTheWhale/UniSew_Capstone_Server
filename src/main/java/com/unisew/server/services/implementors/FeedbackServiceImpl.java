@@ -263,7 +263,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .messageForSchool("")
                         .designRequest(dr)
                         .order(null)
-                        .Status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
+                        .status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
                         .build()
         );
 
@@ -321,7 +321,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .messageForSchool("")
                         .order(order)
                         .designRequest(null)
-                        .Status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
+                        .status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
                         .build()
         );
 

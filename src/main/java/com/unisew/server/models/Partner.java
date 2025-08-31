@@ -56,8 +56,8 @@ public class Partner {
 
     Integer rating;
 
-    @Column(name = "`is_busy`")
-    boolean busy;
+    @Column(name = "`deposit_percentage`")
+    long depositPercentage;
 
     @OneToMany(mappedBy = "designer", fetch = FetchType.LAZY)
     @ToString.Exclude
