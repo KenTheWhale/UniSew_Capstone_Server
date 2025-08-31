@@ -423,7 +423,7 @@ public class EntityResponseBuilder {
         data.put("name", milestone.getPhase().getName());
         data.put("description", milestone.getPhase().getDescription());
         data.put("stage", milestone.getStage());
-        data.put("imageUrl", Objects.requireNonNullElse(milestone.getImgUrl(), ""));
+        data.put("videoUrl", Objects.requireNonNullElse(milestone.getVideoUrl(), ""));
         data.put("startDate", milestone.getStartDate());
         data.put("endDate", milestone.getEndDate());
         data.put("status", milestone.getStatus().getValue());

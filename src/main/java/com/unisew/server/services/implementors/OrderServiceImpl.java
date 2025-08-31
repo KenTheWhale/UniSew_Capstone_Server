@@ -273,8 +273,8 @@ public class OrderServiceImpl implements OrderService {
 
         milestone.setCompletedDate(LocalDate.now());
 
-        if (request.getImageUrl() != null) {
-            milestone.setImgUrl(request.getImageUrl());
+        if (request.getVideoUrl() != null) {
+            milestone.setVideoUrl(request.getVideoUrl());
         }
 
         milestone = milestoneRepo.save(milestone);
