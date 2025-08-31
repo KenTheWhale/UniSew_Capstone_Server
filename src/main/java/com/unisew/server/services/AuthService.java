@@ -21,7 +21,7 @@ public interface AuthService {
 
     ResponseEntity<ResponseObject> checkPartnerRegisterInfo(String email, String phone);
 
-    ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, int pid);
+    ResponseEntity<ResponseObject> updatePartnerShippingUID(String suid, String encryptString);
 
     ResponseEntity<ResponseObject> checkPartnerRegisterTaxCode(String taxCode);
 }
