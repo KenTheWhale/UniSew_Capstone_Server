@@ -1,5 +1,6 @@
 package com.unisew.server.services.implementors;
 
+import com.unisew.server.controllers.ConfirmOrderRequest;
 import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
@@ -26,6 +27,7 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.CancelOrderRequest;
 import com.unisew.server.requests.ConfirmDeliveredOrderRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
@@ -436,8 +438,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> cancelOrder(int orderId) {
-        Order order = orderRepo.findById(orderId).orElse(null);
+    public ResponseEntity<ResponseObject> cancelOrder(CancelOrderRequest request) {
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
@@ -462,6 +464,17 @@ public class OrderServiceImpl implements OrderService {
 
         Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo);
         return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> confirmOrder(ConfirmOrderRequest request) {
+        Order order = orderRepo.findById(request.getOrderId()).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
+        }
+        order.setStatus(Status.ORDER_COMPLETED);
+        orderRepo.save(order);
+        return ResponseBuilder.build(HttpStatus.OK, "Order completed successfully", null);
     }
 
     @Override

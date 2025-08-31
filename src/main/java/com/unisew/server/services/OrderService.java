@@ -1,7 +1,9 @@
 package com.unisew.server.services;
 
+import com.unisew.server.controllers.ConfirmOrderRequest;
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
+import com.unisew.server.requests.CancelOrderRequest;
 import com.unisew.server.requests.ConfirmDeliveredOrderRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
@@ -29,7 +31,7 @@ public interface OrderService {
 
     ResponseEntity<ResponseObject> viewAllOrder();
 
-    ResponseEntity<ResponseObject> cancelOrder(int orderId);
+    ResponseEntity<ResponseObject> cancelOrder(CancelOrderRequest request);
 
     ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, CreateSewingPhaseRequest request);
 
@@ -48,4 +50,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> deleteSewingPhase(int sewingPhaseId, HttpServletRequest httpServletRequest);
 
     ResponseEntity<ResponseObject> confirmDeliveredOrder(ConfirmDeliveredOrderRequest request, HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> confirmOrder(ConfirmOrderRequest request);
 }

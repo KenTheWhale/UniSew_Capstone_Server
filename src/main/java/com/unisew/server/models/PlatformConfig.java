@@ -33,7 +33,7 @@ public class PlatformConfig {
     Integer id;
 
     @Column(name = "`fee_percentage`")
-    long feePercentage;
+    double feePercentage;
 
     @Column(name = "`modified_date`")
     LocalDate modifiedDate;
