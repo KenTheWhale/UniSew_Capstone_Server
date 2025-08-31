@@ -6,18 +6,20 @@ import com.unisew.server.enums.ProblemLevel;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
-import com.unisew.server.models.Customer;
 import com.unisew.server.models.DesignRequest;
 import com.unisew.server.models.Feedback;
 import com.unisew.server.models.Order;
-import com.unisew.server.models.Partner;
 import com.unisew.server.models.Transaction;
 import com.unisew.server.models.Wallet;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.FeedbackRepo;
 import com.unisew.server.repositories.OrderRepo;
+import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.TransactionRepo;
 import com.unisew.server.repositories.WalletRepo;
 import com.unisew.server.requests.CreateTransactionRequest;
@@ -33,7 +35,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,8 +50,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.function.Predicate;
+import java.util.LinkedHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -64,6 +67,10 @@ public class PaymentServiceImpl implements PaymentService {
     private final AccountRepo accountRepo;
     private final TransactionRepo transactionRepo;
     private final FeedbackRepo feedbackRepo;
+    private final PartnerRepo partnerRepo;
+    private final DeliveryItemRepo deliveryItemRepo;
+    private final DesignQuotationRepo designQuotationRepo;
+    private final DesignItemRepo designItemRepo;
 
 
     @Override
@@ -155,7 +162,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (request.getType().equalsIgnoreCase(PaymentType.WALLET.name())) {
             receiver = sender;
         } else {
-           receiver = customerRepo.findById(request.getReceiverId()).get().getAccount();
+            receiver = customerRepo.findById(request.getReceiverId()).get().getAccount();
         }
 
         Wallet adminWallet = getAdminWallet();
@@ -298,10 +305,101 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public ResponseEntity<ResponseObject> getMyTransaction(HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
+        }
+
+        Integer cid = account.getCustomer().getId();
+
+
+        List<Transaction> transactions = transactionRepo
+                .findAllBySender_IdOrReceiver_Id(cid, cid)
+                .stream()
+                .sorted((a, b) -> Integer.compare(b.getId(), a.getId()))
+                .toList();
+
+
+        Map<String, Map<Integer, List<Transaction>>> buckets = new LinkedHashMap<>();
+
+        for (Transaction t : transactions) {
+            String kind = groupNameOf(t.getPaymentType());
+            Integer itemKey = (t.getItemId() != null) ? t.getItemId() : -1;
+
+            buckets.computeIfAbsent(kind, k -> new LinkedHashMap<>());
+
+            buckets.get(kind).computeIfAbsent(itemKey, k -> new ArrayList<>());
+
+            buckets.get(kind).get(itemKey).add(t);
+        }
+
+
+        List<Map<String, Object>> groups = new ArrayList<>();
+
+        for (Map.Entry<String, Map<Integer, List<Transaction>>> kindEntry : buckets.entrySet()) {
+            String kind = kindEntry.getKey();
+            Map<Integer, List<Transaction>> byItem = kindEntry.getValue();
+
+            for (Map.Entry<Integer, List<Transaction>> itemEntry : byItem.entrySet()) {
+                Integer itemId = itemEntry.getKey();
+                List<Transaction> txsOfThisItem = itemEntry.getValue();
+
+                Map<String, Object> group = new LinkedHashMap<>();
+                group.put("kind", kind);
+                group.put("itemId", itemId);
+
+                if ("order".equalsIgnoreCase(kind) && itemId != null && itemId > 0) {
+                    Order order = orderRepo.findById(itemId).orElse(null);
+                    if (order != null) {
+                        group.put("order", EntityResponseBuilder.buildOrder(
+                                order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo
+                        ));
+                    } else {
+                        group.put("title", "Order #" + itemId);
+                    }
+                } else if ("design".equalsIgnoreCase(kind) && itemId != null && itemId > 0) {
+                    DesignRequest dr = designRequestRepo.findById(itemId).orElse(null);
+                    if (dr != null) {
+                        group.put("design", EntityResponseBuilder.buildDesignRequestResponse(dr));
+                    } else {
+                        group.put("title", "Design #" + itemId);
+                    }
+                } else {
+                    group.put("title", "Wallet");
+                }
+
+                List<Map<String, Object>> txMaps = EntityResponseBuilder.buildListTransactionResponse(txsOfThisItem);
+                group.put("transactions", txMaps);
+
+                groups.add(group);
+            }
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "Transaction grouped", groups);
+    }
+
+    private String groupNameOf(PaymentType pt) {
+        if (pt == null) return "wallet";
+        return switch (pt) {
+            case ORDER, ORDER_RETURN, DEPOSIT -> "order";
+            case DESIGN, DESIGN_RETURN -> "design";
+            default -> "wallet";
+        };
+    }
+
+    private String buildTitle(String kind, Integer itemId) {
+        if ("order".equals(kind))  return "Order #"  + (itemId > 0 ? itemId : "");
+        if ("design".equals(kind)) return "Design #" + (itemId > 0 ? itemId : "");
+        return "Wallet";
+    }
+
+
+    @Override
     @Transactional
     public ResponseEntity<ResponseObject> refundTransaction(RefundRequest request, HttpServletRequest httpRequest) {
         Account actor = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-        if (actor == null ) {
+        if (actor == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Account not found", null);
         }
 
