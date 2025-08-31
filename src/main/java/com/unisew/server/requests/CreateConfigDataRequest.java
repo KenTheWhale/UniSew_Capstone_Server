@@ -13,6 +13,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateConfigDataRequest {
-    long serviceFee;
+    double serviceFee;
     int maxVideoSize;
+    int maxImageSize;
+    int maxMilestone;
 }
