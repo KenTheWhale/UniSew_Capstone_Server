@@ -57,7 +57,10 @@ public class Feedback {
     String messageForPartner;
 
     @Enumerated(EnumType.STRING)
-    Status Status;
+    Status status;
+
+    @Column(name = "`video_url`")
+    String videoUrl;
 
     @OneToOne(mappedBy = "feedback", fetch = FetchType.EAGER)
     @ToString.Exclude

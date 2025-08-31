@@ -17,31 +17,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`account_request`")
+@Table(name = "`platform_config`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AccountRequest {
+public class PlatformConfig {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    String email;
+    @Column(name = "`fee_percentage`")
+    long feePercentage;
 
-    @Enumerated(EnumType.STRING)
-    Role role;
+    @Column(name = "`modified_date`")
+    LocalDate modifiedDate;
 
-    String address;
-
-    @Column(name = "`tax_code`")
-    String taxCode;
-
-    String phone;
-
-    @Enumerated(EnumType.STRING)
-    Status status;
 }

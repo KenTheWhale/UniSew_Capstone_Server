@@ -34,10 +34,6 @@ public interface AccountService {
 
     ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request);
 
-    ResponseEntity<ResponseObject> getAllAccountsRequest();
-
-    ResponseEntity<ResponseObject> ApproveOrRejectCreateAccount(ApproveCreateAccountRequest request);
-
     ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request, UpdatePartnerProfileRequest updatePartnerProfileRequest);
 
     ResponseEntity<ResponseObject> checkSchoolInit(CheckSchoolInitRequest request);
