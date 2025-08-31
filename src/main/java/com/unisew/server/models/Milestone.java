@@ -50,8 +50,8 @@ public class Milestone {
     @Column(name = "`completed_date`")
     LocalDate completedDate;
 
-    @Column(name = "`image_url`")
-    String imgUrl;
+    @Column(name = "`video_url`")
+    String videoUrl;
 
     @Enumerated(EnumType.STRING)
     Status status;
