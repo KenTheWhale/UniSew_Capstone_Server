@@ -277,13 +277,15 @@ public class AuthServiceImpl implements AuthService {
             Map<String, Object> decryptedDataMap = objectMapper.readValue(decryptedString, new TypeReference<Map<String, Object>>() {});
 
             //Check for Expiration
-            if (!checked && decryptedDataMap.containsKey("expirationTime")) {
-                long expirationTimeMillis = Long.parseLong(decryptedDataMap.get("expirationTime").toString());
-                if (System.currentTimeMillis() >= expirationTimeMillis) {
+            if(!checked){
+                if (decryptedDataMap.containsKey("expirationTime")) {
+                    long expirationTimeMillis = Long.parseLong(decryptedDataMap.get("expirationTime").toString());
+                    if (System.currentTimeMillis() >= expirationTimeMillis) {
+                        return null;
+                    }
+                } else {
                     return null;
                 }
-            } else {
-                return null;
             }
 
             EncryptPartnerDataRequest.AccountData accountData = EncryptPartnerDataRequest.AccountData.builder()
