@@ -35,6 +35,15 @@ public class PlatformConfig {
     @Column(name = "`fee_percentage`")
     double feePercentage;
 
+    @Column(name = "`video_max_size`")
+    int videoMaxSize;
+
+    @Column(name = "`image_max_size`")
+    int imageMaxSize;
+
+    @Column(name = "`max_milestone`")
+    int maxMilestone;
+
     @Column(name = "`modified_date`")
     LocalDate modifiedDate;
 
