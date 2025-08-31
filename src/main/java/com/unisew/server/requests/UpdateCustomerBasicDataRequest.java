@@ -10,13 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class UpdateCustomerBasicDataRequest {
-    String name;
     String business;
     String address;
     String taxCode;
     String phone;
-    String avatar;
-    String bank;
-    String bankNumber;
-    String cardOwner;
 }
