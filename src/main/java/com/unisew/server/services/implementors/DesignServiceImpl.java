@@ -648,7 +648,7 @@ public class DesignServiceImpl implements DesignService {
                     data.put("extraRevisionPrice", quotation.getExtraRevisionPrice());
                     data.put("price", quotation.getPrice());
                     data.put("acceptanceDeadline", quotation.getAcceptanceDeadline());
-                    data.put("status", quotation.getStatus());
+                    data.put("status", quotation.getStatus().getValue());
                     return data;
                 }
         ).toList();
