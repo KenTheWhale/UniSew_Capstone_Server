@@ -20,6 +20,7 @@ public enum Status {
     SERVICE_ACTIVE("active"),
 
     //DESIGN
+    DESIGN_REQUEST_IMPORTED("imported"),
     DESIGN_REQUEST_PENDING("pending"),
     DESIGN_REQUEST_PROCESSING("processing"),
     DESIGN_REQUEST_COMPLETED("completed"),
@@ -66,7 +67,11 @@ public enum Status {
     //WITHDRAW REQUEST
     WITHDRAW_APPROVED("approved"),
     WITHDRAW_REJECTED("rejected"),
-    WITHDRAW_PENDING("pending");
+    WITHDRAW_PENDING("pending"),
+
+    APPEAL_UNDER_REVIEW("under-review"),
+    APPEAL_ACCEPTED("accepted"),
+    APPEAL_REJECTED("rejected"),;
 
     private final String value;
 }

@@ -227,7 +227,7 @@ public class EntityResponseBuilder {
         data.put("creationDate", feedback.getCreationDate());
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
-        data.put("videoUrl", feedback.getVideoUrl());
+        data.put("video", feedback.getVideoUrl());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
 
@@ -360,6 +360,7 @@ public class EntityResponseBuilder {
 
     public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
         Partner partner;
+        if (order == null) return null;
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
 

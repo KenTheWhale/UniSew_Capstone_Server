@@ -1,5 +1,7 @@
 package com.unisew.server.services;
 
+import com.unisew.server.requests.AppealReportRequest;
+import com.unisew.server.requests.ApproveAppealRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -21,4 +23,8 @@ public interface FeedbackService {
     ResponseEntity<ResponseObject> approveReport(ApproveReportRequest request);
 
     ResponseEntity<ResponseObject> getAllReport();
+
+    ResponseEntity<ResponseObject> appealReport(AppealReportRequest request, HttpServletRequest  httpServletRequest);
+
+    ResponseEntity<ResponseObject> approveAppeal(ApproveAppealRequest request);
 }
