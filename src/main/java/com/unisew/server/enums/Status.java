@@ -65,7 +65,11 @@ public enum Status {
     //WITHDRAW REQUEST
     WITHDRAW_APPROVED("approved"),
     WITHDRAW_REJECTED("rejected"),
-    WITHDRAW_PENDING("pending");
+    WITHDRAW_PENDING("pending"),
+
+    APPEAL_UNDER_REVIEW("under-review"),
+    APPEAL_ACCEPTED("accepted"),
+    APPEAL_REJECTED("rejected"),;
 
     private final String value;
 }
