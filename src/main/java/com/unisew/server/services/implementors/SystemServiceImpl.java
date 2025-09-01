@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -22,41 +23,25 @@ public class SystemServiceImpl implements SystemService {
 
     @Override
     public ResponseEntity<ResponseObject> getConfigData() {
-        PlatformConfig latestConfig = platformConfigRepo.findFirstByOrderByIdDesc().orElse(null);
-        if(latestConfig == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No config", null);
-
+        List<PlatformConfig> configs = platformConfigRepo.findAll();
         Map<String, Object> data = new HashMap<>();
-        data.put("id", latestConfig.getId());
-        data.put("serviceFee", latestConfig.getFeePercentage());
-        data.put("videoLimit", latestConfig.getVideoMaxSize());
-        data.put("imageLimit", latestConfig.getImageMaxSize());
-        data.put("assignedMilestoneLimit", latestConfig.getMaxMilestone());
+        for(PlatformConfig config: configs){
+            String key = config.getKey();
+            Map<String, Object> value = (Map<String, Object>) config.getValue();
+            data.put(key, value);
+        }
+
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
     @Override
+    public ResponseEntity<ResponseObject> getConfigDataByName(String name) {
+        return null;
+    }
+
+    @Override
     public ResponseEntity<ResponseObject> createConfigData(CreateConfigDataRequest request) {
-        String error;
-        if(!(error = validateCreateConfigData(request)).isEmpty()){
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
-        }
-
-        platformConfigRepo.save(
-                PlatformConfig.builder()
-                        .feePercentage(request.getServiceFee())
-                        .imageMaxSize(request.getMaxImageSize())
-                        .videoMaxSize(request.getMaxVideoSize())
-                        .maxMilestone(request.getMaxMilestone())
-                        .build()
-        );
-        return ResponseBuilder.build(HttpStatus.CREATED, "Update successfully", null);
+        return null;
     }
 
-    private String validateCreateConfigData(CreateConfigDataRequest request){
-        if(request.getServiceFee() < 0) return "Service fee invalid";
-        if(request.getMaxImageSize() < 0) return "Image size invalid";
-        if(request.getMaxVideoSize() < 0) return "Video size invalid";
-        if(request.getMaxMilestone() < 0) return "Milestone limit invalid";
-        return "";
-    }
 }
