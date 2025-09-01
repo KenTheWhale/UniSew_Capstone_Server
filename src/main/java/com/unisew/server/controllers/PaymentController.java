@@ -54,4 +54,10 @@ public class PaymentController {
         return paymentService.getTransactions(httpRequest);
     }
 
+    @PostMapping("/my/transaction")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getMyTransaction(HttpServletRequest httpRequest) {
+        return paymentService.getMyTransaction(httpRequest);
+    }
+
 }

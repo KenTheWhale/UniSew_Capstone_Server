@@ -17,4 +17,6 @@ public interface PaymentService {
     ResponseEntity<ResponseObject> refundTransaction(RefundRequest request, HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> getTransactions(HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> getMyTransaction(HttpServletRequest httpRequest);
 }
