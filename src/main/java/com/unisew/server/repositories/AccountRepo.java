@@ -25,4 +25,6 @@ public interface AccountRepo extends JpaRepository<Account, Integer> {
     long countByStatus(Status status);
 
     long countByRole(Role role);
+
+    Account findByCustomer_Partner_Id(Integer customerPartnerId);
 }

@@ -5,6 +5,7 @@ import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
+import com.unisew.server.requests.GetProfilePartnerRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -37,4 +38,6 @@ public interface AccountService {
     ResponseEntity<ResponseObject> updatePartnerProfile(HttpServletRequest request, UpdatePartnerProfileRequest updatePartnerProfileRequest);
 
     ResponseEntity<ResponseObject> checkSchoolInit(CheckSchoolInitRequest request);
+
+    ResponseEntity<ResponseObject> getProfilePartner(GetProfilePartnerRequest request);
 }
