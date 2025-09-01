@@ -2,7 +2,7 @@ package com.unisew.server.services.implementors;
 
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
-import com.unisew.server.models.Appeal;
+import com.unisew.server.models.Appeals;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.DesignQuotation;
 import com.unisew.server.models.DesignRequest;
@@ -11,7 +11,7 @@ import com.unisew.server.models.FeedbackImage;
 import com.unisew.server.models.Order;
 import com.unisew.server.models.Partner;
 import com.unisew.server.repositories.AccountRepo;
-import com.unisew.server.repositories.AppealRepo;
+import com.unisew.server.repositories.AppealsRepo;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
@@ -20,8 +20,8 @@ import com.unisew.server.repositories.FeedbackImageRepo;
 import com.unisew.server.repositories.FeedbackRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
-import com.unisew.server.requests.AppealReportRequest;
-import com.unisew.server.requests.ApproveAppealRequest;
+import com.unisew.server.requests.GiveAppealsRequest;
+import com.unisew.server.requests.ApproveAppealsRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +65,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     OrderRepo orderRepo;
     DeliveryItemRepo deliveryItemRepo;
     DesignItemRepo designItemRepo;
-    AppealRepo appealRepo;
+    AppealsRepo appealsRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getFeedbacksByOrder(Integer orderId) {
@@ -268,6 +267,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .messageForSchool("")
                         .videoUrl(request.getVideoUrl())
                         .approvalDate(LocalDate.now())
+                        .appealDeadline(request.getAppealsDeadline())
                         .designRequest(dr)
                         .order(null)
                         .status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
@@ -328,6 +328,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .messageForSchool("")
                         .videoUrl(request.getVideoUrl())
                         .approvalDate(LocalDate.now())
+                        .appealDeadline(request.getAppealsDeadline())
                         .order(order)
                         .designRequest(null)
                         .status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
@@ -439,7 +440,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> appealReport(AppealReportRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<ResponseObject> giveAppeals(GiveAppealsRequest request, HttpServletRequest httpServletRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
         if (account == null || account.getCustomer() == null) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
@@ -457,17 +458,16 @@ public class FeedbackServiceImpl implements FeedbackService {
         if (!owns) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not owner of this report", null);
         }
-        // deadline check
         if (feedback.getApprovalDate() != null && feedback.getAppealDeadline() != null && LocalDate.now().isAfter(feedback.getAppealDeadline())) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Appeal is out of deadline", null);
         }
-        boolean existsPending = appealRepo.existsByFeedback_IdAndStatus(feedback.getId(), Status.APPEAL_UNDER_REVIEW);
+        boolean existsPending = appealsRepo.existsByFeedback_IdAndStatus(feedback.getId(), Status.APPEAL_UNDER_REVIEW);
         if (existsPending) {
             return ResponseBuilder.build(HttpStatus.CONFLICT, "An appeal is already under reviewing for this report", null);
         }
 
-        appealRepo.save(
-                Appeal.builder()
+        appealsRepo.save(
+                Appeals.builder()
                         .accountId(account.getId())
                         .reason(request.getReason())
                         .videoUrl(request.getVideoUrl())
@@ -480,7 +480,91 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public ResponseEntity<ResponseObject> approveAppeal(ApproveAppealRequest request) {
-        return null;
+    public ResponseEntity<ResponseObject> approveAppeal(ApproveAppealsRequest request) {
+        if (request == null ) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Request is empty", null);
+        }
+
+        Appeals appeals = appealsRepo.findById(request.getAppealId()).orElse(null);
+        if (appeals == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Appeal not found", null);
+        }
+        if (appeals.getStatus() != Status.APPEAL_UNDER_REVIEW) {
+            return ResponseBuilder.build(HttpStatus.CONFLICT, "Appeal is already approved", null);
+        }
+        Feedback feedback = appeals.getFeedback();
+        if (feedback == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Feedback not found for this appeal", null);
+        }
+
+        Integer schoolAccountId = null;
+        Integer partnerAccountId = null;
+
+        if (feedback.getDesignRequest() != null) {
+            DesignRequest dr = feedback.getDesignRequest();
+            if (dr.getSchool() != null && dr.getSchool().getAccount() != null) {
+                schoolAccountId = dr.getSchool().getAccount().getId();
+            }
+            Partner designer = resolveDesignerPartner(dr);
+            if (designer != null && designer.getCustomer() != null && designer.getCustomer().getAccount() != null) {
+                partnerAccountId = designer.getCustomer().getAccount().getId();
+            }
+        } else if (feedback.getOrder() != null) {
+            Order od = feedback.getOrder();
+            if (od.getSchoolDesign() != null
+                    && od.getSchoolDesign().getCustomer() != null
+                    && od.getSchoolDesign().getCustomer().getAccount() != null) {
+                schoolAccountId = od.getSchoolDesign().getCustomer().getAccount().getId();
+            }
+            if (od.getGarmentId() != null) {
+                Partner garment = partnerRepo.findById(od.getGarmentId()).orElse(null);
+                if (garment != null && garment.getCustomer() != null && garment.getCustomer().getAccount() != null) {
+                    partnerAccountId = garment.getCustomer().getAccount().getId();
+                }
+            }
+        }
+
+        Integer appellantAccountId = appeals.getAccountId();
+
+        boolean isSchoolAppellant  = (schoolAccountId != null && schoolAccountId.equals(appellantAccountId));
+        boolean isPartnerAppellant = (partnerAccountId != null && partnerAccountId.equals(appellantAccountId));
+
+        if (!isSchoolAppellant && !isPartnerAppellant) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Appellant does not belong to this feedback", null);
+        }
+
+        boolean approved = request.isApproved();
+
+        if (request.getAdminResponse() != null) {
+            appeals.setAdminResponse(request.getAdminResponse().trim());
+        }
+        appeals.setApprovalDate(LocalDate.now());
+        appeals.setStatus(approved ? Status.APPEAL_ACCEPTED : Status.APPEAL_REJECTED);
+
+        if (isSchoolAppellant) {
+            String msg = "[Appeal Decision for School] " +
+                    (approved ? "APPROVED" : "REJECTED") +
+                    (request.getAdminResponse() != null ? (": " + request.getAdminResponse().trim()) : "");
+            feedback.setMessageForSchool(
+                    concatLines(feedback.getMessageForSchool(), msg)
+            );
+        } else {
+            String msg = "[Appeal Decision for Partner] " +
+                    (approved ? "APPROVED" : "REJECTED") +
+                    (request.getAdminResponse() != null ? (": " + request.getAdminResponse().trim()) : "");
+            feedback.setMessageForPartner(
+                    concatLines(feedback.getMessageForPartner(), msg)
+            );
+        }
+
+        feedbackRepo.save(feedback);
+        appealsRepo.save(appeals);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Appeal approved successfully", null);
+    }
+
+    private String concatLines(String current, String appended) {
+        String base = (current == null || current.isBlank()) ? "" : current.trim();
+        return base.isEmpty() ? appended : base + "\n" + appended;
     }
 }
