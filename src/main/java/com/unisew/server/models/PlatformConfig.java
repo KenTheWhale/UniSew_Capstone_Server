@@ -1,13 +1,8 @@
 package com.unisew.server.models;
 
-import com.unisew.server.configurations.JsonbConverter;
-import com.unisew.server.enums.Role;
-import com.unisew.server.enums.Status;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Type;
 
 import java.time.LocalDate;
 
@@ -36,7 +32,8 @@ public class PlatformConfig {
 
     String key;
 
-    @Convert(converter = JsonbConverter.class)
+    @Column(columnDefinition = "jsonb")
+    @Type(JsonBinaryType.class)
     Object value;
 
     @Column(name = "`creation_date`")
