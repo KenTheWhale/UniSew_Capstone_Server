@@ -1,8 +1,10 @@
 package com.unisew.server.models;
 
+import com.unisew.server.configurations.JsonbConverter;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -32,17 +34,13 @@ public class PlatformConfig {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`fee_percentage`")
-    double feePercentage;
+    String key;
 
-    @Column(name = "`video_max_size`")
-    int videoMaxSize;
+    @Convert(converter = JsonbConverter.class)
+    Object value;
 
-    @Column(name = "`image_max_size`")
-    int imageMaxSize;
-
-    @Column(name = "`max_milestone`")
-    int maxMilestone;
+    @Column(name = "`creation_date`")
+    LocalDate creationDate;
 
     @Column(name = "`modified_date`")
     LocalDate modifiedDate;
