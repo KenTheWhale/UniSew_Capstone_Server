@@ -8,6 +8,7 @@ import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.requests.DuplicateRequest;
 import com.unisew.server.requests.GetListDeliveryRequest;
 import com.unisew.server.requests.GetUnUseListRevisionRequest;
+import com.unisew.server.requests.ImportDesignRequest;
 import com.unisew.server.requests.MakeDesignFinalRequest;
 import com.unisew.server.requests.PickDesignQuotationRequest;
 import com.unisew.server.requests.UpdateRequestByDeadline;
@@ -95,6 +96,12 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> cancelRequest(@RequestBody CancelRequest request, HttpServletRequest httpRequest) {
         return designService.cancelRequest(request, httpRequest);
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> importDesign(@RequestBody ImportDesignRequest request, HttpServletRequest httpRequest){
+        return designService.importDesign(request, httpRequest);
     }
     //-------------------DESIGN_DELIVERY---------------------//
 

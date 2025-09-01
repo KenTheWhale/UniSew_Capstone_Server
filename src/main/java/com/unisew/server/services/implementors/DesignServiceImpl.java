@@ -6,6 +6,7 @@ import com.unisew.server.enums.Gender;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
 import com.unisew.server.models.DeliveryItem;
 import com.unisew.server.models.DesignDelivery;
 import com.unisew.server.models.DesignItem;
@@ -36,6 +37,7 @@ import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.requests.DuplicateRequest;
 import com.unisew.server.requests.GetListDeliveryRequest;
 import com.unisew.server.requests.GetUnUseListRevisionRequest;
+import com.unisew.server.requests.ImportDesignRequest;
 import com.unisew.server.requests.MakeDesignFinalRequest;
 import com.unisew.server.requests.PickDesignQuotationRequest;
 import com.unisew.server.requests.UpdateRequestByDeadline;
@@ -316,6 +318,125 @@ public class DesignServiceImpl implements DesignService {
         designRequestRepo.save(designRequest);
 
         return ResponseBuilder.build(HttpStatus.OK, "Design request cancelled", null);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> importDesign(ImportDesignRequest request, HttpServletRequest httpRequest) {
+        String error = validateImportDesign(request);
+        if(error.isEmpty()){
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
+        }
+
+        try {
+            Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+            if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid user", null);
+            Customer school = account.getCustomer();
+            LocalDate today = LocalDate.now();
+
+            DesignRequest designRequest = designRequestRepo.save(
+                    DesignRequest.builder()
+                            .school(school)
+                            .feedback(null)
+                            .designQuotationId(null)
+                            .name(request.getDesignData().getName())
+                            .creationDate(today)
+                            .logoImage(request.getDesignData().getLogoImage())
+                            .price(0)
+                            .privacy(true)
+                            .status(Status.DESIGN_REQUEST_IMPORTED)
+                            .revisionTime(0)
+                            .build()
+            );
+
+
+            DesignDelivery designDelivery = designDeliveryRepo.save(
+                    DesignDelivery.builder()
+                            .designRequest(designRequest)
+                            .revisionRequest(null)
+                            .name(request.getDesignData().getName())
+                            .version(0)
+                            .submitDate(today)
+                            .revision(false)
+                            .note("")
+                            .build()
+            );
+            for (ImportDesignRequest.DesignItemData designItemData: request.getDesignItemDataList()){
+                DesignItemType type = DesignItemType.valueOf(designItemData.getType());
+                DesignItemCategory category = DesignItemCategory.valueOf(designItemData.getCategory());
+                Gender gender = Gender.valueOf(designItemData.getGender());
+                Fabric fabric = fabricRepo.findById(designItemData.getFabricId()).orElse(null);
+                assert fabric != null;
+
+                DesignItem item = designItemRepo.save(
+                        DesignItem.builder()
+                                .designRequest(designRequest)
+                                .fabric(fabric)
+                                .type(type)
+                                .category(category)
+                                .logoPosition(designItemData.getLogoPosition())
+                                .color(designItemData.getColor())
+                                .note("")
+                                .gender(gender)
+                                .build()
+                );
+
+                deliveryItemRepo.save(
+                        DeliveryItem.builder()
+                                .designDelivery(designDelivery)
+                                .designItemId(item.getId())
+                                .baseLogoHeight(designItemData.getLogoHeight())
+                                .baseLogoWidth(designItemData.getLogoWidth())
+                                .frontImageUrl(designItemData.getFrontImage())
+                                .backImageUrl(designItemData.getBackImage())
+                                .build()
+                );
+
+            }
+            schoolDesignRepo.save(
+                    SchoolDesign.builder()
+                            .designDelivery(designDelivery)
+                            .customer(school)
+                            .build()
+            );
+
+            return ResponseBuilder.build(HttpStatus.CREATED, "Import successfully", null);
+        }catch (Exception e){
+            Map<String, Object> errorData = new HashMap<>();
+            errorData.put("error", e);
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Something wrong", errorData);
+        }
+    }
+
+    private String validateImportDesign(ImportDesignRequest request){
+        if(request.getDesignData() == null || request.getDesignItemDataList() == null ||request.getDesignItemDataList().isEmpty()){
+            return "Missing data";
+        }
+
+        ImportDesignRequest.DesignData designData = request.getDesignData();
+        List<ImportDesignRequest.DesignItemData> designItemData = request.getDesignItemDataList();
+
+        if(validateStringData(designData.getName())) return "Name invalid";
+        if(validateStringData(designData.getLogoImage())) return "Logo invalid";
+        for (ImportDesignRequest.DesignItemData data: designItemData){
+            if(validateStringData(data.getType())) return "Type invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getCategory())) return "Category invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getLogoPosition())) return "Logo position invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getColor())) return "Color invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getGender())) return "Gender invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getFrontImage())) return "Front image invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getBackImage())) return "Back image invalid at index " + designItemData.indexOf(data);
+            if(data.getFabricId() < 0) return "Fabric invalid at index " + designItemData.indexOf(data);
+            if(data.getLogoHeight() < 0) return "Logo height invalid at index " + designItemData.indexOf(data);
+            if(data.getLogoWidth() < 0) return "Logo width invalid at index " + designItemData.indexOf(data);
+
+        }
+
+        return "";
+    }
+
+    private boolean validateStringData(String data){
+        return data == null || data.isEmpty();
     }
 
     //-----------------------------------FABRIC---------------------------------------//
