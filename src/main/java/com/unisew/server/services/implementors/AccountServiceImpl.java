@@ -3,13 +3,20 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.DesignQuotation;
+import com.unisew.server.models.Milestone;
+import com.unisew.server.models.Order;
 import com.unisew.server.models.PlatformConfig;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.DeactivateTicket;
 import com.unisew.server.models.Partner;
+import com.unisew.server.models.SewingPhase;
 import com.unisew.server.models.Wallet;
 import com.unisew.server.models.WithdrawRequest;
 import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignItemRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.PlatformConfigRepo;
 import com.unisew.server.repositories.CustomerRepo;
 import com.unisew.server.repositories.DeactivateTicketRepo;
@@ -22,12 +29,14 @@ import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
+import com.unisew.server.requests.GetProfilePartnerRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import com.unisew.server.services.JWTService;
 import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.ResponseBuilder;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,10 +48,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +72,9 @@ public class AccountServiceImpl implements AccountService {
     private final PlatformConfigRepo platformConfigRepo;
     private final CustomerRepo customerRepo;
     private final PartnerRepo partnerRepo;
+    private final DeliveryItemRepo deliveryItemRepo;
+    private final DesignItemRepo designItemRepo;
+    private final DesignQuotationRepo designQuotationRepo;
 
     @Override
     public ResponseEntity<ResponseObject> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -433,5 +451,74 @@ public class AccountServiceImpl implements AccountService {
             return ResponseBuilder.build(HttpStatus.OK, "", null);
         }
         return ResponseBuilder.build(HttpStatus.OK, "", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getProfilePartner(GetProfilePartnerRequest request) {
+        Account account = accountRepo.findByCustomer_Partner_Id(request.getPartnerId());
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.UNAUTHORIZED, "Unauthorized", null);
+        }
+
+        if (account.getCustomer() == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Customer profile not found", null);
+        }
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("role", account.getRole().getValue());
+
+        Map<String, Object> information = new LinkedHashMap<>();
+        information.put("id", account.getId());
+        information.put("email", account.getEmail());
+        information.put("status", account.getStatus().getValue());
+        information.put("address", account.getCustomer().getAddress());
+        information.put("avatar", account.getCustomer().getAvatar());
+        information.put("business", account.getCustomer().getBusinessName());
+        information.put("name", account.getCustomer().getName());
+        information.put("phone", account.getCustomer().getPhone());
+        information.put("taxCode", account.getCustomer().getTaxCode());
+        data.put("information", information);
+
+        Partner partner = account.getCustomer().getPartner();
+
+        if (account.getRole().equals(Role.DESIGNER)) {
+            List<Map<String, Object>> designs = new ArrayList<>();
+            if (partner != null) {
+                List<DesignQuotation> quotations =
+                        Optional.ofNullable(partner.getDesignQuotations()).orElse(Collections.emptyList());
+                for (DesignQuotation dq : quotations) {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("quotationId", dq.getId());
+                    item.put("request", EntityResponseBuilder.buildDesignRequestResponse(dq.getDesignRequest()));
+                    designs.add(item);
+                }
+            }
+            data.put("designs", designs);
+        }
+
+        if (account.getRole().equals(Role.GARMENT)) {
+            List<Map<String, Object>> orders = new ArrayList<>();
+            if (partner != null) {
+                Set<Integer> seenOrderIds = new HashSet<>();
+                List<SewingPhase> phases =
+                        Optional.ofNullable(partner.getSewingPhases()).orElse(Collections.emptyList());
+                for (SewingPhase sp : phases) {
+                    List<Milestone> milestones = Optional.ofNullable(sp.getMilestones()).orElse(Collections.emptyList());
+                    for (Milestone ms : milestones) {
+                        if (ms.getOrder() == null) continue;
+                        Integer orderId = ms.getOrder().getId();
+                        if (!seenOrderIds.add(orderId)) continue;
+                        Map<String, Object> item = new LinkedHashMap<>();
+                        item.put("order", EntityResponseBuilder.buildOrder(
+                                        ms.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo,
+                                        designQuotationRepo, designRequestRepo));
+                        orders.add(item);
+                    }
+                }
+            }
+            data.put("orders", orders);
+        }
+
+        return ResponseBuilder.build(HttpStatus.OK, "Get profile success", data);
     }
 }

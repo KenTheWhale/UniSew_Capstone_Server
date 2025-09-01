@@ -5,6 +5,7 @@ import com.unisew.server.requests.ApproveCreateAccountRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
+import com.unisew.server.requests.GetProfilePartnerRequest;
 import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
 import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -106,5 +107,11 @@ public class AccountController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> checkSchoolInit(@RequestBody CheckSchoolInitRequest request){
         return accountService.checkSchoolInit(request);
+    }
+
+    @PostMapping("/partner/profile")
+    @PreAuthorize("hasAnyRole( 'DESIGNER', 'SCHOOL', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getProfilePartner(@RequestBody GetProfilePartnerRequest request){
+        return accountService.getProfilePartner(request);
     }
 }
