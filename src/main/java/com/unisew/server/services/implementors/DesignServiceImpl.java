@@ -324,7 +324,7 @@ public class DesignServiceImpl implements DesignService {
     @Transactional
     public ResponseEntity<ResponseObject> importDesign(ImportDesignRequest request, HttpServletRequest httpRequest) {
         String error = validateImportDesign(request);
-        if(error.isEmpty()){
+        if(!error.isEmpty()){
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
@@ -362,9 +362,9 @@ public class DesignServiceImpl implements DesignService {
                             .build()
             );
             for (ImportDesignRequest.DesignItemData designItemData: request.getDesignItemDataList()){
-                DesignItemType type = DesignItemType.valueOf(designItemData.getType());
-                DesignItemCategory category = DesignItemCategory.valueOf(designItemData.getCategory());
-                Gender gender = Gender.valueOf(designItemData.getGender());
+                DesignItemType type = DesignItemType.valueOf(designItemData.getType().toUpperCase());
+                DesignItemCategory category = DesignItemCategory.valueOf(designItemData.getCategory().toUpperCase());
+                Gender gender = Gender.valueOf(designItemData.getGender().toUpperCase());
                 Fabric fabric = fabricRepo.findById(designItemData.getFabricId()).orElse(null);
                 assert fabric != null;
 
@@ -421,7 +421,7 @@ public class DesignServiceImpl implements DesignService {
         for (ImportDesignRequest.DesignItemData data: designItemData){
             if(validateStringData(data.getType())) return "Type invalid at index " + designItemData.indexOf(data);
             if(validateStringData(data.getCategory())) return "Category invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getLogoPosition())) return "Logo position invalid at index " + designItemData.indexOf(data);
+            if(validateStringData(data.getLogoPosition()) && data.getType().equalsIgnoreCase(DesignItemType.SHIRT.getValue())) return "Logo position invalid at index " + designItemData.indexOf(data);
             if(validateStringData(data.getColor())) return "Color invalid at index " + designItemData.indexOf(data);
             if(validateStringData(data.getGender())) return "Gender invalid at index " + designItemData.indexOf(data);
             if(validateStringData(data.getFrontImage())) return "Front image invalid at index " + designItemData.indexOf(data);
@@ -882,7 +882,8 @@ public class DesignServiceImpl implements DesignService {
 
                     // Conditional field for completed status
                     boolean completed = designRequest.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED);
-                    if (completed) {
+                    boolean imported = designRequest.getStatus().equals(Status.DESIGN_REQUEST_IMPORTED);
+                    if (completed || imported) {
                         data.put("resultDelivery", buildResultDeliveryResponse(designRequest));
                     }
 
@@ -928,7 +929,7 @@ public class DesignServiceImpl implements DesignService {
 
     //-------Result Delivery---------
     private Map<String, Object> buildResultDeliveryResponse(DesignRequest request) {
-        if (request == null || !request.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED)) {
+        if (request == null || (!request.getStatus().equals(Status.DESIGN_REQUEST_COMPLETED) && !request.getStatus().equals(Status.DESIGN_REQUEST_IMPORTED))) {
             return null;
         }
 
