@@ -2,6 +2,7 @@ package com.unisew.server.services.implementors;
 
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.Appeal;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.DesignQuotation;
 import com.unisew.server.models.DesignRequest;
@@ -10,6 +11,7 @@ import com.unisew.server.models.FeedbackImage;
 import com.unisew.server.models.Order;
 import com.unisew.server.models.Partner;
 import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.AppealRepo;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
@@ -18,6 +20,8 @@ import com.unisew.server.repositories.FeedbackImageRepo;
 import com.unisew.server.repositories.FeedbackRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.requests.AppealReportRequest;
+import com.unisew.server.requests.ApproveAppealRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -33,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,7 +66,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     OrderRepo orderRepo;
     DeliveryItemRepo deliveryItemRepo;
     DesignItemRepo designItemRepo;
-
+    AppealRepo appealRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getFeedbacksByOrder(Integer orderId) {
@@ -261,6 +266,8 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .creationDate(LocalDate.now())
                         .messageForPartner("")
                         .messageForSchool("")
+                        .videoUrl(request.getVideoUrl())
+                        .approvalDate(LocalDate.now())
                         .designRequest(dr)
                         .order(null)
                         .status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
@@ -319,6 +326,8 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .creationDate(LocalDate.now())
                         .messageForPartner("")
                         .messageForSchool("")
+                        .videoUrl(request.getVideoUrl())
+                        .approvalDate(LocalDate.now())
                         .order(order)
                         .designRequest(null)
                         .status(request.isReport() ? Status.FEEDBACK_REPORT_UNDER_REVIEW : Status.FEEDBACK_APPROVED)
@@ -426,5 +435,52 @@ public class FeedbackServiceImpl implements FeedbackService {
         int rounded = (int) Math.round(stats.getAverage());
         garment.setRating(rounded);
         partnerRepo.save(garment);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> appealReport(AppealReportRequest request, HttpServletRequest httpServletRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
+        if (account == null || account.getCustomer() == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        Feedback feedback = feedbackRepo.findById(request.getFeedbackId()).orElse(null);
+        if (feedback == null) {
+            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Feedback not found", null);
+        }
+
+        Customer school = account.getCustomer();
+        boolean owns =
+                (feedback.getDesignRequest() != null && feedback.getDesignRequest().getSchool().getId().equals(school.getId()))
+                        || (feedback.getOrder() != null && feedback.getOrder().getSchoolDesign().getCustomer().getId().equals(school.getId()));
+        if (!owns) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not owner of this report", null);
+        }
+        // deadline check
+        if (feedback.getApprovalDate() != null && feedback.getAppealDeadline() != null && LocalDate.now().isAfter(feedback.getAppealDeadline())) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Appeal is out of deadline", null);
+        }
+        boolean existsPending = appealRepo.existsByFeedback_IdAndStatus(feedback.getId(), Status.APPEAL_UNDER_REVIEW);
+        if (existsPending) {
+            return ResponseBuilder.build(HttpStatus.CONFLICT, "An appeal is already under reviewing for this report", null);
+        }
+
+        appealRepo.save(
+                Appeal.builder()
+                        .accountId(account.getId())
+                        .reason(request.getReason())
+                        .videoUrl(request.getVideoUrl())
+                        .creationDate(LocalDate.now())
+                        .status(Status.APPEAL_UNDER_REVIEW)
+                        .feedback(feedback)
+                        .build()
+        );
+        return ResponseBuilder.build(HttpStatus.OK, "Appeal submitted successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> approveAppeal(ApproveAppealRequest request) {
+        return null;
     }
 }

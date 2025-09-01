@@ -62,6 +62,9 @@ public class Feedback {
     @Column(name = "`video_url`")
     String videoUrl;
 
+    @Column(name = "`appeal_deadline`")
+    LocalDate appealDeadline;
+
     @OneToOne(mappedBy = "feedback", fetch = FetchType.EAGER)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -76,4 +79,9 @@ public class Feedback {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<FeedbackImage> feedbackImages;
+
+    @OneToMany(mappedBy = "feedback")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    List<Appeal> appeals;
 }
