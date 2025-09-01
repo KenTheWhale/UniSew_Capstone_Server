@@ -8,6 +8,7 @@ import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.requests.DuplicateRequest;
 import com.unisew.server.requests.GetListDeliveryRequest;
 import com.unisew.server.requests.GetUnUseListRevisionRequest;
+import com.unisew.server.requests.ImportDesignRequest;
 import com.unisew.server.requests.MakeDesignFinalRequest;
 import com.unisew.server.requests.PickDesignQuotationRequest;
 import com.unisew.server.requests.UpdateRequestByDeadline;
@@ -19,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -95,6 +97,12 @@ public class DesignController {
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> cancelRequest(@RequestBody CancelRequest request, HttpServletRequest httpRequest) {
         return designService.cancelRequest(request, httpRequest);
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('SCHOOL')")
+    public ResponseEntity<ResponseObject> importDesign(@RequestBody ImportDesignRequest request, HttpServletRequest httpRequest){
+        return designService.importDesign(request, httpRequest);
     }
     //-------------------DESIGN_DELIVERY---------------------//
 

@@ -8,6 +8,7 @@ import com.unisew.server.requests.CreateRevisionRequest;
 import com.unisew.server.requests.DuplicateRequest;
 import com.unisew.server.requests.GetListDeliveryRequest;
 import com.unisew.server.requests.GetUnUseListRevisionRequest;
+import com.unisew.server.requests.ImportDesignRequest;
 import com.unisew.server.requests.MakeDesignFinalRequest;
 import com.unisew.server.requests.PickDesignQuotationRequest;
 import com.unisew.server.requests.UpdateRequestByDeadline;
@@ -40,6 +41,8 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> cancelRequest(CancelRequest request, HttpServletRequest httpServletRequest);
 
+    ResponseEntity<ResponseObject> importDesign(ImportDesignRequest request, HttpServletRequest httpRequest);
+
     //--------------------------------FABRIC-----------------------------------------//
     ResponseEntity<ResponseObject> getAllFabric();
 
@@ -64,4 +67,5 @@ public interface DesignService {
     ResponseEntity<ResponseObject> getQuotationHistory(HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpRequest, CreateDesignQuotationRequest request);
+
 }
