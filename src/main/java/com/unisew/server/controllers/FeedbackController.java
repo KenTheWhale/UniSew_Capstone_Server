@@ -72,7 +72,7 @@ public class FeedbackController {
         return feedbackService.appealReport(request, httpServletRequest);
     }
 
-    @PostMapping("/appeal")
+    @PostMapping("/appeal/approval")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<ResponseObject> approveAppeal(@RequestBody ApproveAppealRequest request) {
         return feedbackService.approveAppeal(request);

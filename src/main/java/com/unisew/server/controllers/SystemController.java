@@ -28,7 +28,7 @@ public class SystemController {
         return systemService.getConfigData();
     }
 
-    @GetMapping("/config")
+    @GetMapping("/config/name")
     @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL', 'DESIGNER', 'GARMENT')")
     public ResponseEntity<ResponseObject> getConfigDataByName(@RequestParam String name){
         return systemService.getConfigDataByName(name);

@@ -224,6 +224,7 @@ public class ServerApplication {
 
                     Map<String, Object> orderData = new HashMap<>();
                     orderData.put("minUniformQty", 50);
+                    orderData.put("maxAssignedMilestone", 5);
 
                     Map<String, Object> reportData = new HashMap<>();
                     reportData.put("maxAppealDay", 7);

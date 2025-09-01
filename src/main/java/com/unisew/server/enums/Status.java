@@ -25,7 +25,6 @@ public enum Status {
     DESIGN_REQUEST_PROCESSING("processing"),
     DESIGN_REQUEST_COMPLETED("completed"),
     DESIGN_REQUEST_CANCELED("canceled"),
-    DESIGN_REQUEST_IMPORTED("imported"),
 
     //DESIGN QUOTATION
     DESIGN_QUOTATION_PENDING("pending"),
