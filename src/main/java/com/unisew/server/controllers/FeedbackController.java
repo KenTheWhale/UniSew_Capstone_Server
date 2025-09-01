@@ -1,6 +1,7 @@
 package com.unisew.server.controllers;
 
 import com.unisew.server.requests.AppealReportRequest;
+import com.unisew.server.requests.ApproveAppealRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -69,6 +70,12 @@ public class FeedbackController {
     @PreAuthorize("hasAnyRole('SCHOOL', 'DESINGER', 'GARMENT')")
     public ResponseEntity<ResponseObject> appealReport(@RequestBody AppealReportRequest request, HttpServletRequest  httpServletRequest) {
         return feedbackService.appealReport(request, httpServletRequest);
+    }
+
+    @PostMapping("/appeal")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<ResponseObject> approveAppeal(@RequestBody ApproveAppealRequest request) {
+        return feedbackService.approveAppeal(request);
     }
 
 }

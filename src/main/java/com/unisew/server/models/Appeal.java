@@ -43,6 +43,9 @@ public class Appeal {
     @Column(name = "`reason`")
     String reason;
 
+    @Column(name = "`admin_response`")
+    String adminResponse;
+
     @Column(name = "`video_url`")
     String videoUrl;
 

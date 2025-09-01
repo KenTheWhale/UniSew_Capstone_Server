@@ -21,6 +21,7 @@ import com.unisew.server.repositories.FeedbackRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.requests.AppealReportRequest;
+import com.unisew.server.requests.ApproveAppealRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -437,6 +438,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> appealReport(AppealReportRequest request, HttpServletRequest httpServletRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
         if (account == null || account.getCustomer() == null) {
@@ -446,6 +448,22 @@ public class FeedbackServiceImpl implements FeedbackService {
         Feedback feedback = feedbackRepo.findById(request.getFeedbackId()).orElse(null);
         if (feedback == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Feedback not found", null);
+        }
+
+        Customer school = account.getCustomer();
+        boolean owns =
+                (feedback.getDesignRequest() != null && feedback.getDesignRequest().getSchool().getId().equals(school.getId()))
+                        || (feedback.getOrder() != null && feedback.getOrder().getSchoolDesign().getCustomer().getId().equals(school.getId()));
+        if (!owns) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not owner of this report", null);
+        }
+        // deadline check
+        if (feedback.getApprovalDate() != null && feedback.getAppealDeadline() != null && LocalDate.now().isAfter(feedback.getAppealDeadline())) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Appeal is out of deadline", null);
+        }
+        boolean existsPending = appealRepo.existsByFeedback_IdAndStatus(feedback.getId(), Status.APPEAL_UNDER_REVIEW);
+        if (existsPending) {
+            return ResponseBuilder.build(HttpStatus.CONFLICT, "An appeal is already under reviewing for this report", null);
         }
 
         appealRepo.save(
@@ -459,5 +477,10 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .build()
         );
         return ResponseBuilder.build(HttpStatus.OK, "Appeal submitted successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> approveAppeal(ApproveAppealRequest request) {
+        return null;
     }
 }
