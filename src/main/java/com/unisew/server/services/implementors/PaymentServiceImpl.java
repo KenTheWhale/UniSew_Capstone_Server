@@ -449,7 +449,7 @@ public class PaymentServiceImpl implements PaymentService {
         Wallet partnerWallet = transactions.get(0).getReceiver().getAccount().getWallet();
         Wallet schoolWallet = transactions.get(0).getSender().getAccount().getWallet();
         partnerWallet.setPendingBalance(partnerWallet.getPendingBalance() - refundAmount);
-        schoolWallet.setBalance(schoolWallet.getBalance() + refundAmount);
+        schoolWallet.setPendingBalance(schoolWallet.getBalance() + refundAmount);
 
         walletRepo.save(partnerWallet);
         walletRepo.save(schoolWallet);

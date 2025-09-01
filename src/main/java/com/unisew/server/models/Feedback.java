@@ -83,5 +83,5 @@ public class Feedback {
     @OneToMany(mappedBy = "feedback")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    List<Appeal> appeals;
+    List<Appeals> appeals;
 }

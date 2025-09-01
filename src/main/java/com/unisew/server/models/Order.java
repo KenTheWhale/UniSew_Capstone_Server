@@ -69,6 +69,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     Status status;
 
+    @Column(name = "`disburse_at`")
+    LocalDate disburseAt;
+
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
