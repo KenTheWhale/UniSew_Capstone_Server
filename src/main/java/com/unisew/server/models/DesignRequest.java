@@ -68,6 +68,9 @@ public class DesignRequest {
     @Column(name = "`revision_time`")
     Integer revisionTime;
 
+    @Column(name = "`disburse_at`")
+    LocalDate disburseAt;
+
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

@@ -1,7 +1,7 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.requests.AppealReportRequest;
-import com.unisew.server.requests.ApproveAppealRequest;
+import com.unisew.server.requests.GiveAppealsRequest;
+import com.unisew.server.requests.ApproveAppealsRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
@@ -66,15 +66,15 @@ public class FeedbackController {
         return feedbackService.approveReport(request);
     }
 
-    @PostMapping("/appeal")
+    @PostMapping("/appeals")
     @PreAuthorize("hasAnyRole('SCHOOL', 'DESINGER', 'GARMENT')")
-    public ResponseEntity<ResponseObject> appealReport(@RequestBody AppealReportRequest request, HttpServletRequest  httpServletRequest) {
-        return feedbackService.appealReport(request, httpServletRequest);
+    public ResponseEntity<ResponseObject> giveAppeals(@RequestBody GiveAppealsRequest request, HttpServletRequest  httpServletRequest) {
+        return feedbackService.giveAppeals(request, httpServletRequest);
     }
 
-    @PostMapping("/appeal")
+    @PostMapping("/appeals/approval")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<ResponseObject> approveAppeal(@RequestBody ApproveAppealRequest request) {
+    public ResponseEntity<ResponseObject> approveAppeals(@RequestBody ApproveAppealsRequest request) {
         return feedbackService.approveAppeal(request);
     }
 

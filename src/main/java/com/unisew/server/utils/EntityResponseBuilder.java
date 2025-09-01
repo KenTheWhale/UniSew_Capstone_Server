@@ -228,6 +228,7 @@ public class EntityResponseBuilder {
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
         data.put("video", feedback.getVideoUrl());
+        data.put("appealsDeadline", feedback.getAppealDeadline());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
 

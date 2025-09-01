@@ -12,8 +12,8 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AppealReportRequest {
-    int feedbackId;
-    String reason;
-    String videoUrl;
+public class ApproveAppealsRequest {
+    int appealId;
+    String adminResponse;
+    boolean approved;
 }

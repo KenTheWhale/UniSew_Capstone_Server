@@ -25,9 +25,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "`appeal`")
+@Table(name = "`appeals`")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Appeal {
+public class Appeals {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,7 @@ public class Appeal {
     @JoinColumn(name = "feedback_id")
     Feedback feedback;
 
-    @Column(name = "`account_id")
+    @Column(name = "`account_id`")
     int accountId;
 
     @Column(name = "`reason`")
