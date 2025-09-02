@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GiveAppealsRequest {
-    int feedbackId;
+    int reportId;
     String reason;
     String videoUrl;
 }

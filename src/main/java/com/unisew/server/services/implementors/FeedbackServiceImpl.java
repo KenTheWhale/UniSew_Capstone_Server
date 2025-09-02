@@ -8,6 +8,7 @@ import com.unisew.server.models.DesignQuotation;
 import com.unisew.server.models.DesignRequest;
 import com.unisew.server.models.Feedback;
 import com.unisew.server.models.FeedbackImage;
+import com.unisew.server.models.GarmentQuotation;
 import com.unisew.server.models.Order;
 import com.unisew.server.models.Partner;
 import com.unisew.server.repositories.AccountRepo;
@@ -18,6 +19,7 @@ import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.FeedbackImageRepo;
 import com.unisew.server.repositories.FeedbackRepo;
+import com.unisew.server.repositories.GarmentQuotationRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.requests.ApproveAppealsRequest;
@@ -69,6 +71,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     DeliveryItemRepo deliveryItemRepo;
     DesignItemRepo designItemRepo;
     AppealsRepo appealsRepo;
+    private final GarmentQuotationRepo garmentQuotationRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getFeedbacksByOrder(Integer orderId) {
@@ -105,23 +108,29 @@ public class FeedbackServiceImpl implements FeedbackService {
         if (garment == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Garment (partner) not found", null);
         }
-        List<Feedback> feedbacks = orderRepo.findAll().stream()
-                .filter(Objects::nonNull)
-                .map(Order::getFeedback )
-                .toList();
-        if (feedbacks.isEmpty()) {
-            return ResponseBuilder.build(HttpStatus.OK, "No feedback found for this garment.", List.of());
+        Set<Integer> garmentQuotationIds = garmentQuotationRepo.findAllByGarmentId(garment.getId())
+                .stream()
+                .map(GarmentQuotation::getId)
+                .collect(Collectors.toSet());
+
+        if (garmentQuotationIds.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.OK, "No feedback found for this garment", List.of());
         }
-        feedbacks = orderRepo.findAll().stream()
-                .filter(Objects::nonNull)
-                .filter(o -> Objects.equals(o.getGarmentId(), garment.getId()) && o.getFeedback().isReport())
-                .map(Order::getFeedback )
+
+        List<Order> ordersWithFeedback = orderRepo.findAllByFeedbackIsNotNull()
+                .stream()
+                .filter(o -> o.getGarmentQuotationId() != null && garmentQuotationIds.contains(o.getGarmentQuotationId()))
                 .toList();
 
-        String message = feedbacks.isEmpty()
-                ? "No feedback found for this garment."
-                : "Feedback list for garment get successfully.";
-        return ResponseBuilder.build(HttpStatus.OK, message, EntityResponseBuilder.buildListFeedbackResponse(feedbacks));
+        if (ordersWithFeedback.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.OK, "No feedback found for this garment", List.of());
+        }
+
+        List<Feedback> feedbacks = ordersWithFeedback.stream()
+                .map(Order::getFeedback)
+                .filter(Objects::nonNull)
+                .toList();
+        return ResponseBuilder.build(HttpStatus.OK, "List of garment feedback", EntityResponseBuilder.buildListReportResponse(feedbacks, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo));
     }
 
     @Override
@@ -138,7 +147,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         Set<Integer> designerQuotationIds = designQuotationRepo.findAllByDesigner_Id(designer.getId())
                 .stream()
                 .map(DesignQuotation::getId)
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
 
         if (designerQuotationIds.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.OK, "No feedback found for this designer", List.of());
@@ -158,7 +167,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        return ResponseBuilder.build(HttpStatus.OK, "List of designer feedback", EntityResponseBuilder.buildListFeedbackResponse(feedbacks));
+        return ResponseBuilder.build(HttpStatus.OK, "List of designer feedback", EntityResponseBuilder.buildListReportResponse(feedbacks, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo));
     }
 
 
@@ -455,19 +464,34 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
         }
 
-        Feedback feedback = feedbackRepo.findById(request.getFeedbackId()).orElse(null);
+        Feedback feedback = feedbackRepo.findById(request.getReportId()).orElse(null);
         if (feedback == null) {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Feedback not found", null);
         }
-
-        if (feedback.getAppeals().size() >= 1) {
-            return ResponseBuilder.build(HttpStatus.CONFLICT, "An appeal has already been made for this feedback", null);
+        Customer school;
+        Partner designer;
+        Partner garment;
+        if (feedback.getDesignRequest() != null) {
+            school = feedback.getDesignRequest().getSchool();
+            designer = resolveDesignerPartner(feedback.getDesignRequest());
+        } else {
+            designer = null;
+            school = null;
+        }
+        if (feedback.getOrder() != null) {
+            garment = partnerRepo.findById(feedback.getOrder().getGarmentId()).orElse(null);
+        } else {
+            garment = null;
         }
 
-        Customer school = account.getCustomer();
-        boolean owns =
-                (feedback.getDesignRequest() != null && feedback.getDesignRequest().getSchool().getId().equals(school.getId()))
-                        || (feedback.getOrder() != null && feedback.getOrder().getSchoolDesign().getCustomer().getId().equals(school.getId()));
+        boolean isAbleToAppeal = feedback.getAppeals().stream()
+                .noneMatch(ap -> (feedback.getDesignRequest() != null && ap.getAccountId() == school.getAccount().getId()) || (feedback.getDesignRequest() != null && ap.getAccountId() == designer.getCustomer().getAccount().getId())  || (feedback.getOrder() != null && ap.getAccountId() == garment.getCustomer().getAccount().getId()));
+        if (!isAbleToAppeal) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "You have already appealed for this report", null);
+        }
+        boolean owns = (school != null && Objects.equals(school.getAccount().getId(), account.getId()))
+                || (designer != null && designer.getCustomer() != null && designer.getCustomer().getAccount() != null && Objects.equals(designer.getCustomer().getAccount().getId(), account.getId()))
+                || (garment != null && garment.getCustomer() != null && garment.getCustomer().getAccount() != null && Objects.equals(garment.getCustomer().getAccount().getId(), account.getId()));
         if (!owns) {
             return ResponseBuilder.build(HttpStatus.FORBIDDEN, "You are not owner of this report", null);
         }
@@ -479,7 +503,7 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.CONFLICT, "An appeal is already under reviewing for this report", null);
         }
 
-        appealsRepo.save(
+        Appeals appeals = appealsRepo.save(
                 Appeals.builder()
                         .accountId(account.getId())
                         .reason(request.getReason())
@@ -489,6 +513,8 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .feedback(feedback)
                         .build()
         );
+
+        appeals.getFeedback().setStatus(Status.FEEDBACK_REPORT_APPEALED);
 
         if (feedback.getDesignRequest() != null) {
             DesignRequest dr = feedback.getDesignRequest();
@@ -609,4 +635,11 @@ public class FeedbackServiceImpl implements FeedbackService {
         String base = (current == null || current.isBlank()) ? "" : current.trim();
         return base.isEmpty() ? appended : base + "\n" + appended;
     }
+
+    @Override
+    public ResponseEntity<ResponseObject> getAllAppeals() {
+        List<Appeals> appeals  = appealsRepo.findAll();
+        return ResponseBuilder.build(HttpStatus.OK, "All Appeals", appeals);
+    }
+
 }

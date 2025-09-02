@@ -47,7 +47,11 @@ public class Order {
     @JoinColumn(name = "`feedback_id`")
     Feedback feedback;
 
+    @Column(name = "`garment_id`")
     Integer garmentId;
+
+    @Column(name = "`garment_quotation_id`")
+    Integer garmentQuotationId;
 
     @Column(name = "`garment_name`")
     String garmentName;

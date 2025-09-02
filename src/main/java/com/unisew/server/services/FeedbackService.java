@@ -27,4 +27,6 @@ public interface FeedbackService {
     ResponseEntity<ResponseObject> giveAppeals(GiveAppealsRequest request, HttpServletRequest  httpServletRequest);
 
     ResponseEntity<ResponseObject> approveAppeal(ApproveAppealsRequest request);
+
+    ResponseEntity<ResponseObject> getAllAppeals();
 }

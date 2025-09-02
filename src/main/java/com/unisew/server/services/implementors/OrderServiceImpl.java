@@ -403,6 +403,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = garmentQuotation.getOrder();
+        order.setGarmentQuotationId(garmentQuotation.getId());
         order.setStatus(Status.ORDER_PROCESSING);
         order.setGarmentId(garmentQuotation.getGarment().getId());
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());

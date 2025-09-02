@@ -66,14 +66,20 @@ public class FeedbackController {
         return feedbackService.approveReport(request);
     }
 
+    @GetMapping("/appeals")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getAllAppeals() {
+        return feedbackService.getAllAppeals();
+    }
+
     @PostMapping("/appeals")
-    @PreAuthorize("hasAnyRole('SCHOOL', 'DESINGER', 'GARMENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER', 'GARMENT')")
     public ResponseEntity<ResponseObject> giveAppeals(@RequestBody GiveAppealsRequest request, HttpServletRequest  httpServletRequest) {
         return feedbackService.giveAppeals(request, httpServletRequest);
     }
 
     @PostMapping("/appeals/approval")
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> approveAppeals(@RequestBody ApproveAppealsRequest request) {
         return feedbackService.approveAppeal(request);
     }

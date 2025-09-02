@@ -3,6 +3,7 @@ package com.unisew.server.utils;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.Appeals;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.DeliveryItem;
 import com.unisew.server.models.DesignDelivery;
@@ -228,9 +229,11 @@ public class EntityResponseBuilder {
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
         data.put("video", feedback.getVideoUrl());
+        data.put("report", feedback.isReport());
         data.put("appealsDeadline", feedback.getAppealDeadline());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
+        data.put("appeals", Objects.requireNonNullElse(buildAppealsListResponse(feedback.getAppeals()), ""));
 
         return data;
     }
@@ -254,10 +257,12 @@ public class EntityResponseBuilder {
         data.put("creationDate", feedback.getCreationDate());
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
+        data.put("report", feedback.isReport());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
         data.put("order", buildOrder(feedback.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo));
         data.put("designRequest", buildDesignRequestResponse(feedback.getDesignRequest()));
+        data.put("appeals", Objects.requireNonNullElse(buildAppealsListResponse(feedback.getAppeals()), ""));
 
         return data;
     }
@@ -352,6 +357,28 @@ public class EntityResponseBuilder {
         return data;
     }
 
+    //-------Appeals---------
+    public static List<Map<String, Object>> buildAppealsListResponse(List<Appeals> appeals) {
+        return appeals.stream().map(
+                EntityResponseBuilder::buildAppealsResponse
+        ).toList();
+    }
+
+    public static Map<String, Object> buildAppealsResponse(Appeals appeal) {
+        if (appeal == null) return null;
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", appeal.getId());
+        data.put("appeallant", buildSenderMap(appeal.getFeedback()) == null ? buildSenderMap(appeal.getFeedback()) : buildReceiverMap(appeal.getFeedback()));
+        data.put("reason", appeal.getReason());
+        data.put("creationDate", appeal.getCreationDate());
+        data.put("approvedDate", appeal.getApprovalDate());
+        data.put("status", appeal.getStatus().getValue());
+        data.put("videoUrl", appeal.getVideoUrl());
+        return data;
+    }
+
     //-------Order---------
     public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, SewingPhaseRepo sewingPhaseRepo, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
         return orders.stream()
@@ -368,6 +395,7 @@ public class EntityResponseBuilder {
         Map<String, Object> orderMap = new HashMap<>();
         orderMap.put("id", order.getId());
         orderMap.put("deadline", order.getDeadline());
+        orderMap.put("garmentQuotationId", order.getGarmentQuotationId());
         orderMap.put("school", buildCustomerResponse(order.getSchoolDesign().getCustomer()));
         orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner, designQuotationRepo, designRequestRepo));
         orderMap.put("note", order.getNote());
