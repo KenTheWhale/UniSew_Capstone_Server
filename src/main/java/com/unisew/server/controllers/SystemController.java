@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,15 +28,15 @@ public class SystemController {
         return systemService.getConfigData();
     }
 
-    @GetMapping("/config/name")
+    @GetMapping("/config/key")
     @PreAuthorize("hasAnyRole('ADMIN', 'SCHOOL', 'DESIGNER', 'GARMENT')")
-    public ResponseEntity<ResponseObject> getConfigDataByName(@RequestParam String name){
-        return systemService.getConfigDataByName(name);
+    public ResponseEntity<ResponseObject> getConfigDataByKey(@RequestParam String k){
+        return systemService.getConfigDataByKey(k);
     }
 
-    @PostMapping("/config")
+    @PutMapping("/config")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseObject> createConfigData(@RequestBody CreateConfigDataRequest request){
-        return systemService.createConfigData(request);
+    public ResponseEntity<ResponseObject> updateConfigData(@RequestBody CreateConfigDataRequest request){
+        return systemService.updateConfigData(request);
     }
 }

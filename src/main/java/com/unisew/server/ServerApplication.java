@@ -237,6 +237,8 @@ public class ServerApplication {
                             Map.of("name", "Critical", "compensation", 1)
                     ));
 
+                    Map<String, Object> depositData = new HashMap<>();
+
                     LocalDate today = LocalDate.now();
 
                     platformConfigRepo.saveAll(
@@ -245,7 +247,8 @@ public class ServerApplication {
                                     PlatformConfig.builder().key("media").value(mediaData).creationDate(today).modifiedDate(today).build(),
                                     PlatformConfig.builder().key("design").value(designData).creationDate(today).modifiedDate(today).build(),
                                     PlatformConfig.builder().key("order").value(orderData).creationDate(today).modifiedDate(today).build(),
-                                    PlatformConfig.builder().key("report").value(reportData).creationDate(today).modifiedDate(today).build()
+                                    PlatformConfig.builder().key("report").value(reportData).creationDate(today).modifiedDate(today).build(),
+                                    PlatformConfig.builder().key("deposit").value(depositData).creationDate(today).modifiedDate(today).build()
                             )
                     );
                 }

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 public interface SystemService {
     ResponseEntity<ResponseObject> getConfigData();
 
-    ResponseEntity<ResponseObject> createConfigData(CreateConfigDataRequest request);
+    ResponseEntity<ResponseObject> updateConfigData(CreateConfigDataRequest request);
 
-    ResponseEntity<ResponseObject> getConfigDataByName(String name);
+    ResponseEntity<ResponseObject> getConfigDataByKey(String key);
 }
