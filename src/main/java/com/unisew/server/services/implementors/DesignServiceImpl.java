@@ -59,7 +59,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -689,6 +691,7 @@ public class DesignServiceImpl implements DesignService {
                 .build());
 
         designDelivery.getDesignRequest().setStatus(Status.DESIGN_REQUEST_COMPLETED);
+        designDelivery.getDesignRequest().setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
         designDeliveryRepo.save(designDelivery);
 
         return ResponseBuilder.build(HttpStatus.CREATED, "Design finished", null);
@@ -707,7 +710,6 @@ public class DesignServiceImpl implements DesignService {
         if (account.getStatus().equals(Status.ACCOUNT_INACTIVE)) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account is inactive", null);
         }
-
 
         DesignQuotation designQuotation = designQuotationRepo.findById(request.getDesignQuotationId()).orElse(null);
 

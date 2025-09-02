@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class Order {
     Status status;
 
     @Column(name = "`disburse_at`")
-    LocalDate disburseAt;
+    Instant disburseAt;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
