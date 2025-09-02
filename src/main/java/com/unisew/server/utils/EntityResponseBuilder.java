@@ -474,7 +474,6 @@ public class EntityResponseBuilder {
         data.put("startTime", partner.getStartTime());
         data.put("endTime", partner.getEndTime());
         data.put("rating", partner.getRating());
-        data.put("depositPercentage", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getDepositPercentage() : 0);
         data.put("thumbnails", buildThumbnailImageListResponse(partner.getThumbnailImages()));
         data.put("feedbacks", buildListFeedbackResponse(feedbacks));
         data.put("shippingUID", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getShippingUid() : "");

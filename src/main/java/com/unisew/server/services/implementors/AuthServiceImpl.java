@@ -177,7 +177,6 @@ public class AuthServiceImpl implements AuthService {
         partnerData.put("startTime", partner.getStartTime());
         partnerData.put("endTime", partner.getEndTime());
         partnerData.put("rating", partner.getRating());
-        partnerData.put("depositPercentage", partner.getDepositPercentage());
         partnerData.put("shippingUID", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getShippingUid() : "");
         return partnerData;
     }
@@ -404,7 +403,6 @@ public class AuthServiceImpl implements AuthService {
                         .startTime(data.getPartnerData().getStartTime())
                         .endTime(data.getPartnerData().getEndTime())
                         .rating(0)
-                        .depositPercentage(0)
                         .build()
         );
         walletRepo.save(
