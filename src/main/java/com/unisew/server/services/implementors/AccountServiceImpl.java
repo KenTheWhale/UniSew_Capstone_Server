@@ -293,8 +293,6 @@ public class AccountServiceImpl implements AccountService {
         }
 
         Map<String, Object> data = new HashMap<>();
-
-        data.put("depositPercentage", partner.getDepositPercentage());
         data.put("endTime", partner.getEndTime());
         data.put("startTime", partner.getStartTime());
         data.put("preview", partner.getInsidePreview());

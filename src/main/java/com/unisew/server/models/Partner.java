@@ -56,9 +56,6 @@ public class Partner {
 
     Integer rating;
 
-    @Column(name = "`deposit_percentage`")
-    double depositPercentage;
-
     @OneToMany(mappedBy = "designer", fetch = FetchType.LAZY)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

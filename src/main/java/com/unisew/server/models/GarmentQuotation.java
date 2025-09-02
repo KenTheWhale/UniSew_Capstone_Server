@@ -51,6 +51,8 @@ public class GarmentQuotation {
 
     String note;
 
+    double depositRate;
+
     @Enumerated(EnumType.STRING)
     Status status;
 
