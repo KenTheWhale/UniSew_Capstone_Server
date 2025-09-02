@@ -229,8 +229,9 @@ public class EntityResponseBuilder {
         data.put("status", feedback.getStatus().getValue());
         data.put("video", feedback.getVideoUrl());
         data.put("appealsDeadline", feedback.getAppealDeadline());
-        data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
-        data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
+        data.put("report", feedback.isReport());
+        data.put("sender", buildSenderMap(feedback));
+        data.put("receiver", buildReceiverMap(feedback));
 
         return data;
     }
@@ -276,6 +277,7 @@ public class EntityResponseBuilder {
         sender.put("type", "school");
         sender.put("id", school.getId());
         sender.put("name", school.getName());
+        sender.put("business", school.getBusinessName());
         sender.put("avatar", school.getAvatar());
         if (school.getAccount() != null) {
             sender.put("email", school.getAccount().getEmail());
@@ -472,10 +474,10 @@ public class EntityResponseBuilder {
         data.put("startTime", partner.getStartTime());
         data.put("endTime", partner.getEndTime());
         data.put("rating", partner.getRating());
-        data.put("depositPercentage", partner.getDepositPercentage());
+        data.put("depositPercentage", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getDepositPercentage() : 0);
         data.put("thumbnails", buildThumbnailImageListResponse(partner.getThumbnailImages()));
-        data.put("feedbacks", Objects.requireNonNullElse(buildListFeedbackResponse(feedbacks), new ArrayList<>()));
-        data.put("shippingUID", partner.getShippingUid());
+        data.put("feedbacks", buildListFeedbackResponse(feedbacks));
+        data.put("shippingUID", partner.getCustomer().getAccount().getRole().equals(Role.GARMENT) ? partner.getShippingUid() : "");
 
         return data;
     }
