@@ -68,6 +68,12 @@ public class DesignController {
         return designService.getListDesignRequestByDesigner(request);
     }
 
+    @PostMapping("/designer/rejected")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<ResponseObject> getListRejectedDesignRequestByDesigner(HttpServletRequest request) {
+        return designService.getListRejectedDesignRequestByDesigner(request);
+    }
+
     @GetMapping("/designer/request/detail")
     @PreAuthorize("hasRole('DESIGNER')")
     public ResponseEntity<ResponseObject> getDesignRequestDetailForDesigner(@RequestParam int id) {

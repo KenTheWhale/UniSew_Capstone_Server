@@ -196,6 +196,25 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
+    public ResponseEntity<ResponseObject> getListRejectedDesignRequestByDesigner(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+
+        if (account == null) {
+            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Account not found", null);
+        }
+
+        List<DesignQuotation> quotations = account.getCustomer().getPartner().getDesignQuotations().stream().filter(quotation -> quotation.getStatus().equals(Status.DESIGN_QUOTATION_REJECTED)).toList();
+
+        List<DesignRequest> designRequests = new ArrayList<>();
+
+        for (DesignQuotation quotation : quotations) {
+           designRequests.add(quotation.getDesignRequest());
+        }
+
+        return buildDesignRequestResponseForDesigner(designRequests);
+    }
+
+    @Override
     public ResponseEntity<ResponseObject> getDesignRequestDetailForDesigner(int id) {
         DesignRequest designRequest = designRequestRepo.findById(id).orElse(null);
         if (designRequest == null) {
@@ -948,6 +967,7 @@ public class DesignServiceImpl implements DesignService {
         data.put("id", delivery.getId());
         data.put("name", delivery.getName());
         data.put("submitDate", delivery.getSubmitDate());
+        data.put("version", delivery.getVersion());
         data.put("note", delivery.getNote() == null ? "" : delivery.getNote());
         data.put("items", EntityResponseBuilder.buildDeliveryItemListResponse(delivery.getDeliveryItems(), designItemRepo));
 
