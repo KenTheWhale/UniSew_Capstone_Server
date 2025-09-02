@@ -31,6 +31,8 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> getListDesignRequestByDesigner(HttpServletRequest request);
 
+    ResponseEntity<ResponseObject> getListRejectedDesignRequestByDesigner(HttpServletRequest request);
+
     ResponseEntity<ResponseObject> pickDesignQuotation(PickDesignQuotationRequest request, HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> updateRequestByDeadline(UpdateRequestByDeadline request);

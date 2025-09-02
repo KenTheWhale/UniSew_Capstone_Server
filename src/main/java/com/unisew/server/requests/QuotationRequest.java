@@ -18,6 +18,7 @@ public class QuotationRequest {
     Integer orderId;
     LocalDate earlyDeliveryDate;
     LocalDate acceptanceDeadline;
+    double depositRate;
     long price;
     String note;
 }

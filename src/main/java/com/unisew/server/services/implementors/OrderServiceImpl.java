@@ -368,7 +368,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "You already create a quotation for this order", null);
         }
 
-        GarmentQuotation garmentQuotation = GarmentQuotation.builder().order(order).garment(account.getCustomer().getPartner()).earlyDeliveryDate(request.getEarlyDeliveryDate()).acceptanceDeadline(request.getAcceptanceDeadline()).price(request.getPrice()).note(request.getNote()).status(Status.GARMENT_QUOTATION_PENDING).build();
+        GarmentQuotation garmentQuotation = GarmentQuotation.builder().order(order).garment(account.getCustomer().getPartner()).earlyDeliveryDate(request.getEarlyDeliveryDate()).depositRate(request.getDepositRate()).acceptanceDeadline(request.getAcceptanceDeadline()).price(request.getPrice()).note(request.getNote()).status(Status.GARMENT_QUOTATION_PENDING).build();
 
         garmentQuotationRepo.save(garmentQuotation);
 
