@@ -58,6 +58,9 @@ public class Order {
 
     LocalDate deadline;
 
+    @Column(name = "`completed_date`")
+    LocalDate completedDate;
+
     long price;
 
     @Column(name = "`shipping_fee`")

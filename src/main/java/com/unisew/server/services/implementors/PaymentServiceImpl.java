@@ -271,6 +271,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
+        if(request.getType().equalsIgnoreCase(PaymentType.DEPOSIT.name())){
+            amount = request.getTotalPrice() + request.getServiceFee();
+        }
 
         return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
     }
@@ -368,7 +371,7 @@ public class PaymentServiceImpl implements PaymentService {
                     Order order = orderRepo.findById(itemId).orElse(null);
                     if (order != null) {
                         group.put("order", EntityResponseBuilder.buildOrder(
-                                order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo
+                                order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo
                         ));
                     } else {
                         group.put("title", "Order #" + itemId);

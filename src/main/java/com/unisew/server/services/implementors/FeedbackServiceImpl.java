@@ -22,6 +22,8 @@ import com.unisew.server.repositories.FeedbackRepo;
 import com.unisew.server.repositories.GarmentQuotationRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.TransactionRepo;
+import com.unisew.server.requests.GiveAppealsRequest;
 import com.unisew.server.requests.ApproveAppealsRequest;
 import com.unisew.server.requests.ApproveReportRequest;
 import com.unisew.server.requests.GiveAppealsRequest;
@@ -72,6 +74,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     DesignItemRepo designItemRepo;
     AppealsRepo appealsRepo;
     private final GarmentQuotationRepo garmentQuotationRepo;
+    TransactionRepo transactionRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getFeedbacksByOrder(Integer orderId) {
@@ -216,7 +219,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public ResponseEntity<ResponseObject> getAllReport() {
         List<Feedback> reports = feedbackRepo.findAllByReportIsTrue();
-        return ResponseBuilder.build(HttpStatus.OK, "List of all feedback reports", EntityResponseBuilder.buildListReportResponse(reports, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "List of all feedback reports", EntityResponseBuilder.buildListReportResponse(reports, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo) );
     }
 
     @Override
