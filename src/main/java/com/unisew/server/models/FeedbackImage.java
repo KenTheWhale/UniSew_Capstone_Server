@@ -28,8 +28,7 @@ public class FeedbackImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(name = "`owner_id`")
-    Integer ownerId;
+    String owner;
 
     @Column(name = "`image_url`")
     String imageUrl;
