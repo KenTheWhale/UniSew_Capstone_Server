@@ -457,17 +457,17 @@ public class PaymentServiceImpl implements PaymentService {
         }
         long refundAmount = 0;
 
-//        if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.LOW.getValue())) {
-//            refundAmount = (long) Math.floor(totalAmount * request.getCompensation());
-//        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.MEDIUM.getValue())) {
-//            refundAmount = (long) Math.floor(totalAmount * 0.50);
-//        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.HIGH.getValue())) {
-//            refundAmount = (long) Math.floor(totalAmount * 0.75);
-//        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.SERIOUS.getValue())) {
-//            refundAmount = totalAmount;
-//        }
+        if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.LOW.getValue())) {
+            refundAmount = (long) Math.floor(totalAmount * 0.25);
+        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.MEDIUM.getValue())) {
+            refundAmount = (long) Math.floor(totalAmount * 0.50);
+        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.HIGH.getValue())) {
+            refundAmount = (long) Math.floor(totalAmount * 0.75);
+        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.SERIOUS.getValue())) {
+            refundAmount = totalAmount;
+        }
 
-        refundAmount = (long) Math.floor(totalAmount * request.getCompensation());
+//        refundAmount = (long) Math.floor(totalAmount * request.getCompensation());
 
         Wallet partnerWallet = transactions.get(0).getReceiver().getAccount().getWallet();
         Wallet schoolWallet = transactions.get(0).getSender().getAccount().getWallet();
