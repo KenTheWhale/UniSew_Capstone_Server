@@ -1,5 +1,6 @@
 package com.unisew.server.repositories;
 
+import com.unisew.server.models.Feedback;
 import com.unisew.server.models.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,4 +16,6 @@ public interface OrderRepo extends JpaRepository<Order, Integer> {
     Optional<Order> findByIdAndSchoolDesign_Customer_Account_Id(int orderId, int accountId);
 
     Optional<Order> findBySchoolDesign_Customer_Account_IdAndId(int accountId, int orderId);
+
+    List<Order> findAllByFeedbackIsNotNull();
 }

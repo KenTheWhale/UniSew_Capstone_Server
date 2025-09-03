@@ -1,8 +1,7 @@
 package com.unisew.server.services;
 
-import com.unisew.server.requests.GiveAppealsRequest;
-import com.unisew.server.requests.ApproveAppealsRequest;
 import com.unisew.server.requests.ApproveReportRequest;
+import com.unisew.server.requests.GiveEvidenceRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +23,5 @@ public interface FeedbackService {
 
     ResponseEntity<ResponseObject> getAllReport();
 
-    ResponseEntity<ResponseObject> giveAppeals(GiveAppealsRequest request, HttpServletRequest  httpServletRequest);
-
-    ResponseEntity<ResponseObject> approveAppeal(ApproveAppealsRequest request);
+    ResponseEntity<ResponseObject> giveEvidence(GiveEvidenceRequest request, HttpServletRequest httpServletRequest);
 }

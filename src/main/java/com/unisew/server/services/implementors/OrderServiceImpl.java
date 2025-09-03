@@ -53,7 +53,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -122,12 +124,24 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order details size does not match delivery items size!", null);
         }
 
-        Order order = orderRepo.save(Order.builder().schoolDesign(schoolDesign).feedback(null).garmentId(null).garmentName("").deadline(request.getDeadline()).price(0).orderDate(LocalDate.now()).note(request.getNote()).status(Status.ORDER_PENDING).build());
+        Order order = orderRepo.save(Order.builder()
+                .schoolDesign(schoolDesign)
+                .feedback(null).garmentId(null)
+                .garmentName("").deadline(request.getDeadline())
+                .price(0)
+                .orderDate(LocalDate.now())
+                .note(request.getNote())
+                .status(Status.ORDER_PENDING).build());
 
         List<OrderDetail> orderDetailEntities = new ArrayList<>();
         if (request.getOrderDetails() != null) {
             for (CreateOrderRequest.OrderItem item : request.getOrderDetails()) {
-                OrderDetail detail = OrderDetail.builder().order(order).deliveryItemId(item.getDeliveryItemId()).size(DeliveryItemSize.valueOf(item.getSize())).quantity(item.getQuantity()).build();
+                OrderDetail detail = OrderDetail.builder()
+                        .order(order)
+                        .deliveryItemId(item.getDeliveryItemId())
+                        .size(DeliveryItemSize.valueOf(item.getSize()))
+                        .quantity(item.getQuantity())
+                        .build();
                 orderDetailEntities.add(detail);
             }
             orderDetailRepo.saveAll(orderDetailEntities);
@@ -391,11 +405,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = garmentQuotation.getOrder();
+        order.setGarmentQuotationId(garmentQuotation.getId());
         order.setStatus(Status.ORDER_PROCESSING);
         order.setGarmentId(garmentQuotation.getGarment().getId());
         order.setGarmentName(garmentQuotation.getGarment().getCustomer().getName());
         order.setPrice(garmentQuotation.getPrice());
         order.setNote(order.getNote());
+        order.setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
         orderRepo.save(order);
 
         request.getCreateTransactionRequest().setReceiverId(garmentQuotation.getGarment().getCustomer().getId());
@@ -524,12 +540,12 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public ResponseEntity<ResponseObject> confirmDeliveredOrder(ConfirmDeliveredOrderRequest request, HttpServletRequest httpRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-        if(account == null){
+        if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
 
         Order order = orderRepo.findBySchoolDesign_Customer_Account_IdAndId(account.getId(), request.getOrderId()).orElse(null);
-        if(order == null){
+        if (order == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
         }
 

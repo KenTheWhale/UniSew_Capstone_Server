@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -46,7 +47,11 @@ public class Order {
     @JoinColumn(name = "`feedback_id`")
     Feedback feedback;
 
+    @Column(name = "`garment_id`")
     Integer garmentId;
+
+    @Column(name = "`garment_quotation_id`")
+    Integer garmentQuotationId;
 
     @Column(name = "`garment_name`")
     String garmentName;
@@ -73,7 +78,7 @@ public class Order {
     Status status;
 
     @Column(name = "`disburse_at`")
-    LocalDate disburseAt;
+    Instant disburseAt;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude

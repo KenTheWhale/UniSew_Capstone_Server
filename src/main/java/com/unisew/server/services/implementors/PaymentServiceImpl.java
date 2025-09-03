@@ -41,7 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -183,6 +185,19 @@ public class PaymentServiceImpl implements PaymentService {
 
             walletRepo.save(adminWallet);
             receiverWallet = walletRepo.save(receiverWallet);
+
+            if (request.getType().equalsIgnoreCase(PaymentType.DESIGN.name()) && request.getItemId() != null) {
+                designRequestRepo.findById(request.getItemId()).ifPresent(dr -> {
+                    dr.setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
+                    designRequestRepo.save(dr);
+                });
+            }
+            if (request.getType().equalsIgnoreCase(PaymentType.ORDER.name()) && request.getItemId() != null) {
+                orderRepo.findById(request.getItemId()).ifPresent(o -> {
+                    o.setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
+                    orderRepo.save(o);
+                });
+            }
         }
 
         if (!isPaymentSuccess) balanceType = "fail";
@@ -257,7 +272,7 @@ public class PaymentServiceImpl implements PaymentService {
     private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
         if(request.getType().equalsIgnoreCase(PaymentType.DEPOSIT.name())){
-            amount = request.getTotalPrice() + request.getServiceFee();
+            amount = request.getTotalPrice();
         }
 
         return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
@@ -452,7 +467,7 @@ public class PaymentServiceImpl implements PaymentService {
         Wallet partnerWallet = transactions.get(0).getReceiver().getAccount().getWallet();
         Wallet schoolWallet = transactions.get(0).getSender().getAccount().getWallet();
         partnerWallet.setPendingBalance(partnerWallet.getPendingBalance() - refundAmount);
-        schoolWallet.setPendingBalance(schoolWallet.getBalance() + refundAmount);
+        schoolWallet.setPendingBalance(schoolWallet.getPendingBalance() + refundAmount);
 
         walletRepo.save(partnerWallet);
         walletRepo.save(schoolWallet);

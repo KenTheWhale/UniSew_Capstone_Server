@@ -28,11 +28,9 @@ import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.PartnerRepo;
-import com.unisew.server.repositories.SewingPhaseRepo;
 import com.unisew.server.repositories.TransactionRepo;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -230,10 +228,9 @@ public class EntityResponseBuilder {
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
         data.put("video", feedback.getVideoUrl());
-        data.put("appealsDeadline", feedback.getAppealDeadline());
         data.put("report", feedback.isReport());
-        data.put("sender", buildSenderMap(feedback));
-        data.put("receiver", buildReceiverMap(feedback));
+        data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
+        data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
 
         return data;
     }
@@ -257,6 +254,7 @@ public class EntityResponseBuilder {
         data.put("creationDate", feedback.getCreationDate());
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
+        data.put("report", feedback.isReport());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
         data.put("order", buildOrder(feedback.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo));
@@ -369,18 +367,19 @@ public class EntityResponseBuilder {
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
         GarmentQuotation quotation = order.getGarmentQuotations().stream().filter(q -> Objects.equals(q.getGarment().getId(), order.getGarmentId())).findFirst().orElse(null);
-        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).get(0);
+        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).stream().findFirst().orElse(null);
 
         Map<String, Object> orderMap = new HashMap<>();
         orderMap.put("id", order.getId());
         orderMap.put("deadline", order.getDeadline());
+        orderMap.put("garmentQuotationId", order.getGarmentQuotationId());
         orderMap.put("school", buildCustomerResponse(order.getSchoolDesign().getCustomer()));
         orderMap.put("garment", EntityResponseBuilder.buildPartnerResponse(partner, designQuotationRepo, designRequestRepo));
         orderMap.put("note", order.getNote());
         orderMap.put("orderDate", order.getOrderDate());
         orderMap.put("price", order.getPrice());
         orderMap.put("shippingFee", order.getShippingFee());
-        orderMap.put("serviceFee", transaction.getServiceFee());
+        orderMap.put("serviceFee", transaction != null ? transaction.getServiceFee() : null);
         orderMap.put("status", order.getStatus().getValue());
         orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
         orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));

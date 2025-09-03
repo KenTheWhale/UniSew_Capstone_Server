@@ -1,8 +1,7 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.requests.GiveAppealsRequest;
-import com.unisew.server.requests.ApproveAppealsRequest;
 import com.unisew.server.requests.ApproveReportRequest;
+import com.unisew.server.requests.GiveEvidenceRequest;
 import com.unisew.server.requests.GiveFeedbackRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.FeedbackService;
@@ -13,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,16 +66,9 @@ public class FeedbackController {
         return feedbackService.approveReport(request);
     }
 
-    @PostMapping("/appeals")
-    @PreAuthorize("hasAnyRole('SCHOOL', 'DESINGER', 'GARMENT')")
-    public ResponseEntity<ResponseObject> giveAppeals(@RequestBody GiveAppealsRequest request, HttpServletRequest  httpServletRequest) {
-        return feedbackService.giveAppeals(request, httpServletRequest);
+    @PutMapping("/report/evidence")
+    @PreAuthorize("hasAnyRole('DESIGNER', 'GARMENT')")
+    public ResponseEntity<ResponseObject> giveEvidence(@RequestBody GiveEvidenceRequest request, HttpServletRequest httpServletRequest) {
+        return feedbackService.giveEvidence(request, httpServletRequest);
     }
-
-    @PostMapping("/appeals/approval")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<ResponseObject> approveAppeals(@RequestBody ApproveAppealsRequest request) {
-        return feedbackService.approveAppeal(request);
-    }
-
 }

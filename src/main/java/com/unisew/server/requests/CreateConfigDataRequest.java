@@ -109,7 +109,6 @@ public class CreateConfigDataRequest {
     @Builder
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class ReportData{
-        int maxAppealDay;
         int maxDisbursementDay;
         List<SeverityLevel> levels;
     }
