@@ -16,4 +16,5 @@ public interface DesignRequestRepo extends JpaRepository<DesignRequest, Integer>
     List<DesignRequest> findAllBySchool_Account_Id(Integer schoolAccountId);
 
     boolean existsBySchool_IdAndName(int schoolId, String name);
+
 }

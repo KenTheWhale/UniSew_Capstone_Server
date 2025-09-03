@@ -354,8 +354,7 @@ public class EntityResponseBuilder {
         Map<String, Object> data = new HashMap<>();
 
         data.put("id", image.getId());
-        data.put("school", image.getOwnerId() != null ? image.getOwnerId() : null);
-        data.put("partner", image.getOwnerId() != null ? image.getOwnerId() : null);
+        data.put("owner", image.getOwner());
         data.put("url", image.getImageUrl());
 
         return data;

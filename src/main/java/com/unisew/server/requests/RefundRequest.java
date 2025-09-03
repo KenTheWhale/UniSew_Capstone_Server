@@ -16,4 +16,5 @@ public class RefundRequest {
     Integer reportId;
     String decision;
     String problemLevel;
+    long compensation;
 }

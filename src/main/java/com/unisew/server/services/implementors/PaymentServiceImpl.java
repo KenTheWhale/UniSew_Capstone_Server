@@ -442,6 +442,9 @@ public class PaymentServiceImpl implements PaymentService {
                     .filter(transaction -> (transaction.getPaymentType().equals(PaymentType.ORDER) || transaction.getPaymentType().equals(PaymentType.DEPOSIT)) && transaction.getBalanceType().equals("pending"))
                     .toList();
         }
+        if (transactions.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No pending transaction found for this report", null);
+        }
 
         boolean isMatching = feedbackMatchesDecision(transactions.get(0), "ACCEPTED".equalsIgnoreCase(request.getDecision()));
         if (!isMatching) {
@@ -454,15 +457,17 @@ public class PaymentServiceImpl implements PaymentService {
         }
         long refundAmount = 0;
 
-        if (request.getProblemLevel().equals(ProblemLevel.LOW.getValue())) {
+        if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.LOW.getValue())) {
             refundAmount = (long) Math.floor(totalAmount * 0.25);
-        } else if (request.getProblemLevel().equals(ProblemLevel.MEDIUM.getValue())) {
+        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.MEDIUM.getValue())) {
             refundAmount = (long) Math.floor(totalAmount * 0.50);
-        } else if (request.getProblemLevel().equals(ProblemLevel.HIGH.getValue())) {
+        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.HIGH.getValue())) {
             refundAmount = (long) Math.floor(totalAmount * 0.75);
-        } else if (request.getProblemLevel().equals(ProblemLevel.SERIOUS.getValue())) {
+        } else if (request.getProblemLevel().equalsIgnoreCase(ProblemLevel.SERIOUS.getValue())) {
             refundAmount = totalAmount;
         }
+
+//        refundAmount = (long) Math.floor(totalAmount * request.getCompensation());
 
         Wallet partnerWallet = transactions.get(0).getReceiver().getAccount().getWallet();
         Wallet schoolWallet = transactions.get(0).getSender().getAccount().getWallet();
