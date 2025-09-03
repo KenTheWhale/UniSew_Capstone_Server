@@ -1,5 +1,6 @@
 package com.unisew.server.utils;
 
+import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
@@ -28,6 +29,7 @@ import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
+import com.unisew.server.repositories.TransactionRepo;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -236,13 +238,13 @@ public class EntityResponseBuilder {
         return data;
     }
 
-    public static List<Map<String, Object>> buildListReportResponse(List<Feedback> feedbacks, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+    public static List<Map<String, Object>> buildListReportResponse(List<Feedback> feedbacks, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo, TransactionRepo transactionRepo) {
         return feedbacks.stream().map(
-                feedback -> buildReportResponse(feedback, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo)
+                feedback -> buildReportResponse(feedback, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo)
         ).toList();
     }
 
-    public static Map<String, Object> buildReportResponse(Feedback feedback, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+    public static Map<String, Object> buildReportResponse(Feedback feedback, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo, TransactionRepo transactionRepo) {
         if (feedback == null) {
             return null;
         }
@@ -257,7 +259,7 @@ public class EntityResponseBuilder {
         data.put("status", feedback.getStatus().getValue());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
-        data.put("order", buildOrder(feedback.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo));
+        data.put("order", buildOrder(feedback.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo));
         data.put("designRequest", buildDesignRequestResponse(feedback.getDesignRequest()));
 
         return data;
@@ -355,17 +357,19 @@ public class EntityResponseBuilder {
     }
 
     //-------Order---------
-    public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, SewingPhaseRepo sewingPhaseRepo, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
+    public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo, TransactionRepo transactionRepo) {
         return orders.stream()
-                .map(order -> buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo))
+                .map(order -> buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo))
                 .toList();
     }
 
-    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+    public static Map<String, Object> buildOrder(Order order, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo, TransactionRepo transactionRepo) {
         Partner partner;
         if (order == null) return null;
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
+        GarmentQuotation quotation = order.getGarmentQuotations().stream().filter(q -> Objects.equals(q.getGarment().getId(), order.getGarmentId())).findFirst().orElse(null);
+        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).get(0);
 
         Map<String, Object> orderMap = new HashMap<>();
         orderMap.put("id", order.getId());
@@ -376,12 +380,15 @@ public class EntityResponseBuilder {
         orderMap.put("orderDate", order.getOrderDate());
         orderMap.put("price", order.getPrice());
         orderMap.put("shippingFee", order.getShippingFee());
+        orderMap.put("serviceFee", transaction.getServiceFee());
         orderMap.put("status", order.getStatus().getValue());
         orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
         orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
         orderMap.put("selectedDesign", EntityResponseBuilder.buildDesignDeliveryResponse(order.getSchoolDesign().getDesignDelivery(), designItemRepo));
         orderMap.put("feedback", Objects.requireNonNullElse(buildFeedbackResponse(order.getFeedback()), ""));
         orderMap.put("shippingCode", Objects.requireNonNullElse(order.getShippingCode(), ""));
+        orderMap.put("depositRate", quotation == null ? 0 : quotation.getDepositRate() / 100);
+        orderMap.put("completedDate", order.getCompletedDate());
         return orderMap;
     }
 
@@ -501,20 +508,21 @@ public class EntityResponseBuilder {
     //-------Quotation---------
 
     public static List<Map<String, Object>> buildQuotationResponse(List<GarmentQuotation> garmentQuotations, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
-        return (garmentQuotations != null) ?
-                garmentQuotations.stream().map(item -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", item.getId());
-                    map.put("garment", buildPartnerResponse(item.getGarment(), designQuotationRepo, designRequestRepo));
-                    map.put("earlyDeliveryDate", item.getEarlyDeliveryDate());
-                    map.put("acceptanceDeadline", item.getAcceptanceDeadline());
-                    map.put("price", item.getPrice());
-                    map.put("note", item.getNote());
-                    map.put("status", item.getStatus().getValue());
-                    return map;
-                }).toList()
-                :
-                new ArrayList<>();
+        return garmentQuotations.stream().map(q -> buildQuotationResponse(q, designRequestRepo, designQuotationRepo)).toList();
+    }
+
+    public static Map<String, Object> buildQuotationResponse(GarmentQuotation garmentQuotation, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo){
+        if(garmentQuotation == null) return null;
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", garmentQuotation.getId());
+        map.put("garment", buildPartnerResponse(garmentQuotation.getGarment(), designQuotationRepo, designRequestRepo));
+        map.put("earlyDeliveryDate", garmentQuotation.getEarlyDeliveryDate());
+        map.put("acceptanceDeadline", garmentQuotation.getAcceptanceDeadline());
+        map.put("price", garmentQuotation.getPrice());
+        map.put("note", garmentQuotation.getNote());
+        map.put("depositRate", garmentQuotation.getDepositRate());
+        map.put("status", garmentQuotation.getStatus().getValue());
+        return map;
     }
 
     //-------Revision Request---------

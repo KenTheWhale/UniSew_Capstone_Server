@@ -25,6 +25,7 @@ import com.unisew.server.repositories.OrderDetailRepo;
 import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.SewingPhaseRepo;
+import com.unisew.server.repositories.TransactionRepo;
 import com.unisew.server.requests.ApproveQuotationRequest;
 import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.CancelOrderRequest;
@@ -80,6 +81,7 @@ public class OrderServiceImpl implements OrderService {
     PaymentService paymentService;
     DesignRequestRepo designRequestRepo;
     DesignQuotationRepo designQuotationRepo;
+    private final TransactionRepo transactionRepo;
 
 
     @Override
@@ -141,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
     public ResponseEntity<ResponseObject> viewAllOrder() {
 
         List<Order> orders = orderRepo.findAll().stream().filter(order -> order.getStatus().equals(Status.ORDER_PENDING)).toList();
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo, designRequestRepo, designQuotationRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
     }
 
     @Override
@@ -151,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
         List<Order> orders = orderRepo.findAllByGarmentId(account.getCustomer().getPartner().getId());
-        return ResponseBuilder.build(HttpStatus.OK, "Get garment order list successfully", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo, designRequestRepo, designQuotationRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "Get garment order list successfully", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
     }
 
     @Override
@@ -173,7 +175,7 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
 
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, sewingPhaseRepo, designRequestRepo, designQuotationRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
     }
 
     @Override
@@ -462,7 +464,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order not found", null);
         }
 
-        Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo);
+        Map<String, Object> data = EntityResponseBuilder.buildOrder(order, partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo);
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
@@ -473,6 +475,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
         order.setStatus(Status.ORDER_COMPLETED);
+        order.setCompletedDate(LocalDate.now());
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order completed successfully", null);
     }
