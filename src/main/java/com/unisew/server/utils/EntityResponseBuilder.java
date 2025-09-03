@@ -369,7 +369,7 @@ public class EntityResponseBuilder {
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
         GarmentQuotation quotation = order.getGarmentQuotations().stream().filter(q -> Objects.equals(q.getGarment().getId(), order.getGarmentId())).findFirst().orElse(null);
-        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).get(0);
+        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).stream().findFirst().orElse(null);
 
         Map<String, Object> orderMap = new HashMap<>();
         orderMap.put("id", order.getId());
@@ -380,7 +380,7 @@ public class EntityResponseBuilder {
         orderMap.put("orderDate", order.getOrderDate());
         orderMap.put("price", order.getPrice());
         orderMap.put("shippingFee", order.getShippingFee());
-        orderMap.put("serviceFee", transaction.getServiceFee());
+        orderMap.put("serviceFee", transaction != null ? transaction.getServiceFee() : 0);
         orderMap.put("status", order.getStatus().getValue());
         orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
         orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));
@@ -617,6 +617,7 @@ public class EntityResponseBuilder {
         data.put("balanceType", transaction.getBalanceType());
         data.put("status", transaction.getStatus().getValue());
         data.put("paymentType", transaction.getPaymentType().getValue());
+        data.put("itemId", transaction.getItemId());
         data.put("paymentGatewayCode", transaction.getPaymentGatewayCode());
 
         return data;

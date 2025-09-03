@@ -257,7 +257,7 @@ public class PaymentServiceImpl implements PaymentService {
     private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
         if(request.getType().equalsIgnoreCase(PaymentType.DEPOSIT.name())){
-            amount = request.getTotalPrice() + request.getServiceFee();
+            amount = request.getTotalPrice();
         }
 
         return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
