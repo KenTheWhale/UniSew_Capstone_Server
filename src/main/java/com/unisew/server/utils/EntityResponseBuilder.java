@@ -231,8 +231,8 @@ public class EntityResponseBuilder {
         data.put("schoolVideo", feedback.getSchoolVideoUrl());
         data.put("partnerVideo", feedback.getPartnerVideoUrl());
         data.put("report", feedback.isReport());
-        data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
-        data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
+        data.put("sender", buildSenderMap(feedback));
+        data.put("receiver", buildReceiverMap(feedback));
 
         return data;
     }
@@ -623,6 +623,7 @@ public class EntityResponseBuilder {
         data.put("balanceType", transaction.getBalanceType());
         data.put("status", transaction.getStatus().getValue());
         data.put("paymentType", transaction.getPaymentType().getValue());
+        data.put("itemId", transaction.getItemId());
         data.put("paymentGatewayCode", transaction.getPaymentGatewayCode());
 
         return data;
