@@ -39,7 +39,11 @@ public class Feedback {
 
     int rating;
 
-    String content;
+    @Column(name = "`school_content`")
+    String schoolContent;
+
+    @Column(name = "`partner_content`")
+    String partnerContent;
 
     @Column(name = "`is_report`")
     boolean report;
@@ -59,11 +63,11 @@ public class Feedback {
     @Enumerated(EnumType.STRING)
     Status status;
 
-    @Column(name = "`video_url`")
-    String videoUrl;
+    @Column(name = "`school_video_url`")
+    String schoolVideoUrl;
 
-    @Column(name = "`appeal_deadline`")
-    LocalDate appealDeadline;
+    @Column(name = "`partner_video_url`")
+    String partnerVideoUrl;
 
     @OneToOne(mappedBy = "feedback", fetch = FetchType.EAGER)
     @ToString.Exclude
@@ -79,9 +83,4 @@ public class Feedback {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<FeedbackImage> feedbackImages;
-
-    @OneToMany(mappedBy = "feedback")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    List<Appeals> appeals;
 }

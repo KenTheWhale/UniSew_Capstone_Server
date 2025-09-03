@@ -9,5 +9,7 @@ import java.util.List;
 public interface GarmentQuotationRepo extends JpaRepository<GarmentQuotation, Integer> {
     List<GarmentQuotation> findAllByOrder_Id(Integer orderId);
 
+    List<GarmentQuotation> findAllByGarmentId(Integer garmentId);
+
     boolean existsByOrder_IdAndGarment_IdAndStatus(int orderId, int garmentId, Status status);
 }

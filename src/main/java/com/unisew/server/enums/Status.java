@@ -62,16 +62,12 @@ public enum Status {
     FEEDBACK_REPORT_UNDER_REVIEW("under-review"),
     FEEDBACK_REPORT_RESOLVED_ACCEPTED("accepted"),
     FEEDBACK_REPORT_RESOLVED_REJECTED("rejected"),
-    FEEDBACK_REPORT_APPEALED("appealed"),
+    FEEDBACK_REPORT_WAITING_EVIDENCE("waiting-evidence"),
 
     //WITHDRAW REQUEST
     WITHDRAW_APPROVED("approved"),
     WITHDRAW_REJECTED("rejected"),
-    WITHDRAW_PENDING("pending"),
-
-    APPEAL_UNDER_REVIEW("under-review"),
-    APPEAL_ACCEPTED("accepted"),
-    APPEAL_REJECTED("rejected"),;
+    WITHDRAW_PENDING("pending");
 
     private final String value;
 }

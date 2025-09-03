@@ -7,13 +7,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class GiveAppealsRequest {
-    int feedbackId;
-    String reason;
+public class GiveEvidenceRequest {
+    Integer reportId;
+    String content;
+    List<String> imageUrls;
     String videoUrl;
 }

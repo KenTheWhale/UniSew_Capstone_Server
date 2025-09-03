@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class DesignRequest {
     Integer revisionTime;
 
     @Column(name = "`disburse_at`")
-    LocalDate disburseAt;
+    Instant disburseAt;
 
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
@@ -80,7 +81,6 @@ public class DesignRequest {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<DesignItem> designItems;
-
 
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
