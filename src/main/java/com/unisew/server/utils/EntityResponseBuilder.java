@@ -223,11 +223,13 @@ public class EntityResponseBuilder {
 
         data.put("id", feedback.getId());
         data.put("rating", feedback.getRating());
-        data.put("content", feedback.getContent());
+        data.put("schoolContent", feedback.getSchoolContent());
+        data.put("partnerContent", feedback.getPartnerContent());
         data.put("creationDate", feedback.getCreationDate());
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
         data.put("status", feedback.getStatus().getValue());
-        data.put("video", feedback.getVideoUrl());
+        data.put("schoolVideo", feedback.getSchoolVideoUrl());
+        data.put("partnerVideo", feedback.getPartnerVideoUrl());
         data.put("report", feedback.isReport());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
@@ -250,9 +252,12 @@ public class EntityResponseBuilder {
 
         data.put("id", feedback.getId());
         data.put("rating", feedback.getRating());
-        data.put("content", feedback.getContent());
+        data.put("schoolContent", feedback.getSchoolContent());
+        data.put("partnerContent", feedback.getPartnerContent());
         data.put("creationDate", feedback.getCreationDate());
         data.put("images", buildFeedbackImageListResponse(feedback.getFeedbackImages()));
+        data.put("schoolVideo", feedback.getSchoolVideoUrl());
+        data.put("partnerVideo", feedback.getPartnerVideoUrl());
         data.put("status", feedback.getStatus().getValue());
         data.put("report", feedback.isReport());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
@@ -349,6 +354,8 @@ public class EntityResponseBuilder {
         Map<String, Object> data = new HashMap<>();
 
         data.put("id", image.getId());
+        data.put("school", image.getOwnerId() != null ? image.getOwnerId() : null);
+        data.put("partner", image.getOwnerId() != null ? image.getOwnerId() : null);
         data.put("url", image.getImageUrl());
 
         return data;
