@@ -228,7 +228,6 @@ public class ServerApplication {
                     orderData.put("minUniformQty", 50);
                     orderData.put("maxAssignedMilestone", 5);
                     Map<String, Object> reportData = new HashMap<>();
-                    reportData.put("maxAppealDay", 7);
                     reportData.put("maxDisbursementDay", 7);
                     reportData.put("severityLevels", List.of(
                             Map.of("name", "Minor", "compensation", 0.1),
@@ -236,8 +235,6 @@ public class ServerApplication {
                             Map.of("name", "Major", "compensation", 0.5),
                             Map.of("name", "Critical", "compensation", 1)
                     ));
-
-                    Map<String, Object> depositData = new HashMap<>();
 
                     LocalDate today = LocalDate.now();
 
@@ -247,8 +244,7 @@ public class ServerApplication {
                                     PlatformConfig.builder().key("media").value(mediaData).creationDate(today).modifiedDate(today).build(),
                                     PlatformConfig.builder().key("design").value(designData).creationDate(today).modifiedDate(today).build(),
                                     PlatformConfig.builder().key("order").value(orderData).creationDate(today).modifiedDate(today).build(),
-                                    PlatformConfig.builder().key("report").value(reportData).creationDate(today).modifiedDate(today).build(),
-                                    PlatformConfig.builder().key("deposit").value(depositData).creationDate(today).modifiedDate(today).build()
+                                    PlatformConfig.builder().key("report").value(reportData).creationDate(today).modifiedDate(today).build()
                             )
                     );
                 }

@@ -180,7 +180,6 @@ public class SystemServiceImpl implements SystemService {
         CreateConfigDataRequest.ReportData reportData = request.getReportData();
         Map<String, Object> reportJson = new HashMap<>();
 
-        reportJson.put("maxAppealDay", reportData.getMaxAppealDay());
         reportJson.put("maxDisbursementDay", reportData.getMaxDisbursementDay());
         List<Map<String, String>> severityLevels = reportData.getLevels().stream()
                 .map(level -> {

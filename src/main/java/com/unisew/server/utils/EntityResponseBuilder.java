@@ -4,7 +4,6 @@ import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
-import com.unisew.server.models.Appeals;
 import com.unisew.server.models.Customer;
 import com.unisew.server.models.DeliveryItem;
 import com.unisew.server.models.DesignDelivery;
@@ -29,11 +28,9 @@ import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.DesignQuotationRepo;
 import com.unisew.server.repositories.DesignRequestRepo;
 import com.unisew.server.repositories.PartnerRepo;
-import com.unisew.server.repositories.SewingPhaseRepo;
 import com.unisew.server.repositories.TransactionRepo;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -232,10 +229,8 @@ public class EntityResponseBuilder {
         data.put("status", feedback.getStatus().getValue());
         data.put("video", feedback.getVideoUrl());
         data.put("report", feedback.isReport());
-        data.put("appealsDeadline", feedback.getAppealDeadline());
         data.put("sender", Objects.requireNonNullElse(buildSenderMap(feedback), ""));
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
-        data.put("appeals", Objects.requireNonNullElse(buildAppealsListResponse(feedback.getAppeals()), ""));
 
         return data;
     }
@@ -264,7 +259,6 @@ public class EntityResponseBuilder {
         data.put("receiver", Objects.requireNonNullElse(buildReceiverMap(feedback), ""));
         data.put("order", buildOrder(feedback.getOrder(), partnerRepo, deliveryItemRepo, designItemRepo, designQuotationRepo, designRequestRepo, transactionRepo));
         data.put("designRequest", buildDesignRequestResponse(feedback.getDesignRequest()));
-        data.put("appeals", Objects.requireNonNullElse(buildAppealsListResponse(feedback.getAppeals()), ""));
 
         return data;
     }
@@ -360,28 +354,6 @@ public class EntityResponseBuilder {
         return data;
     }
 
-    //-------Appeals---------
-    public static List<Map<String, Object>> buildAppealsListResponse(List<Appeals> appeals) {
-        return appeals.stream().map(
-                EntityResponseBuilder::buildAppealsResponse
-        ).toList();
-    }
-
-    public static Map<String, Object> buildAppealsResponse(Appeals appeal) {
-        if (appeal == null) return null;
-
-        Map<String, Object> data = new HashMap<>();
-
-        data.put("id", appeal.getId());
-        data.put("appeallant", buildSenderMap(appeal.getFeedback()) == null ? buildSenderMap(appeal.getFeedback()) : buildReceiverMap(appeal.getFeedback()));
-        data.put("reason", appeal.getReason());
-        data.put("creationDate", appeal.getCreationDate());
-        data.put("approvedDate", appeal.getApprovalDate());
-        data.put("status", appeal.getStatus().getValue());
-        data.put("videoUrl", appeal.getVideoUrl());
-        return data;
-    }
-
     //-------Order---------
     public static List<Map<String, Object>> buildOrderList(List<Order> orders, PartnerRepo partnerRepo, DeliveryItemRepo deliveryItemRepo, DesignItemRepo designItemRepo, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo, TransactionRepo transactionRepo) {
         return orders.stream()
@@ -395,7 +367,7 @@ public class EntityResponseBuilder {
         if (order.getGarmentId() == null) partner = null;
         else partner = partnerRepo.findById(order.getGarmentId()).orElse(null);
         GarmentQuotation quotation = order.getGarmentQuotations().stream().filter(q -> Objects.equals(q.getGarment().getId(), order.getGarmentId())).findFirst().orElse(null);
-        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).get(0);
+        Transaction transaction = transactionRepo.findAllByItemIdAndPaymentType(order.getId(), PaymentType.DEPOSIT).stream().findFirst().orElse(null);
 
         Map<String, Object> orderMap = new HashMap<>();
         orderMap.put("id", order.getId());
@@ -407,7 +379,7 @@ public class EntityResponseBuilder {
         orderMap.put("orderDate", order.getOrderDate());
         orderMap.put("price", order.getPrice());
         orderMap.put("shippingFee", order.getShippingFee());
-        orderMap.put("serviceFee", transaction.getServiceFee());
+        orderMap.put("serviceFee", transaction != null ? transaction.getServiceFee() : null);
         orderMap.put("status", order.getStatus().getValue());
         orderMap.put("orderDetails", EntityResponseBuilder.buildOrderDetailList(order.getOrderDetails(), deliveryItemRepo, designItemRepo));
         orderMap.put("milestone", EntityResponseBuilder.buildOrderMilestoneList(order.getMilestones()));

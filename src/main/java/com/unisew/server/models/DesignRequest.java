@@ -82,7 +82,6 @@ public class DesignRequest {
     @EqualsAndHashCode.Exclude
     List<DesignItem> designItems;
 
-
     @OneToMany(mappedBy = "designRequest")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
