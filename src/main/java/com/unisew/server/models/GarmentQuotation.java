@@ -51,6 +51,7 @@ public class GarmentQuotation {
 
     String note;
 
+    @Column(name = "`deposit_rate`")
     double depositRate;
 
     @Enumerated(EnumType.STRING)
