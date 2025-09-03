@@ -50,12 +50,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TimeZone;
 import java.util.function.Predicate;
-import java.util.LinkedHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -186,12 +185,6 @@ public class PaymentServiceImpl implements PaymentService {
             walletRepo.save(adminWallet);
             receiverWallet = walletRepo.save(receiverWallet);
 
-            if (request.getType().equalsIgnoreCase(PaymentType.DESIGN.name()) && request.getItemId() != null) {
-                designRequestRepo.findById(request.getItemId()).ifPresent(dr -> {
-                    dr.setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
-                    designRequestRepo.save(dr);
-                });
-            }
             if (request.getType().equalsIgnoreCase(PaymentType.ORDER.name()) && request.getItemId() != null) {
                 orderRepo.findById(request.getItemId()).ifPresent(o -> {
                     o.setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
@@ -226,7 +219,8 @@ public class PaymentServiceImpl implements PaymentService {
             return "Receiver not found";
         }
 
-        if (request.getType().equalsIgnoreCase("design") && !designRequestRepo.existsById(request.getItemId())) {
+        DesignRequest designRequest = designRequestRepo.findById(request.getItemId()).orElse(null);
+        if (request.getType().equalsIgnoreCase("design") && designRequest == null) {
             return "Design request not found";
         }
 
@@ -255,14 +249,17 @@ public class PaymentServiceImpl implements PaymentService {
 
     private ResponseEntity<ResponseObject> payFromWallet(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
         long amount = request.getTotalPrice() - request.getServiceFee();
+        if(request.getType().equalsIgnoreCase(PaymentType.DEPOSIT.name())){
+            amount = request.getTotalPrice();
+        }
         boolean isPaymentSuccess = request.getGatewayCode().equalsIgnoreCase("00");
 
         if (isPaymentSuccess) {
-            if (senderWallet.getBalance() < amount) {
+            if (senderWallet.getBalance() < request.getTotalPrice()) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Balance not enough", null);
             }
 
-            senderWallet.setBalance(senderWallet.getBalance() - amount);
+            senderWallet.setBalance(senderWallet.getBalance() - request.getTotalPrice());
             senderWallet = walletRepo.save(senderWallet);
         }
 
@@ -529,8 +526,18 @@ public class PaymentServiceImpl implements PaymentService {
         return false;
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> getWalletBalance(HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
 
-//    public ResponseEntity<ResponseObject> disburseTransaction(RefundRequest request, HttpServletRequest httpRequest) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("balance", account.getWallet().getBalance());
+
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    //    public ResponseEntity<ResponseObject> disburseTransaction(RefundRequest request, HttpServletRequest httpRequest) {
 //        Account actor = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
 //        if (actor == null || actor.getRole() != Role.ADMIN) {
 //            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Only ADMIN can refund/resolve report", null);
