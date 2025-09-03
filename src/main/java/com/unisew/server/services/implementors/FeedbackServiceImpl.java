@@ -276,7 +276,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .map(url -> FeedbackImage.builder()
-                            .ownerId(school.getAccount().getId())
+                            .owner(school.getAccount().getRole().getValue())
                             .imageUrl(url)
                             .feedback(feedback)
                             .build())
@@ -346,7 +346,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .map(url -> FeedbackImage.builder()
-                            .ownerId(school.getAccount().getId())
+                            .owner(school.getAccount().getRole().getValue())
                             .imageUrl(url)
                             .feedback(feedback)
                             .build())
@@ -469,15 +469,15 @@ public class FeedbackServiceImpl implements FeedbackService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Partner content has already given", null);
         }
 
-        feedback.setPartnerVideoUrl(request.getVideoUrl().trim());
-        feedback.setPartnerContent(request.getContent().trim());
+        feedback.setPartnerVideoUrl(request.getVideoUrl() == null ? "" : request.getVideoUrl().trim());
+        feedback.setPartnerContent(request.getContent() == null ? "" : request.getContent().trim());
         List<String> urls = request.getImageUrls();
         if (urls != null && !urls.isEmpty()) {
             List<FeedbackImage> imgs = urls.stream()
                     .filter(u -> u != null && !u.isBlank())
                     .map(u -> {
                         FeedbackImage fi = new FeedbackImage();
-                        fi.setOwnerId(account.getId());
+                        fi.setOwner(account.getRole().getValue());
                         fi.setImageUrl(u.trim());
                         fi.setFeedback(feedback);
                         return fi;
