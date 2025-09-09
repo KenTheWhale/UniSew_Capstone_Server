@@ -485,6 +485,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> confirmOrder(ConfirmOrderRequest request) {
         Order order = orderRepo.findById(request.getOrderId()).orElse(null);
         if (order == null) {
@@ -497,6 +498,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResponseObject> deleteSewingPhase(int sewingPhaseId, HttpServletRequest httpServletRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpServletRequest, jwtService, accountRepo);
         if (account == null) {
@@ -559,4 +561,5 @@ public class OrderServiceImpl implements OrderService {
         request.getCreateTransactionRequest().setReceiverId(garment.getCustomer().getId());
         return paymentService.createTransaction(request.getCreateTransactionRequest(), httpRequest);
     }
+
 }

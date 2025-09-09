@@ -38,6 +38,12 @@ public class DesignController {
 
     //-------------------DESIGN_REQUEST---------------------//
 
+    @GetMapping("/requests")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> getAllDesignRequest() {
+        return designService.getAllDesignRequest();
+    }
+
     @PostMapping("/request")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> createNewRequest(@RequestBody CreateDesignRequest request, HttpServletRequest httpRequest) {
