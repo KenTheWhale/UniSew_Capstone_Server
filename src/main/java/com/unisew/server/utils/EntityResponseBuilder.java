@@ -187,6 +187,10 @@ public class EntityResponseBuilder {
     }
 
     //-------Design Request---------
+    public static List<Map<String, Object>> buildDesignRequestListForAdminResponse(List<DesignRequest> requests, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+        return requests.stream().map(request -> buildDesignRequestForAdminResponse(request, designQuotationRepo, designRequestRepo)).toList();
+    }
+
     public static Map<String, Object> buildDesignRequestResponse(DesignRequest request) {
         if (request == null) {
             return null;
@@ -203,6 +207,30 @@ public class EntityResponseBuilder {
         data.put("status", request.getStatus().getValue());
         data.put("items", buildDesignItemListResponse(request.getDesignItems()));
         data.put("feedback", Objects.requireNonNullElse(buildFeedbackResponse(request.getFeedback()), ""));
+
+        return data;
+    }
+
+    public static Map<String, Object> buildDesignRequestForAdminResponse(DesignRequest request, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+        if (request == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", request.getId());
+        data.put("school", buildCustomerResponse(request.getSchool()));
+        data.put("name", request.getName());
+        data.put("creationDate", request.getCreationDate());
+        data.put("logoImage", request.getLogoImage());
+        data.put("privacy", request.isPrivacy());
+        data.put("status", request.getStatus().getValue());
+        data.put("items", buildDesignItemListResponse(request.getDesignItems()));
+        data.put("feedback", Objects.requireNonNullElse(buildFeedbackResponse(request.getFeedback()), ""));
+        var quotationId = request.getDesignQuotationId();
+        var dq = (quotationId == null) ? null
+                : designQuotationRepo.findById(quotationId).orElse(null);
+        data.put("quotation", (dq != null) ? buildDesignQuotationResponse(dq, designQuotationRepo, designRequestRepo) : "");
 
         return data;
     }
@@ -394,6 +422,7 @@ public class EntityResponseBuilder {
         orderMap.put("shippingCode", Objects.requireNonNullElse(order.getShippingCode(), ""));
         orderMap.put("depositRate", quotation == null ? 0 : quotation.getDepositRate() / 100);
         orderMap.put("completedDate", order.getCompletedDate());
+        orderMap.put("deliveryImage", order.getDeliveryImage());
         return orderMap;
     }
 

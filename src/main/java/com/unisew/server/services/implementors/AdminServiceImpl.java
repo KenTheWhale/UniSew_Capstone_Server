@@ -3,8 +3,12 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.DesignRequest;
+import com.unisew.server.models.Order;
 import com.unisew.server.models.Transaction;
 import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.TransactionRepo;
 import com.unisew.server.requests.AdminAccountStatsRequest;
 import com.unisew.server.requests.AdminTransactionStatsRequest;
@@ -40,6 +44,8 @@ public class AdminServiceImpl implements AdminService {
 
     AccountRepo accountRepo;
     TransactionRepo transactionRepo;
+    DesignRequestRepo designRequestRepo;
+    OrderRepo orderRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getAccountStats(AdminAccountStatsRequest request) {
@@ -178,7 +184,6 @@ public class AdminServiceImpl implements AdminService {
         return out;
     }
 
-    //Transaction, revenue stats
     @Override
     public ResponseEntity<ResponseObject> getTransactionStats(AdminTransactionStatsRequest request) {
         if (request.getFrom() == null || request.getTo() == null) {
@@ -310,4 +315,6 @@ public class AdminServiceImpl implements AdminService {
         }
         return out;
     }
+
+
 }

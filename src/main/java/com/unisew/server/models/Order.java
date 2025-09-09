@@ -80,6 +80,9 @@ public class Order {
     @Column(name = "`disburse_at`")
     Instant disburseAt;
 
+    @Column(name = "`delivery_image`")
+    String deliveryImage;
+
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

@@ -834,6 +834,14 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.CREATED, "Design quotation created", null);
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> getAllDesignRequest() {
+        List<DesignRequest> designRequests = designRequestRepo.findAll().stream()
+                .filter(req -> req.getStatus() != Status.DESIGN_REQUEST_IMPORTED)
+                .toList();
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildDesignRequestListForAdminResponse(designRequests, designQuotationRepo, designRequestRepo));
+    }
+
     //-----------------------PRIVATE-------------------------//
     private Map<String, Object> mapFabric(Fabric fabric) {
         Map<String, Object> map = new HashMap<>();

@@ -10,4 +10,5 @@ public interface AdminService {
     ResponseEntity<ResponseObject> getAccountStats(AdminAccountStatsRequest request);
 
     ResponseEntity<ResponseObject> getTransactionStats(AdminTransactionStatsRequest request);
+
 }
