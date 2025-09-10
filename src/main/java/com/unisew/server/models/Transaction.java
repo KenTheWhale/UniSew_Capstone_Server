@@ -19,7 +19,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -71,7 +71,7 @@ public class Transaction {
     Status status;
 
     @Column(name = "`creation_date`")
-    LocalDate creationDate;
+    LocalDateTime creationDate;
 
     @Column(name = "`payment_gateway_code`")
     String paymentGatewayCode;

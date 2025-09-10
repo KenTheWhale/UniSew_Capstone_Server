@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.Type;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -37,9 +37,9 @@ public class PlatformConfig {
     Object value;
 
     @Column(name = "`creation_date`")
-    LocalDate creationDate;
+    LocalDateTime creationDate;
 
     @Column(name = "`modified_date`")
-    LocalDate modifiedDate;
+    LocalDateTime modifiedDate;
 
 }

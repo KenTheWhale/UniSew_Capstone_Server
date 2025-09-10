@@ -23,7 +23,7 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -53,7 +53,7 @@ public class DesignRequest {
     String name;
 
     @Column(name = "`creation_date`")
-    LocalDate creationDate;
+    LocalDateTime creationDate;
 
     @Column(name = "`logo_image`")
     String logoImage;
