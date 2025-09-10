@@ -19,4 +19,6 @@ public interface PaymentService {
     ResponseEntity<ResponseObject> getTransactions(HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> getMyTransaction(HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> getWalletBalance(HttpServletRequest httpRequest);
 }

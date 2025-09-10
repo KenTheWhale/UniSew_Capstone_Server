@@ -60,4 +60,9 @@ public class PaymentController {
         return paymentService.getMyTransaction(httpRequest);
     }
 
+    @PostMapping("/wallet")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getWalletBalance(HttpServletRequest httpRequest) {
+        return paymentService.getWalletBalance(httpRequest);
+    }
 }
