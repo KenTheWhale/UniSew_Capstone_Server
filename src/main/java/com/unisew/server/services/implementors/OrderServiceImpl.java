@@ -493,6 +493,7 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(Status.ORDER_COMPLETED);
         order.setCompletedDate(LocalDate.now());
+        order.setDeliveryImage(request.getDeliveryImage());
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order completed successfully", null);
     }
