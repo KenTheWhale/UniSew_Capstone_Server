@@ -337,6 +337,7 @@ public class DesignServiceImpl implements DesignService {
         }
 
         designRequest.setStatus(Status.DESIGN_REQUEST_CANCELED);
+        designRequest.setCancelReason(request.getReason());
         designRequestRepo.save(designRequest);
 
         return ResponseBuilder.build(HttpStatus.OK, "Design request cancelled", null);
@@ -895,6 +896,7 @@ public class DesignServiceImpl implements DesignService {
                     data.put("items", EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()));
                     data.put("revisionTime", designRequest.getRevisionTime());
                     data.put("price", designRequest.getPrice());
+                    data.put("cancelReason", designRequest.getCancelReason());
 
                     // Conditional fields based on DesignQuotation
                     DesignQuotation finalQuotation = null;
@@ -953,6 +955,7 @@ public class DesignServiceImpl implements DesignService {
         data.put("items", EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()));
         data.put("revisionTime", designRequest.getRevisionTime());
         data.put("price", designRequest.getPrice());
+        data.put("cancelReason", designRequest.getCancelReason());
 
         return ResponseBuilder.build(HttpStatus.OK, "Design request retrieved successfully", data);
     }

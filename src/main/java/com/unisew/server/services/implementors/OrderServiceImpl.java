@@ -470,6 +470,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order cannot be canceled at this stage", null);
         }
         order.setStatus(Status.ORDER_CANCELED);
+        order.setCancelReason(request.getReason());
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
     }

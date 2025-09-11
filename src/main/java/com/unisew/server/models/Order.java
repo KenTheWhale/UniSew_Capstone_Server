@@ -75,6 +75,9 @@ public class Order {
 
     String note;
 
+    @Column(name = "`cancel_reason`")
+    String cancelReason;
+
     @Enumerated(EnumType.STRING)
     Status status;
 

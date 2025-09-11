@@ -63,6 +63,9 @@ public class DesignRequest {
     @Column(name = "`is_private`")
     boolean privacy;
 
+    @Column(name = "`cancel_reason`")
+    String cancelReason;
+
     @Enumerated(EnumType.STRING)
     Status status;
 
