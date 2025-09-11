@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -236,7 +237,7 @@ public class ServerApplication {
                             Map.of("name", "Critical", "compensation", 1)
                     ));
 
-                    LocalDate today = LocalDate.now();
+                    LocalDateTime today = LocalDateTime.now();
 
                     platformConfigRepo.saveAll(
                             List.of(

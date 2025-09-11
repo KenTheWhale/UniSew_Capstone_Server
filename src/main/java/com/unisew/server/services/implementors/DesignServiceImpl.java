@@ -61,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -109,7 +110,7 @@ public class DesignServiceImpl implements DesignService {
 
         DesignRequest designRequest = DesignRequest.builder()
                 .school(account.getCustomer())
-                .creationDate(LocalDate.now())
+                .creationDate(LocalDateTime.now())
                 .logoImage(createDesignRequest.getLogoImage())
                 .name(createDesignRequest.getDesignName())
                 .status(Status.DESIGN_REQUEST_PENDING)
@@ -240,7 +241,7 @@ public class DesignServiceImpl implements DesignService {
         }
 
         if (request.getType().equalsIgnoreCase("refind")) {
-            designRequest.setCreationDate(LocalDate.now());
+            designRequest.setCreationDate(LocalDateTime.now());
             designRequestRepo.save(designRequest);
             return ResponseBuilder.build(HttpStatus.OK, "Continue looking for designer for your request", null);
         }
@@ -269,7 +270,7 @@ public class DesignServiceImpl implements DesignService {
                 .name(oldDesign.getName())
                 .school(oldDesign.getSchool())
                 .logoImage(oldDesign.getLogoImage())
-                .creationDate(LocalDate.now())
+                .creationDate(LocalDateTime.now())
                 .status(Status.DESIGN_REQUEST_PENDING)
                 .privacy(oldDesign.isPrivacy())
                 .build();
@@ -336,6 +337,7 @@ public class DesignServiceImpl implements DesignService {
         }
 
         designRequest.setStatus(Status.DESIGN_REQUEST_CANCELED);
+        designRequest.setCancelReason(request.getReason());
         designRequestRepo.save(designRequest);
 
         return ResponseBuilder.build(HttpStatus.OK, "Design request cancelled", null);
@@ -353,7 +355,7 @@ public class DesignServiceImpl implements DesignService {
             Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
             if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid user", null);
             Customer school = account.getCustomer();
-            LocalDate today = LocalDate.now();
+            LocalDateTime today = LocalDateTime.now();
 
             DesignRequest designRequest = designRequestRepo.save(
                     DesignRequest.builder()
@@ -560,7 +562,7 @@ public class DesignServiceImpl implements DesignService {
                         .designRequest(designRequest)
                         .revisionRequest(revisionRequest)
                         .name(request.getName())
-                        .submitDate(LocalDate.now())
+                        .submitDate(LocalDateTime.now())
                         .revision(request.isRevision())
                         .note(request.getNote())
                         .version(version)
@@ -615,7 +617,7 @@ public class DesignServiceImpl implements DesignService {
 
         RevisionRequest revisionRequest = RevisionRequest.builder()
                 .designDelivery(designDelivery)
-                .requestDate(LocalDate.now())
+                .requestDate(LocalDateTime.now())
                 .note(request.getNote())
                 .build();
 //
@@ -894,6 +896,7 @@ public class DesignServiceImpl implements DesignService {
                     data.put("items", EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()));
                     data.put("revisionTime", designRequest.getRevisionTime());
                     data.put("price", designRequest.getPrice());
+                    data.put("cancelReason", designRequest.getCancelReason());
 
                     // Conditional fields based on DesignQuotation
                     DesignQuotation finalQuotation = null;
@@ -952,6 +955,7 @@ public class DesignServiceImpl implements DesignService {
         data.put("items", EntityResponseBuilder.buildDesignItemListResponse(designRequest.getDesignItems()));
         data.put("revisionTime", designRequest.getRevisionTime());
         data.put("price", designRequest.getPrice());
+        data.put("cancelReason", designRequest.getCancelReason());
 
         return ResponseBuilder.build(HttpStatus.OK, "Design request retrieved successfully", data);
     }

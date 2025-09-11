@@ -52,4 +52,6 @@ public interface OrderService {
     ResponseEntity<ResponseObject> confirmDeliveredOrder(ConfirmDeliveredOrderRequest request, HttpServletRequest httpRequest);
 
     ResponseEntity<ResponseObject> confirmOrder(ConfirmOrderRequest request);
+
+    ResponseEntity<ResponseObject> viewAllOrderAdmin();
 }

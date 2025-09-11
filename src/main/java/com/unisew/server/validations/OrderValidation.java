@@ -6,8 +6,10 @@ import com.unisew.server.repositories.SewingPhaseRepo;
 import com.unisew.server.requests.AssignMilestoneRequest;
 import com.unisew.server.requests.CreateOrderRequest;
 import com.unisew.server.requests.CreateSewingPhaseRequest;
+import com.unisew.server.utils.FormatDate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -102,7 +104,7 @@ public class OrderValidation {
         }
 
         if (order.getOrderDate() != null) {
-            if (first.getStartDate().isBefore(order.getOrderDate())) {
+            if (first.getStartDate().isBefore(FormatDate.timeToDate(order.getOrderDate()))) {
                 return "The first milestone cannot start before the order date (" + order.getOrderDate() + ")";
             }
         }

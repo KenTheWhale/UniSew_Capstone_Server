@@ -31,6 +31,7 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.TransactionRepo;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,7 @@ public class EntityResponseBuilder {
         data.put("privacy", request.isPrivacy());
         data.put("status", request.getStatus().getValue());
         data.put("items", buildDesignItemListResponse(request.getDesignItems()));
+        data.put("cancelReason", request.getCancelReason());
         data.put("feedback", Objects.requireNonNullElse(buildFeedbackResponse(request.getFeedback()), ""));
 
         return data;
@@ -423,6 +425,7 @@ public class EntityResponseBuilder {
         orderMap.put("depositRate", quotation == null ? 0 : quotation.getDepositRate() / 100);
         orderMap.put("completedDate", order.getCompletedDate());
         orderMap.put("deliveryImage", order.getDeliveryImage());
+        orderMap.put("cancelReason", order.getCancelReason());
         return orderMap;
     }
 

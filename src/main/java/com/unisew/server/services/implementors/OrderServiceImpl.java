@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,6 +86,10 @@ public class OrderServiceImpl implements OrderService {
     DesignQuotationRepo designQuotationRepo;
     private final TransactionRepo transactionRepo;
 
+    @Override
+    public ResponseEntity<ResponseObject> viewAllOrderAdmin() {
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orderRepo.findAll(), partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
+    }
 
     @Override
     @Transactional
@@ -129,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
                 .feedback(null).garmentId(null)
                 .garmentName("").deadline(request.getDeadline())
                 .price(0)
-                .orderDate(LocalDate.now())
+                .orderDate(LocalDateTime.now())
                 .note(request.getNote())
                 .status(Status.ORDER_PENDING).build());
 
@@ -287,7 +292,7 @@ public class OrderServiceImpl implements OrderService {
             milestone.setStatus(Status.MILESTONE_COMPLETED);
         }
 
-        milestone.setCompletedDate(LocalDate.now());
+        milestone.setCompletedDate(LocalDateTime.now());
 
         if (request.getVideoUrl() != null) {
             milestone.setVideoUrl(request.getVideoUrl());
@@ -465,6 +470,7 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order cannot be canceled at this stage", null);
         }
         order.setStatus(Status.ORDER_CANCELED);
+        order.setCancelReason(request.getReason());
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order canceled successfully", null);
     }
@@ -492,11 +498,12 @@ public class OrderServiceImpl implements OrderService {
             return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Order not found", null);
         }
         order.setStatus(Status.ORDER_COMPLETED);
-        order.setCompletedDate(LocalDate.now());
+        order.setCompletedDate(LocalDateTime.now());
         order.setDeliveryImage(request.getDeliveryImage());
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order completed successfully", null);
     }
+
 
     @Override
     @Transactional
