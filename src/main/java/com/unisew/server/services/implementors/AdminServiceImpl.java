@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -193,8 +194,8 @@ public class AdminServiceImpl implements AdminService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "from must be <= to", null);
         }
 
-        LocalDate from = request.getFrom();
-        LocalDate to = request.getTo();
+        LocalDateTime from = request.getFrom();
+        LocalDateTime to = request.getTo();
 
         List<Transaction> txs = transactionRepo.findAllByCreationDateBetween(from, to);
 
@@ -244,12 +245,12 @@ public class AdminServiceImpl implements AdminService {
         };
     }
 
-    private List<Map<String, Object>> buildDailyRevenueSeries(LocalDate from, LocalDate to, List<Transaction> txs) {
-        Map<LocalDate, List<Transaction>> byDate = txs.stream()
+    private List<Map<String, Object>> buildDailyRevenueSeries(LocalDateTime from, LocalDateTime to, List<Transaction> txs) {
+        Map<LocalDateTime, List<Transaction>> byDate = txs.stream()
                 .collect(Collectors.groupingBy(Transaction::getCreationDate));
 
         List<Map<String, Object>> out = new ArrayList<>();
-        LocalDate cursor = from;
+        LocalDateTime cursor = from;
         while (!cursor.isAfter(to)) {
             List<Transaction> dayTx = byDate.getOrDefault(cursor, Collections.emptyList());
             long revenue = dayTx.stream().mapToLong(this::revenueOf).sum();
@@ -267,7 +268,7 @@ public class AdminServiceImpl implements AdminService {
         return out;
     }
 
-    private List<Map<String, Object>> buildMonthlyRevenueSeries(LocalDate from, LocalDate to, List<Transaction> txs) {
+    private List<Map<String, Object>> buildMonthlyRevenueSeries(LocalDateTime from, LocalDateTime to, List<Transaction> txs) {
         YearMonth start = YearMonth.from(from);
         YearMonth end = YearMonth.from(to);
 
@@ -293,7 +294,7 @@ public class AdminServiceImpl implements AdminService {
         return out;
     }
 
-    private List<Map<String, Object>> buildYearlyRevenueSeries(LocalDate from, LocalDate to, List<Transaction> txs) {
+    private List<Map<String, Object>> buildYearlyRevenueSeries(LocalDateTime from, LocalDateTime to, List<Transaction> txs) {
         int startYear = from.getYear();
         int endYear = to.getYear();
 

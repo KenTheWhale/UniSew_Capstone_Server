@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -52,7 +52,7 @@ public class DesignDelivery {
     String name;
 
     @Column(name = "`submit_date`")
-    LocalDate submitDate;
+    LocalDateTime submitDate;
 
     @Column(name = "`is_revision`")
     boolean revision;
