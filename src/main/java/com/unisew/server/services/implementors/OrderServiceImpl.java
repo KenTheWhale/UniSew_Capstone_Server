@@ -85,6 +85,10 @@ public class OrderServiceImpl implements OrderService {
     DesignQuotationRepo designQuotationRepo;
     private final TransactionRepo transactionRepo;
 
+    @Override
+    public ResponseEntity<ResponseObject> viewAllOrderAdmin() {
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orderRepo.findAll(), partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
+    }
 
     @Override
     @Transactional
@@ -497,6 +501,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepo.save(order);
         return ResponseBuilder.build(HttpStatus.OK, "Order completed successfully", null);
     }
+
 
     @Override
     @Transactional
