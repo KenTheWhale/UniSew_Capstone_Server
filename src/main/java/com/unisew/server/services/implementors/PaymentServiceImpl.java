@@ -73,7 +73,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final DesignQuotationRepo designQuotationRepo;
     private final DesignItemRepo designItemRepo;
 
-
     @Override
     public ResponseEntity<ResponseObject> getPaymentURL(GetPaymentURLRequest request, HttpServletRequest httpRequest) {
         return createUrl(request, httpRequest);
@@ -290,7 +289,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .serviceFee(request.getServiceFee())
                         .status(request.getGatewayCode().trim().equalsIgnoreCase("00") ? Status.TRANSACTION_SUCCESS : Status.TRANSACTION_FAIL)
                         .creationDate(LocalDateTime.now())
-                        .paymentGatewayCode(request.getGatewayCode().trim())
+                        .paymentGatewayCode(request.isPayFromWallet() ? request.getGatewayCode().trim() + "w" : request.getGatewayCode().trim())
                         .build()
         );
         return ResponseBuilder.build(HttpStatus.CREATED, "Transaction created", null);
