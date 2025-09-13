@@ -18,4 +18,6 @@ public interface SystemService {
     ResponseEntity<ResponseObject> getGarmentFabricForQuotation(String orderId);
 
     ResponseEntity<ResponseObject> updateGarmentFabric(UpdateGarmentFabricRequest request, HttpServletRequest httpRequest);
+
+    ResponseEntity<ResponseObject> deleteGarmentFabric(int fabricId, HttpServletRequest request);
 }
