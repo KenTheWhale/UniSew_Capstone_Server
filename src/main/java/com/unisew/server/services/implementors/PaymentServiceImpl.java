@@ -290,7 +290,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .serviceFee(request.getServiceFee())
                         .status(request.getGatewayCode().trim().equalsIgnoreCase("00") ? Status.TRANSACTION_SUCCESS : Status.TRANSACTION_FAIL)
                         .creationDate(LocalDate.now())
-                        .paymentGatewayCode(request.getGatewayCode().trim())
+                        .paymentGatewayCode(request.isPayFromWallet() ? request.getGatewayCode().trim() + "w" : request.getGatewayCode().trim())
                         .build()
         );
         return ResponseBuilder.build(HttpStatus.CREATED, "Transaction created", null);
