@@ -33,6 +33,12 @@ public class OrderController {
     private final OrderService orderService;
 
     //----------------------------ORDER----------------------------//
+    @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ResponseObject> viewAllOrderAdmin() {
+        return orderService.viewAllOrderAdmin();
+    }
+
     @PostMapping("")
     @PreAuthorize("hasRole('SCHOOL')")
     public ResponseEntity<ResponseObject> createOrder(HttpServletRequest httpServletRequest, @RequestBody CreateOrderRequest request) {
@@ -109,37 +115,37 @@ public class OrderController {
 
     //----------------------------MILESTONE----------------------------//
     @PostMapping("/phase/create")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> createSewingPhase(HttpServletRequest httpServletRequest, @RequestBody CreateSewingPhaseRequest request) {
         return orderService.createSewingPhase(httpServletRequest, request);
     }
 
     @PostMapping("/phase")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> viewPhase(HttpServletRequest request) {
         return orderService.viewPhase(request);
     }
 
     @PostMapping("/milestone/assignment")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> assignMilestone(HttpServletRequest httpServletRequest, @RequestBody AssignMilestoneRequest request) {
         return orderService.assignMilestone(httpServletRequest, request);
     }
 
     @PutMapping("/milestone")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> updateMilestoneStatus(HttpServletRequest httpServletRequest, @RequestBody UpdateMilestoneStatusRequest request) {
         return orderService.updateMilestoneStatus(httpServletRequest, request);
     }
 
     @PostMapping("/milestone")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> viewMilestone(HttpServletRequest httpServletRequest, @RequestParam(name = "orderId") int orderId) {
         return orderService.viewMilestone(httpServletRequest, orderId);
     }
 
     @DeleteMapping("/phase")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> deleteSewingPhase(HttpServletRequest httpServletRequest,@RequestParam int phaseId) {
         return orderService.deleteSewingPhase(phaseId, httpServletRequest );
     }

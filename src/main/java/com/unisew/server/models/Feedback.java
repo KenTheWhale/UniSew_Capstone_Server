@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -49,10 +49,10 @@ public class Feedback {
     boolean report;
 
     @Column(name = "`creation_date`")
-    LocalDate creationDate;
+    LocalDateTime creationDate;
 
     @Column(name = "`approval_date`")
-    LocalDate approvalDate;
+    LocalDateTime approvalDate;
 
     @Column(name = "`message_for_school`")
     String messageForSchool;

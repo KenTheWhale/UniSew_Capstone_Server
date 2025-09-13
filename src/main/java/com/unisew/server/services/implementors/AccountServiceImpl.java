@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -129,7 +129,7 @@ public class AccountServiceImpl implements AccountService {
         DeactivateTicket deactivateTicket = DeactivateTicket.builder()
                 .account(account)
                 .reason(request.getReason())
-                .startDate(LocalDate.now())
+                .startDate(LocalDateTime.now())
                 .endDate(request.getEndDate())
                 .build();
         deactivateTicketRepo.save(deactivateTicket);
@@ -158,7 +158,7 @@ public class AccountServiceImpl implements AccountService {
 
         WithdrawRequest withdrawRequest = WithdrawRequest.builder()
                 .wallet(wallet)
-                .creationDate(LocalDate.now())
+                .creationDate(LocalDateTime.now())
                 .withdrawAmount(request.getWithdrawAmount())
                 .status(Status.WITHDRAW_PENDING)
                 .build();

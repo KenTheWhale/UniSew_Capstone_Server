@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
 import java.util.IntSummaryStatistics;
@@ -183,7 +183,7 @@ public class FeedbackServiceImpl implements FeedbackService {
             feedback.setMessageForPartner(request.getMessageForPartner().trim());
         }
 
-        feedback.setApprovalDate(LocalDate.now());
+        feedback.setApprovalDate(LocalDateTime.now());
 
         if (request.isApproved()) {
             feedback.setStatus(Status.FEEDBACK_REPORT_RESOLVED_ACCEPTED);
@@ -259,11 +259,11 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .rating(request.getRating())
                         .schoolContent(request.getContent())
                         .report(request.isReport())
-                        .creationDate(LocalDate.now())
+                        .creationDate(LocalDateTime.now())
                         .messageForPartner("")
                         .messageForSchool("")
                         .schoolVideoUrl(request.getVideoUrl())
-                        .approvalDate(LocalDate.now())
+                        .approvalDate(LocalDateTime.now())
                         .designRequest(dr)
                         .order(null)
                         .status(request.isReport() ? Status.FEEDBACK_REPORT_WAITING_EVIDENCE : Status.FEEDBACK_APPROVED)
@@ -329,11 +329,11 @@ public class FeedbackServiceImpl implements FeedbackService {
                         .rating(request.getRating())
                         .schoolContent(request.getContent())
                         .report(request.isReport())
-                        .creationDate(LocalDate.now())
+                        .creationDate(LocalDateTime.now())
                         .messageForPartner("")
                         .messageForSchool("")
                         .schoolVideoUrl(request.getVideoUrl())
-                        .approvalDate(LocalDate.now())
+                        .approvalDate(LocalDateTime.now())
                         .order(order)
                         .designRequest(null)
                         .status(request.isReport() ? Status.FEEDBACK_REPORT_WAITING_EVIDENCE : Status.FEEDBACK_APPROVED)

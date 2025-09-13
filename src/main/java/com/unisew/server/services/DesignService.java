@@ -70,4 +70,5 @@ public interface DesignService {
 
     ResponseEntity<ResponseObject> createQuotation(HttpServletRequest httpRequest, CreateDesignQuotationRequest request);
 
+    ResponseEntity<ResponseObject> getAllDesignRequest();
 }

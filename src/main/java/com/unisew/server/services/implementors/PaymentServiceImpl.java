@@ -42,7 +42,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +72,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final DeliveryItemRepo deliveryItemRepo;
     private final DesignQuotationRepo designQuotationRepo;
     private final DesignItemRepo designItemRepo;
-
 
     @Override
     public ResponseEntity<ResponseObject> getPaymentURL(GetPaymentURLRequest request, HttpServletRequest httpRequest) {
@@ -289,7 +288,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .paymentType(PaymentType.valueOf(request.getType().toUpperCase()))
                         .serviceFee(request.getServiceFee())
                         .status(request.getGatewayCode().trim().equalsIgnoreCase("00") ? Status.TRANSACTION_SUCCESS : Status.TRANSACTION_FAIL)
-                        .creationDate(LocalDate.now())
+                        .creationDate(LocalDateTime.now())
                         .paymentGatewayCode(request.isPayFromWallet() ? request.getGatewayCode().trim() + "w" : request.getGatewayCode().trim())
                         .build()
         );
@@ -487,7 +486,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .paymentType(transactions.get(0).getPaymentType() == PaymentType.DESIGN ? PaymentType.DESIGN_RETURN : PaymentType.ORDER_RETURN)
                         .serviceFee(0)
                         .status(Status.TRANSACTION_SUCCESS)
-                        .creationDate(LocalDate.now())
+                        .creationDate(LocalDateTime.now())
                         .paymentGatewayCode("00")
                         .build()
         );

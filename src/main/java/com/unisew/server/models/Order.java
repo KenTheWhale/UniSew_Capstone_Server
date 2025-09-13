@@ -24,6 +24,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -59,7 +60,7 @@ public class Order {
     LocalDate deadline;
 
     @Column(name = "`completed_date`")
-    LocalDate completedDate;
+    LocalDateTime completedDate;
 
     long price;
 
@@ -70,15 +71,21 @@ public class Order {
     String shippingCode;
 
     @Column(name = "`order_date`")
-    LocalDate orderDate;
+    LocalDateTime orderDate;
 
     String note;
+
+    @Column(name = "`cancel_reason`")
+    String cancelReason;
 
     @Enumerated(EnumType.STRING)
     Status status;
 
     @Column(name = "`disburse_at`")
     Instant disburseAt;
+
+    @Column(name = "`delivery_image`")
+    String deliveryImage;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude

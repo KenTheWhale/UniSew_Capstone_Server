@@ -18,7 +18,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -48,7 +50,7 @@ public class Milestone {
     LocalDate endDate;
 
     @Column(name = "`completed_date`")
-    LocalDate completedDate;
+    LocalDateTime completedDate;
 
     @Column(name = "`video_url`")
     String videoUrl;
