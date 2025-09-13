@@ -245,12 +245,10 @@ public class SystemServiceImpl implements SystemService {
             Map<String, Object> fabricData = EntityResponseBuilder.buildFabricResponse(fabric);
             Object garmentPrice = fabric.getGarmentPrice();
             if(garmentPrice == null) {
-                fabricData.put("price", new ArrayList<>());
                 nonPriceFabrics.add(fabricData);
             }else {
                 Object priceDataMap;
                 if((priceDataMap = getGarmentPrice(garmentPrice, account.getCustomer().getPartner().getId())) == null){
-                    fabricData.put("price", new ArrayList<>());
                     nonPriceFabrics.add(fabricData);
                 }else {
                     Map<String, Object> priceData = (Map<String, Object>) priceDataMap;
@@ -266,7 +264,7 @@ public class SystemServiceImpl implements SystemService {
                             .toList();
 
 
-                    fabricData.put("price", sizeData);
+                    fabricData.put("sizes", sizeData);
                     hasPriceFabrics.add(fabricData);
                 }
             }
