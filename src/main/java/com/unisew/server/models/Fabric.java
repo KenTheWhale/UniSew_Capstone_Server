@@ -2,6 +2,7 @@ package com.unisew.server.models;
 
 import com.unisew.server.enums.DesignItemCategory;
 import com.unisew.server.enums.DesignItemType;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Type;
 
 import java.util.List;
 
@@ -48,6 +50,10 @@ public class Fabric {
     @Enumerated(EnumType.STRING)
     @Column(name = "`cloth_category`")
     DesignItemCategory designItemCategory;
+
+    @Column(columnDefinition = "jsonb", name = "`garment_price`")
+    @Type(JsonBinaryType.class)
+    Object garmentPrice;
 
     @OneToMany(mappedBy = "fabric", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @ToString.Exclude

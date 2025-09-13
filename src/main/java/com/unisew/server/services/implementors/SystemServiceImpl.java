@@ -1,16 +1,24 @@
 package com.unisew.server.services.implementors;
 
+import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.DesignItemCategory;
 import com.unisew.server.enums.DesignItemType;
+import com.unisew.server.models.Account;
 import com.unisew.server.models.Fabric;
 import com.unisew.server.models.PlatformConfig;
+import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.FabricRepo;
 import com.unisew.server.repositories.PlatformConfigRepo;
 import com.unisew.server.requests.CreateConfigDataRequest;
+import com.unisew.server.requests.UpdateGarmentFabricRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.DesignService;
+import com.unisew.server.services.JWTService;
 import com.unisew.server.services.SystemService;
+import com.unisew.server.utils.CookieUtil;
+import com.unisew.server.utils.EntityResponseBuilder;
 import com.unisew.server.utils.ResponseBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +37,8 @@ public class SystemServiceImpl implements SystemService {
     private final PlatformConfigRepo platformConfigRepo;
     private final FabricRepo fabricRepo;
     private final DesignService designService;
+    private final JWTService jwtService;
+    private final AccountRepo accountRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getConfigData() {
@@ -219,4 +229,135 @@ public class SystemServiceImpl implements SystemService {
         }
     }
 
+    @Override
+    public ResponseEntity<ResponseObject> getGarmentFabric(HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if(account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
+        }
+
+        List<Fabric> fabrics = fabricRepo.findAll();
+        Map<String, Object> data = new HashMap<>();
+        List<Map<String, Object>> nonPriceFabrics = new ArrayList<>();
+        List<Map<String, Object>> hasPriceFabrics = new ArrayList<>();
+
+        for(Fabric fabric : fabrics) {
+            Map<String, Object> fabricData = EntityResponseBuilder.buildFabricResponse(fabric);
+            Object garmentPrice = fabric.getGarmentPrice();
+            if(garmentPrice == null) {
+                fabricData.put("price", new ArrayList<>());
+                nonPriceFabrics.add(fabricData);
+            }else {
+                Object priceDataMap;
+                if((priceDataMap = getGarmentPrice(garmentPrice, account.getCustomer().getPartner().getId())) == null){
+                    fabricData.put("price", new ArrayList<>());
+                    nonPriceFabrics.add(fabricData);
+                }else {
+                    Map<String, Object> priceData = (Map<String, Object>) priceDataMap;
+                    List<Map<String, Object>> sizeData = priceData.keySet().stream()
+                            .map(key -> {
+                                DeliveryItemSize size = DeliveryItemSize.valueOf(key.toUpperCase());
+                                Map<String, Object> sizeMap = new HashMap<>();
+                                sizeMap.put("enumName", size.name().toUpperCase());
+                                sizeMap.put("name", size.getSize().toUpperCase());
+                                sizeMap.put("price", ((Integer) priceData.get(key)).longValue());
+                                return sizeMap;
+                            })
+                            .toList();
+
+
+                    fabricData.put("price", sizeData);
+                    hasPriceFabrics.add(fabricData);
+                }
+            }
+        }
+        data.put("nonPrice", nonPriceFabrics);
+        data.put("hasPrice", hasPriceFabrics);
+        return ResponseBuilder.build(HttpStatus.OK, "", data);
+    }
+
+    private Object getGarmentPrice(Object fabricGarmentPrice, int garmentId){
+        Map<String, Object> data = (Map<String, Object>) fabricGarmentPrice;
+        return data.get("garment_" + garmentId);
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> getGarmentFabricForQuotation(String orderId) {
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ResponseObject> updateGarmentFabric(UpdateGarmentFabricRequest request, HttpServletRequest httpRequest) {
+        Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
+        if(account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
+        }
+
+        int garmentId = account.getCustomer().getPartner().getId();
+
+        boolean process = false;
+
+        for(UpdateGarmentFabricRequest.Fabric garmentFabric: request.getFabrics()){
+            Fabric fabric = fabricRepo.findById(garmentFabric.getFabricId()).orElse(null);
+            if(fabric == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
+
+            Object fabricGarmentPrice =  fabric.getGarmentPrice();
+
+            if(fabricGarmentPrice == null) {
+                process = createNewGarmentPrice(garmentFabric.getSizePrices(), fabric, garmentId);
+            }else {
+                process = updateExistedGarmentPrice(garmentFabric.getSizePrices(), fabric, garmentId);
+            }
+        }
+
+        if(process) return ResponseBuilder.build(HttpStatus.OK, "Price updated", null);
+
+        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Price not updated", null);
+    }
+
+    private boolean createNewGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId){
+        Map<String, Object> data = new HashMap<>();
+        try{
+            Map<String, Object> sizeData = new HashMap<>();
+            for(UpdateGarmentFabricRequest.SizePrice sizePrice: sizePrices){
+                DeliveryItemSize size = DeliveryItemSize.valueOf(sizePrice.getSizeEnumName().toUpperCase());
+                if(sizePrice.getPrice() <= 0) return false;
+                sizeData.put(size.name(), sizePrice.getPrice());
+            }
+            data.put("garment_" + garmentId, sizeData);
+            fabric.setGarmentPrice(data);
+            fabricRepo.save(fabric);
+            return true;
+        }catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean updateExistedGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId){
+        Map<String, Object> data = (Map<String, Object>) fabric.getGarmentPrice();
+        if(data.get("garment_" + garmentId) != null) {
+            Map<String, Object> sizeData = new HashMap<>();
+            for(UpdateGarmentFabricRequest.SizePrice sizePrice: sizePrices){
+                sizeData.put(sizePrice.getSizeEnumName().toUpperCase(), sizePrice.getPrice());
+            }
+
+            data.replace("garment_" + garmentId, sizeData);
+
+            fabric.setGarmentPrice(data);
+            fabricRepo.save(fabric);
+        }else {
+            Map<String, Object> sizeData = new HashMap<>();
+            for(UpdateGarmentFabricRequest.SizePrice sizePrice: sizePrices){
+                sizeData.put(sizePrice.getSizeEnumName().toUpperCase(), sizePrice.getPrice());
+            }
+
+            data.put("garment_" + garmentId, sizeData);
+
+            fabric.setGarmentPrice(data);
+            fabricRepo.save(fabric);
+        }
+
+        return true;
+    }
 }
