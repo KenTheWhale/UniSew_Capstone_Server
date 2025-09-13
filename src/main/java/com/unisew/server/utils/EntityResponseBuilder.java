@@ -10,6 +10,7 @@ import com.unisew.server.models.DesignDelivery;
 import com.unisew.server.models.DesignItem;
 import com.unisew.server.models.DesignQuotation;
 import com.unisew.server.models.DesignRequest;
+import com.unisew.server.models.Fabric;
 import com.unisew.server.models.Feedback;
 import com.unisew.server.models.FeedbackImage;
 import com.unisew.server.models.GarmentQuotation;
@@ -238,6 +239,25 @@ public class EntityResponseBuilder {
     }
 
     //-------Fabric---------
+    public static List<Map<String, Object>> buildListFabricResponse(List<Fabric> fabrics) {
+        return fabrics.stream().map(EntityResponseBuilder::buildFabricResponse).toList();
+    }
+
+    public static Map<String, Object> buildFabricResponse(Fabric fabric) {
+        if (fabric == null) {
+            return null;
+        }
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", fabric.getId());
+        data.put("name", fabric.getName());
+        data.put("description", fabric.getDescription());
+        data.put("clothType", fabric.getDesignItemType().getValue());
+        data.put("clothCategory", fabric.getDesignItemCategory().getValue());
+
+        return data;
+    }
 
     //-------Feedback---------
     public static List<Map<String, Object>> buildListFeedbackResponse(List<Feedback> feedbacks) {
