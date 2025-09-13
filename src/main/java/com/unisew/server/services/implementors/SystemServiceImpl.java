@@ -245,12 +245,10 @@ public class SystemServiceImpl implements SystemService {
             Map<String, Object> fabricData = EntityResponseBuilder.buildFabricResponse(fabric);
             Object garmentPrice = fabric.getGarmentPrice();
             if(garmentPrice == null) {
-                fabricData.put("price", new ArrayList<>());
                 nonPriceFabrics.add(fabricData);
             }else {
                 Object priceDataMap;
                 if((priceDataMap = getGarmentPrice(garmentPrice, account.getCustomer().getPartner().getId())) == null){
-                    fabricData.put("price", new ArrayList<>());
                     nonPriceFabrics.add(fabricData);
                 }else {
                     Map<String, Object> priceData = (Map<String, Object>) priceDataMap;
@@ -265,8 +263,7 @@ public class SystemServiceImpl implements SystemService {
                             })
                             .toList();
 
-
-                    fabricData.put("price", sizeData);
+                    fabricData.put("sizes", sizeData);
                     hasPriceFabrics.add(fabricData);
                 }
             }
@@ -359,5 +356,30 @@ public class SystemServiceImpl implements SystemService {
         }
 
         return true;
+    }
+
+    @Override
+    public ResponseEntity<ResponseObject> deleteGarmentFabric(int fabricId, HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+        if(account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
+        }
+
+        Fabric fabric = fabricRepo.findById(fabricId).orElse(null);
+        if(fabric == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
+
+        Object fabricGarmentPrice =  fabric.getGarmentPrice();
+
+        if(fabricGarmentPrice == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
+        }
+
+        Map<String, Object> data = (Map<String, Object>) fabricGarmentPrice;
+        Object garmentFabricData = data.get("garment_" + account.getCustomer().getPartner().getId());
+        if(garmentFabricData == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Garment data for this fabric not found", null);
+        data.remove("garment_" + account.getCustomer().getPartner().getId());
+        fabric.setGarmentPrice(data);
+        fabricRepo.save(fabric);
+        return ResponseBuilder.build(HttpStatus.OK, "Price deleted", null);
     }
 }

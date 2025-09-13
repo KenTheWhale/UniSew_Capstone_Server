@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -59,5 +60,11 @@ public class SystemController {
     @PreAuthorize("hasRole('GARMENT')")
     public ResponseEntity<ResponseObject> updateGarmentFabric(@RequestBody UpdateGarmentFabricRequest request, HttpServletRequest httpRequest){
         return systemService.updateGarmentFabric(request, httpRequest);
+    }
+
+    @PutMapping("/garment/fabric/remove")
+    @PreAuthorize("hasRole('GARMENT')")
+    public ResponseEntity<ResponseObject> deleteGarmentFabric(@RequestParam int fabricId, HttpServletRequest request){
+        return systemService.deleteGarmentFabric(fabricId, request);
     }
 }
