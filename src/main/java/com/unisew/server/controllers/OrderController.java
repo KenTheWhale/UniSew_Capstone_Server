@@ -108,7 +108,7 @@ public class OrderController {
 
     //----------------------------SIZE----------------------------//
     @GetMapping("/sizes")
-    @PreAuthorize("hasAnyRole('SCHOOL', 'GARMENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'GARMENT', 'ADMIN')")
     public ResponseEntity<ResponseObject> getSizes() {
         return orderService.getSizes();
     }

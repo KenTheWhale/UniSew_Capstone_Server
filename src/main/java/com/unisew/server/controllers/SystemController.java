@@ -45,7 +45,7 @@ public class SystemController {
     }
 
     @PostMapping("/garment/fabric")
-    @PreAuthorize("hasRole('GARMENT')")
+    @PreAuthorize("hasAnyRole('GARMENT', 'SCHOOL')")
     public ResponseEntity<ResponseObject> getGarmentFabric(HttpServletRequest request){
         return systemService.getGarmentFabric(request);
     }
