@@ -131,7 +131,7 @@ public class DesignController {
 
     //-------------------FABRICS----------------------------//
     @GetMapping("/fabrics")
-    @PreAuthorize("hasRole('SCHOOL') or hasRole('DESIGNER')")
+    @PreAuthorize("hasAnyRole('SCHOOL', 'DESIGNER', 'GARMENT')")
     public ResponseEntity<ResponseObject> getListFabrics() {
         return designService.getAllFabric();
     }
