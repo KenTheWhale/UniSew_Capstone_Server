@@ -446,6 +446,8 @@ public class EntityResponseBuilder {
         orderMap.put("completedDate", order.getCompletedDate());
         orderMap.put("deliveryImage", order.getDeliveryImage());
         orderMap.put("cancelReason", order.getCancelReason());
+        orderMap.put("deliveryAddress", order.getDeliveryAddress() == null ? "" : order.getDeliveryAddress());
+        orderMap.put("preDeliveryImageUrl", order.getPreDeliveryImage());
         return orderMap;
     }
 
@@ -676,6 +678,7 @@ public class EntityResponseBuilder {
         data.put("paymentType", transaction.getPaymentType().getValue());
         data.put("itemId", transaction.getItemId());
         data.put("paymentGatewayCode", transaction.getPaymentGatewayCode());
+        data.put("remain",(Map<String, Object>) transaction.getRemainingBalance());
 
         return data;
     }

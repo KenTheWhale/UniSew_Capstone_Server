@@ -2,6 +2,7 @@ package com.unisew.server.models;
 
 import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Status;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +19,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Type;
 
 import java.time.LocalDateTime;
 
@@ -75,4 +77,8 @@ public class Transaction {
 
     @Column(name = "`payment_gateway_code`")
     String paymentGatewayCode;
+
+    @Column(name = "`remaining_balance`", columnDefinition = "jsonb")
+    @Type(JsonBinaryType.class)
+    Object remainingBalance;
 }

@@ -84,8 +84,14 @@ public class Order {
     @Column(name = "`disburse_at`")
     Instant disburseAt;
 
+    @Column(name = "`pre_delivery_image`")
+    String preDeliveryImage;
+
     @Column(name = "`delivery_image`")
     String deliveryImage;
+
+    @Column(name = "`delivery_address`")
+    String deliveryAddress;
 
     @OneToMany(mappedBy = "order")
     @ToString.Exclude
