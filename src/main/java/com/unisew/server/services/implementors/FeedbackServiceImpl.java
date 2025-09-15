@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
@@ -286,13 +287,8 @@ public class FeedbackServiceImpl implements FeedbackService {
             }
         }
 
-        Instant disburseAt = dr.getDisburseAt() != null ? dr.getDisburseAt() : null;
-        if (disburseAt == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Disburse date not found", null);
-        }
-
         if (request.isReport()) {
-            feedback.getDesignRequest().setDisburseAt(disburseAt.plus(7, ChronoUnit.DAYS));
+            feedback.getDesignRequest().setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
         }
 
         dr.setFeedback(feedback);
@@ -356,13 +352,8 @@ public class FeedbackServiceImpl implements FeedbackService {
             }
         }
 
-        Instant disburseAt = order.getDisburseAt() != null ? order.getDisburseAt() : null;
-        if (disburseAt == null) {
-            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Disburse date not found", null);
-        }
-
         if (request.isReport()) {
-            feedback.getOrder().setDisburseAt(disburseAt.plus(7, ChronoUnit.DAYS));
+            feedback.getOrder().setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
         }
 
         order.setFeedback(feedback);

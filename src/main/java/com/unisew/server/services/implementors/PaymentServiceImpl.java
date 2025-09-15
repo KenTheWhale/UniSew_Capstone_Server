@@ -171,12 +171,14 @@ public class PaymentServiceImpl implements PaymentService {
         String balanceType = "pending";
 
         long amount = request.getTotalPrice() - request.getServiceFee();
+        boolean depositWallet = false;
 
         if (isPaymentSuccess) {
             adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
             if (request.getType().equalsIgnoreCase(PaymentType.WALLET.name())) {
                 receiverWallet.setBalance(receiverWallet.getBalance() + amount);
                 balanceType = "balance";
+                depositWallet = true;
             } else {
                 receiverWallet.setPendingBalance(receiverWallet.getPendingBalance() + amount);
             }
@@ -197,7 +199,7 @@ public class PaymentServiceImpl implements PaymentService {
         if (request.isPayFromWallet()) {
             return payFromWallet(request, senderWallet, receiverWallet, balanceType);
         }
-        return payFromGateway(request, senderWallet, receiverWallet, balanceType);
+        return payFromGateway(request, senderWallet, receiverWallet, balanceType, depositWallet);
     }
 
     private String validateCreateTransaction(CreateTransactionRequest request) {
@@ -262,19 +264,22 @@ public class PaymentServiceImpl implements PaymentService {
             senderWallet = walletRepo.save(senderWallet);
         }
 
-        return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
+        return createTransaction(request, senderWallet, receiverWallet, amount, balanceType, false);
     }
 
-    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType) {
+    private ResponseEntity<ResponseObject> payFromGateway(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, String balanceType, boolean depositWallet) {
         long amount = request.getTotalPrice() - request.getServiceFee();
         if(request.getType().equalsIgnoreCase(PaymentType.DEPOSIT.name())){
             amount = request.getTotalPrice();
         }
 
-        return createTransaction(request, senderWallet, receiverWallet, amount, balanceType);
+        return createTransaction(request, senderWallet, receiverWallet, amount, balanceType, depositWallet);
     }
 
-    private ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, long amount, String balanceType) {
+    private ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, Wallet senderWallet, Wallet receiverWallet, long amount, String balanceType, boolean depositWallet) {
+        boolean payFromWallet = request.isPayFromWallet();
+        Map<String, Object> remainingBalance = buildRemainingBalance(senderWallet, receiverWallet, false, payFromWallet, depositWallet);
+
         transactionRepo.save(
                 Transaction.builder()
                         .wallet(senderWallet)
@@ -290,9 +295,36 @@ public class PaymentServiceImpl implements PaymentService {
                         .status(request.getGatewayCode().trim().equalsIgnoreCase("00") ? Status.TRANSACTION_SUCCESS : Status.TRANSACTION_FAIL)
                         .creationDate(LocalDateTime.now())
                         .paymentGatewayCode(request.isPayFromWallet() ? request.getGatewayCode().trim() + "w" : request.getGatewayCode().trim())
+                        .remainingBalance(remainingBalance)
                         .build()
         );
         return ResponseBuilder.build(HttpStatus.CREATED, "Transaction created", null);
+    }
+
+    private Map<String, Object> buildRemainingBalance(Wallet senderWallet, Wallet receiverWallet, boolean refund, boolean payFromWallet, boolean depositWallet) {
+        Map<String, Object> remainingBalance = new HashMap<>();
+        if (refund) {
+            remainingBalance.put("sender", senderWallet.getPendingBalance());
+            remainingBalance.put("receiver", receiverWallet.getPendingBalance());
+        } else {
+            if (payFromWallet) {
+                remainingBalance.put("sender", senderWallet.getBalance());
+                remainingBalance.put("receiver", receiverWallet.getPendingBalance());
+            } else {
+                if (depositWallet) {
+                    remainingBalance.put("sender", -1);
+                    remainingBalance.put("receiver", receiverWallet.getBalance());
+                } else {
+                    remainingBalance.put("sender", -1);
+                    remainingBalance.put("receiver", receiverWallet.getPendingBalance());
+                }
+
+            }
+        }
+
+
+
+        return remainingBalance;
     }
 
     private Wallet getAdminWallet() {
@@ -470,8 +502,10 @@ public class PaymentServiceImpl implements PaymentService {
         partnerWallet.setPendingBalance(partnerWallet.getPendingBalance() - refundAmount);
         schoolWallet.setPendingBalance(schoolWallet.getPendingBalance() + refundAmount);
 
-        walletRepo.save(partnerWallet);
-        walletRepo.save(schoolWallet);
+        partnerWallet = walletRepo.save(partnerWallet);
+        schoolWallet = walletRepo.save(schoolWallet);
+
+        Map<String, Object> remainingBalance = buildRemainingBalance(partnerWallet, schoolWallet, true, false, false);
 
         transactionRepo.save(
                 Transaction.builder()
@@ -481,13 +515,14 @@ public class PaymentServiceImpl implements PaymentService {
                         .itemId(transactions.get(0).getItemId())
                         .senderName(partnerWallet.getAccount().getCustomer().getName())
                         .receiverName(schoolWallet.getAccount().getCustomer().getName())
-                        .balanceType("balance")
+                        .balanceType("pending")
                         .amount(refundAmount)
                         .paymentType(transactions.get(0).getPaymentType() == PaymentType.DESIGN ? PaymentType.DESIGN_RETURN : PaymentType.ORDER_RETURN)
                         .serviceFee(0)
                         .status(Status.TRANSACTION_SUCCESS)
                         .creationDate(LocalDateTime.now())
                         .paymentGatewayCode("00")
+                        .remainingBalance(remainingBalance)
                         .build()
         );
 

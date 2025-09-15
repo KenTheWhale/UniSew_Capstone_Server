@@ -311,6 +311,10 @@ public class OrderServiceImpl implements OrderService {
                 milestoneRepo.save(nextMilestone);
             }
         }
+        if (order.getMilestones().size() == milestone.getStage()) {
+            order.setPreDeliveryImage(request.getProductImageUrl());
+            orderRepo.save(order);
+        }
 
         return ResponseBuilder.build(HttpStatus.OK, "Milestone status updated successfully", null);
     }
@@ -417,6 +421,7 @@ public class OrderServiceImpl implements OrderService {
         order.setPrice(garmentQuotation.getPrice());
         order.setNote(order.getNote());
         order.setDisburseAt(Instant.now().plus(7, ChronoUnit.DAYS));
+        order.setDeliveryAddress(account.getCustomer().getAddress());
         orderRepo.save(order);
 
         request.getCreateTransactionRequest().setReceiverId(garmentQuotation.getGarment().getCustomer().getId());

@@ -15,4 +15,5 @@ import lombok.experimental.FieldDefaults;
 public class UpdateMilestoneStatusRequest {
     Integer orderId;
     String videoUrl;
+    String productImageUrl;
 }
