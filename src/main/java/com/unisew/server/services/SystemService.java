@@ -15,7 +15,7 @@ public interface SystemService {
 
     ResponseEntity<ResponseObject> getGarmentFabric(HttpServletRequest request);
 
-    ResponseEntity<ResponseObject> getGarmentFabricForQuotation(String orderId);
+    ResponseEntity<ResponseObject> getGarmentFabricForQuotation(int orderId, HttpServletRequest request);
 
     ResponseEntity<ResponseObject> updateGarmentFabric(UpdateGarmentFabricRequest request, HttpServletRequest httpRequest);
 
