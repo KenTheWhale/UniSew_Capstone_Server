@@ -50,10 +50,10 @@ public class SystemController {
         return systemService.getGarmentFabric(request);
     }
 
-    @GetMapping("/garment/fabric/quotation")
+    @PostMapping("/garment/fabric/quotation")
     @PreAuthorize("hasRole('GARMENT')")
-    public ResponseEntity<ResponseObject> getGarmentFabricForQuotation(@RequestParam String orderId){
-        return systemService.getGarmentFabricForQuotation(orderId);
+    public ResponseEntity<ResponseObject> getGarmentFabricForQuotation(@RequestParam int orderId, HttpServletRequest request){
+        return systemService.getGarmentFabricForQuotation(orderId, request);
     }
 
     @PutMapping("/garment/fabric")

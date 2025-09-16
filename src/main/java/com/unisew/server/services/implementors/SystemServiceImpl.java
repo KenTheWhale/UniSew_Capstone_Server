@@ -4,10 +4,17 @@ import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.DesignItemCategory;
 import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.DeliveryItem;
+import com.unisew.server.models.DesignItem;
 import com.unisew.server.models.Fabric;
+import com.unisew.server.models.Order;
+import com.unisew.server.models.OrderDetail;
 import com.unisew.server.models.PlatformConfig;
 import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.DeliveryItemRepo;
+import com.unisew.server.repositories.DesignItemRepo;
 import com.unisew.server.repositories.FabricRepo;
+import com.unisew.server.repositories.OrderRepo;
 import com.unisew.server.repositories.PlatformConfigRepo;
 import com.unisew.server.requests.CreateConfigDataRequest;
 import com.unisew.server.requests.UpdateGarmentFabricRequest;
@@ -39,6 +46,9 @@ public class SystemServiceImpl implements SystemService {
     private final DesignService designService;
     private final JWTService jwtService;
     private final AccountRepo accountRepo;
+    private final OrderRepo orderRepo;
+    private final DeliveryItemRepo deliveryItemRepo;
+    private final DesignItemRepo designItemRepo;
 
     @Override
     public ResponseEntity<ResponseObject> getConfigData() {
@@ -58,13 +68,14 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public ResponseEntity<ResponseObject> getConfigDataByKey(String key) {
         Map<String, Object> data = getConfigByKey(key);
-        if(data == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Data invalid", null);
+        if (data == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Data invalid", null);
 
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
-    private Map<String, Object> getConfigByKey(String key){
-        if(key.equalsIgnoreCase("fabric")) return (Map<String, Object>) designService.getAllFabric().getBody().getBody();
+    private Map<String, Object> getConfigByKey(String key) {
+        if (key.equalsIgnoreCase("fabric"))
+            return (Map<String, Object>) designService.getAllFabric().getBody().getBody();
         PlatformConfig config = platformConfigRepo.findByKey(key).orElse(null);
         if (config == null) return null;
         Map<String, Object> data = new HashMap<>();
@@ -96,7 +107,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Transactional
-    public void updateBusiness(CreateConfigDataRequest request){
+    public void updateBusiness(CreateConfigDataRequest request) {
         CreateConfigDataRequest.BusinessData businessData = request.getBusinessData();
         Map<String, Object> businessJson = new HashMap<>();
 
@@ -112,7 +123,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Transactional
-    public void updateMedia(CreateConfigDataRequest request){
+    public void updateMedia(CreateConfigDataRequest request) {
         CreateConfigDataRequest.MediaData mediaData = request.getMediaData();
         Map<String, Object> mediaJson = new HashMap<>();
 
@@ -151,7 +162,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Transactional
-    public void updateDesign(CreateConfigDataRequest request){
+    public void updateDesign(CreateConfigDataRequest request) {
         CreateConfigDataRequest.DesignData designData = request.getDesignData();
         Map<String, Object> designJson = new HashMap<>();
 
@@ -172,7 +183,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Transactional
-    public void updateOrder(CreateConfigDataRequest request){
+    public void updateOrder(CreateConfigDataRequest request) {
         CreateConfigDataRequest.OrderData orderData = request.getOrderData();
         Map<String, Object> orderJson = new HashMap<>();
 
@@ -186,7 +197,7 @@ public class SystemServiceImpl implements SystemService {
     }
 
     @Transactional
-    public void updateReport(CreateConfigDataRequest request){
+    public void updateReport(CreateConfigDataRequest request) {
         CreateConfigDataRequest.ReportData reportData = request.getReportData();
         Map<String, Object> reportJson = new HashMap<>();
 
@@ -232,7 +243,7 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public ResponseEntity<ResponseObject> getGarmentFabric(HttpServletRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-        if(account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+        if (account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
         }
 
@@ -241,16 +252,16 @@ public class SystemServiceImpl implements SystemService {
         List<Map<String, Object>> nonPriceFabrics = new ArrayList<>();
         List<Map<String, Object>> hasPriceFabrics = new ArrayList<>();
 
-        for(Fabric fabric : fabrics) {
+        for (Fabric fabric : fabrics) {
             Map<String, Object> fabricData = EntityResponseBuilder.buildFabricResponse(fabric);
             Object garmentPrice = fabric.getGarmentPrice();
-            if(garmentPrice == null) {
+            if (garmentPrice == null) {
                 nonPriceFabrics.add(fabricData);
-            }else {
+            } else {
                 Object priceDataMap;
-                if((priceDataMap = getGarmentPrice(garmentPrice, account.getCustomer().getPartner().getId())) == null){
+                if ((priceDataMap = getGarmentPrice(garmentPrice, account.getCustomer().getPartner().getId())) == null) {
                     nonPriceFabrics.add(fabricData);
-                }else {
+                } else {
                     Map<String, Object> priceData = (Map<String, Object>) priceDataMap;
                     List<Map<String, Object>> sizeData = priceData.keySet().stream()
                             .map(key -> {
@@ -273,21 +284,85 @@ public class SystemServiceImpl implements SystemService {
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
-    private Object getGarmentPrice(Object fabricGarmentPrice, int garmentId){
+    private Object getGarmentPrice(Object fabricGarmentPrice, int garmentId) {
         Map<String, Object> data = (Map<String, Object>) fabricGarmentPrice;
         return data.get("garment_" + garmentId);
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getGarmentFabricForQuotation(String orderId) {
-        return null;
+    public ResponseEntity<ResponseObject> getGarmentFabricForQuotation(int orderId, HttpServletRequest request) {
+        Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
+
+        if (account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
+        }
+
+        List<Map<String, Object>> garmentFabricPrice = (List<Map<String, Object>>) ((Map<String, Object>) ((ResponseObject) getGarmentFabric(request).getBody()).getBody()).get("hasPrice");
+
+        if (garmentFabricPrice == null || garmentFabricPrice.isEmpty()) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "No fabric price setup found", null);
+        }
+
+        Map<String, Object> fabricSizeAndPriceData = new HashMap<>();
+
+        garmentFabricPrice.forEach(fabric -> fabricSizeAndPriceData.put("id_" + fabric.get("id"), fabric.get("sizes")));
+
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order == null) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Order invalid", null);
+        }
+
+        List<Integer> fabricIds = order.getOrderDetails().stream()
+                .map(detail -> deliveryItemRepo.findById(detail.getDeliveryItemId()).orElse(null))
+                .map(delivery -> delivery != null ? designItemRepo.findById(delivery.getDesignItemId()).orElse(null) : null)
+                .map(design -> design != null ? design.getFabric().getId() : null)
+                .toList();
+
+        if (fabricIds.isEmpty() || fabricIds.contains(null)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric not found", null);
+        }
+
+        Map<String, Object> responseData = new HashMap<>();
+
+        List<Map<String, Object>> dataList = new ArrayList<>();
+
+        long totalPrice = 0;
+
+        for (Integer fabricId : fabricIds) {
+            if (!fabricSizeAndPriceData.containsKey("id_" + fabricId)) {
+                return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric with id " + fabricId + " price setup not found", null);
+            }
+
+            OrderDetail detail = order.getOrderDetails().get(fabricIds.indexOf(fabricId));
+
+            long unitPrice = ((List<Map<String, Object>>) fabricSizeAndPriceData.get("id_" + fabricId)).stream()
+                    .filter(size -> size.get("enumName").toString().equalsIgnoreCase(detail.getSize().name()))
+                    .map(size -> (Long) size.get("price"))
+                    .findFirst()
+                    .orElse(0L);
+
+            long price = unitPrice * detail.getQuantity();
+
+            totalPrice += price;
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("orderDetailId", detail.getId());
+            data.put("unitPrice", unitPrice);
+            data.put("priceWithQty", price);
+            dataList.add(data);
+        }
+
+        responseData.put("detail", dataList);
+        responseData.put("totalPrice", totalPrice);
+
+        return ResponseBuilder.build(HttpStatus.OK, "", responseData);
     }
 
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> updateGarmentFabric(UpdateGarmentFabricRequest request, HttpServletRequest httpRequest) {
         Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-        if(account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+        if (account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
         }
 
@@ -295,47 +370,47 @@ public class SystemServiceImpl implements SystemService {
 
         boolean process = false;
 
-        for(UpdateGarmentFabricRequest.Fabric garmentFabric: request.getFabrics()){
+        for (UpdateGarmentFabricRequest.Fabric garmentFabric : request.getFabrics()) {
             Fabric fabric = fabricRepo.findById(garmentFabric.getFabricId()).orElse(null);
-            if(fabric == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
+            if (fabric == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
 
-            Object fabricGarmentPrice =  fabric.getGarmentPrice();
+            Object fabricGarmentPrice = fabric.getGarmentPrice();
 
-            if(fabricGarmentPrice == null) {
+            if (fabricGarmentPrice == null) {
                 process = createNewGarmentPrice(garmentFabric.getSizePrices(), fabric, garmentId);
-            }else {
+            } else {
                 process = updateExistedGarmentPrice(garmentFabric.getSizePrices(), fabric, garmentId);
             }
         }
 
-        if(process) return ResponseBuilder.build(HttpStatus.OK, "Price updated", null);
+        if (process) return ResponseBuilder.build(HttpStatus.OK, "Price updated", null);
 
         return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Price not updated", null);
     }
 
-    private boolean createNewGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId){
+    private boolean createNewGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId) {
         Map<String, Object> data = new HashMap<>();
-        try{
+        try {
             Map<String, Object> sizeData = new HashMap<>();
-            for(UpdateGarmentFabricRequest.SizePrice sizePrice: sizePrices){
+            for (UpdateGarmentFabricRequest.SizePrice sizePrice : sizePrices) {
                 DeliveryItemSize size = DeliveryItemSize.valueOf(sizePrice.getSizeEnumName().toUpperCase());
-                if(sizePrice.getPrice() <= 0) return false;
+                if (sizePrice.getPrice() <= 0) return false;
                 sizeData.put(size.name(), sizePrice.getPrice());
             }
             data.put("garment_" + garmentId, sizeData);
             fabric.setGarmentPrice(data);
             fabricRepo.save(fabric);
             return true;
-        }catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
 
-    private boolean updateExistedGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId){
+    private boolean updateExistedGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId) {
         Map<String, Object> data = (Map<String, Object>) fabric.getGarmentPrice();
-        if(data.get("garment_" + garmentId) != null) {
+        if (data.get("garment_" + garmentId) != null) {
             Map<String, Object> sizeData = new HashMap<>();
-            for(UpdateGarmentFabricRequest.SizePrice sizePrice: sizePrices){
+            for (UpdateGarmentFabricRequest.SizePrice sizePrice : sizePrices) {
                 sizeData.put(sizePrice.getSizeEnumName().toUpperCase(), sizePrice.getPrice());
             }
 
@@ -343,9 +418,9 @@ public class SystemServiceImpl implements SystemService {
 
             fabric.setGarmentPrice(data);
             fabricRepo.save(fabric);
-        }else {
+        } else {
             Map<String, Object> sizeData = new HashMap<>();
-            for(UpdateGarmentFabricRequest.SizePrice sizePrice: sizePrices){
+            for (UpdateGarmentFabricRequest.SizePrice sizePrice : sizePrices) {
                 sizeData.put(sizePrice.getSizeEnumName().toUpperCase(), sizePrice.getPrice());
             }
 
@@ -361,22 +436,23 @@ public class SystemServiceImpl implements SystemService {
     @Override
     public ResponseEntity<ResponseObject> deleteGarmentFabric(int fabricId, HttpServletRequest request) {
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
-        if(account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
+        if (account == null || account.getCustomer() == null || account.getCustomer().getPartner() == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
         }
 
         Fabric fabric = fabricRepo.findById(fabricId).orElse(null);
-        if(fabric == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
+        if (fabric == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
 
-        Object fabricGarmentPrice =  fabric.getGarmentPrice();
+        Object fabricGarmentPrice = fabric.getGarmentPrice();
 
-        if(fabricGarmentPrice == null) {
+        if (fabricGarmentPrice == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric invalid", null);
         }
 
         Map<String, Object> data = (Map<String, Object>) fabricGarmentPrice;
         Object garmentFabricData = data.get("garment_" + account.getCustomer().getPartner().getId());
-        if(garmentFabricData == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Garment data for this fabric not found", null);
+        if (garmentFabricData == null)
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Garment data for this fabric not found", null);
         data.remove("garment_" + account.getCustomer().getPartner().getId());
         fabric.setGarmentPrice(data);
         fabricRepo.save(fabric);
