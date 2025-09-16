@@ -328,12 +328,13 @@ public class SystemServiceImpl implements SystemService {
 
         long totalPrice = 0;
 
-        for (Integer fabricId : fabricIds) {
+        for (int i = 0; i < fabricIds.size(); i++) {
+            int fabricId = fabricIds.get(i);
             if (!fabricSizeAndPriceData.containsKey("id_" + fabricId)) {
                 return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Fabric with id " + fabricId + " price setup not found", null);
             }
 
-            OrderDetail detail = order.getOrderDetails().get(fabricIds.indexOf(fabricId));
+            OrderDetail detail = order.getOrderDetails().get(i);
 
             long unitPrice = ((List<Map<String, Object>>) fabricSizeAndPriceData.get("id_" + fabricId)).stream()
                     .filter(size -> size.get("enumName").toString().equalsIgnoreCase(detail.getSize().name()))
