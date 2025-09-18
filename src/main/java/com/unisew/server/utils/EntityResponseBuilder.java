@@ -448,6 +448,8 @@ public class EntityResponseBuilder {
         orderMap.put("cancelReason", order.getCancelReason());
         orderMap.put("deliveryAddress", order.getDeliveryAddress() == null ? "" : order.getDeliveryAddress());
         orderMap.put("preDeliveryImageUrl", order.getPreDeliveryImage());
+        orderMap.put("transactions", buildListTransactionResponse(transactionRepo.findAllByItemId(order.getId())));
+
         return orderMap;
     }
 
