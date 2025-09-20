@@ -1,5 +1,6 @@
 package com.unisew.server.utils;
 
+import com.unisew.server.enums.DesignItemType;
 import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
@@ -90,13 +91,28 @@ public class EntityResponseBuilder {
         }
 
         Map<String, Object> data = new HashMap<>();
+        Map<String, Object> accessoryData = (Map<String, Object>) item.getAccessory();
 
         data.put("id", item.getId());
         data.put("designItem", buildDesignItemResponse(designItem));
-        data.put("baseLogoHeight", item.getBaseLogoHeight());
-        data.put("baseLogoWidth", item.getBaseLogoWidth());
         data.put("frontImageUrl", item.getFrontImageUrl());
-        data.put("backImageUrl", item.getBackImageUrl());
+
+        Map<String, Object> buttonData = (Map<String, Object>) accessoryData.get("button");
+        data.put("buttonQty", buttonData.get("button"));
+        data.put("buttonHeight", buttonData.get("height"));
+        data.put("buttonWidth", buttonData.get("width"));
+        data.put("buttonHoleQty", buttonData.get("holeQty"));
+        data.put("buttonColor", buttonData.get("color"));
+        data.put("buttonNote", buttonData.get("note"));
+
+        Map<String, Object> logoData = (Map<String, Object>) accessoryData.get("logo");
+        data.put("logoAttachingTechnique", logoData.get("attachingTechnique"));
+        data.put("baseLogoHeight", logoData.get("baseHeight"));
+        data.put("baseLogoWidth", logoData.get("baseWidth"));
+        data.put("logoNote", logoData.get("note"));
+
+        boolean zipperData = (boolean) accessoryData.get("zipper");
+        data.put("zipper", zipperData);
 
         return data;
     }
