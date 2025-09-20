@@ -41,9 +41,34 @@ public class ImportDesignRequest {
         String color;
         String gender;
         int fabricId;
-        int logoHeight;
-        int logoWidth;
         String frontImage;
         String backImage;
+        ButtonData buttonData;
+        LogoData logoData;
+        boolean zipper;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ButtonData {
+        int quantity;
+        int height;
+        int width;
+        int holeQty;
+        String color;
+        String note;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class LogoData {
+        String attachingTechnique;
+        int baseHeight;
+        int baseWidth;
+        String note;
     }
 }

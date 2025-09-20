@@ -1,5 +1,6 @@
 package com.unisew.server.models;
 
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.Type;
 
 @Data
 @AllArgsConstructor
@@ -35,16 +37,13 @@ public class DeliveryItem {
     @Column(name = "`design_item_id`")
     int designItemId;
 
-    @Column(name = "`base_logo_height`")
-    double baseLogoHeight;
-
-    @Column(name = "`base_logo_width`")
-    double baseLogoWidth;
-
     @Column(name = "`front_image_url`")
     String frontImageUrl;
 
     @Column(name = "`back_image_url`")
     String backImageUrl;
 
+    @Column(columnDefinition = "jsonb")
+    @Type(JsonBinaryType.class)
+    Object accessory;
 }
