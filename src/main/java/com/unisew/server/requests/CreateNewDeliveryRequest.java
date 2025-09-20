@@ -24,11 +24,36 @@ public class CreateNewDeliveryRequest {
     @NoArgsConstructor
     @Builder
     public static class DeliveryItems {
-        int logoHeight;
-        int logoWidth;
         int designItemId;
         String frontUrl;
         String backUrl;
+        ButtonData buttonData;
+        LogoData logoData;
+        boolean zipper;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ButtonData {
+        int quantity;
+        int height;
+        int width;
+        int holeQty;
+        String color;
+        String note;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class LogoData {
+        String attachingTechnique;
+        int baseHeight;
+        int baseWidth;
+        String note;
     }
 
 }

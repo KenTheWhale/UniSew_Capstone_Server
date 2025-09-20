@@ -404,14 +404,41 @@ public class DesignServiceImpl implements DesignService {
                                 .build()
                 );
 
+                Map<String, Object> accessory = new HashMap<>();
+                accessory.put("button", null);
+                accessory.put("logo", null);
+                accessory.put("zipper", false);
+                if(item.getType().equals(DesignItemType.SHIRT)){
+                    Map<String, Object> buttonData = new HashMap<>();
+                    Map<String, Object> logoData = new HashMap<>();
+
+                    buttonData.put("quantity", designItemData.getButtonData().getQuantity());
+                    buttonData.put("height", designItemData.getButtonData().getHeight());
+                    buttonData.put("width", designItemData.getButtonData().getWidth());
+                    buttonData.put("holeQty", designItemData.getButtonData().getHoleQty());
+                    buttonData.put("color", designItemData.getButtonData().getColor());
+                    buttonData.put("note", designItemData.getButtonData().getNote());
+
+                    logoData.put("attachingTechnique", designItemData.getLogoData().getAttachingTechnique());
+                    logoData.put("baseHeight", designItemData.getLogoData().getBaseHeight());
+                    logoData.put("baseWidth", designItemData.getLogoData().getBaseWidth());
+                    logoData.put("note", designItemData.getLogoData().getNote());
+
+                    accessory.replace("button", buttonData);
+                    accessory.replace("logo", logoData);
+                }
+
+                if(item.getType().equals(DesignItemType.PANTS)){
+                    accessory.replace("zipper", designItemData.isZipper());
+                }
+
                 deliveryItemRepo.save(
                         DeliveryItem.builder()
                                 .designDelivery(designDelivery)
                                 .designItemId(item.getId())
-                                .baseLogoHeight(designItemData.getLogoHeight())
-                                .baseLogoWidth(designItemData.getLogoWidth())
                                 .frontImageUrl(designItemData.getFrontImage())
                                 .backImageUrl(designItemData.getBackImage())
+                                .accessory(accessory)
                                 .build()
                 );
 
@@ -450,8 +477,8 @@ public class DesignServiceImpl implements DesignService {
             if(validateStringData(data.getFrontImage())) return "Front image invalid at index " + designItemData.indexOf(data);
             if(validateStringData(data.getBackImage())) return "Back image invalid at index " + designItemData.indexOf(data);
             if(data.getFabricId() < 0) return "Fabric invalid at index " + designItemData.indexOf(data);
-            if(data.getLogoHeight() < 0) return "Logo height invalid at index " + designItemData.indexOf(data);
-            if(data.getLogoWidth() < 0) return "Logo width invalid at index " + designItemData.indexOf(data);
+            if(data.getLogoData().getBaseHeight() < 0) return "Logo height invalid at index " + designItemData.indexOf(data);
+            if(data.getLogoData().getBaseWidth() < 0) return "Logo width invalid at index " + designItemData.indexOf(data);
 
         }
 
@@ -570,14 +597,43 @@ public class DesignServiceImpl implements DesignService {
         );
 
         for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()) {
+            Map<String, Object> accessory = new HashMap<>();
+            accessory.put("button", null);
+            accessory.put("logo", null);
+            accessory.put("zipper", false);
+            DesignItem item = designItemRepo.findById(i.getDesignItemId()).orElse(null);
+            assert item != null;
+            if(item.getType().equals(DesignItemType.SHIRT)){
+                Map<String, Object> buttonData = new HashMap<>();
+                Map<String, Object> logoData = new HashMap<>();
+
+                buttonData.put("quantity", i.getButtonData().getQuantity());
+                buttonData.put("height", i.getButtonData().getHeight());
+                buttonData.put("width", i.getButtonData().getWidth());
+                buttonData.put("holeQty", i.getButtonData().getHoleQty());
+                buttonData.put("color", i.getButtonData().getColor());
+                buttonData.put("note", i.getButtonData().getNote());
+
+                logoData.put("attachingTechnique", i.getLogoData().getAttachingTechnique());
+                logoData.put("baseHeight", i.getLogoData().getBaseHeight());
+                logoData.put("baseWidth", i.getLogoData().getBaseWidth());
+                logoData.put("note", i.getLogoData().getNote());
+
+                accessory.replace("button", buttonData);
+                accessory.replace("logo", logoData);
+            }
+
+            if(item.getType().equals(DesignItemType.PANTS)){
+                accessory.replace("zipper", i.isZipper());
+            }
+
             deliveryItemRepo.save(
                     DeliveryItem.builder()
                             .designDelivery(delivery)
                             .designItemId(i.getDesignItemId())
-                            .baseLogoHeight(i.getLogoHeight())
-                            .baseLogoWidth(i.getLogoWidth())
                             .backImageUrl(i.getBackUrl())
                             .frontImageUrl(i.getFrontUrl())
+                            .accessory(accessory)
                             .build()
             );
         }
