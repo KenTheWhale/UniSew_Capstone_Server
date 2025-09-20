@@ -598,8 +598,8 @@ public class DesignServiceImpl implements DesignService {
 
         for (CreateNewDeliveryRequest.DeliveryItems i : request.getItemList()) {
             Map<String, Object> accessory = new HashMap<>();
-            accessory.put("button", null);
-            accessory.put("logo", null);
+            accessory.put("button", "");
+            accessory.put("logo", "");
             accessory.put("zipper", false);
             DesignItem item = designItemRepo.findById(i.getDesignItemId()).orElse(null);
             assert item != null;
