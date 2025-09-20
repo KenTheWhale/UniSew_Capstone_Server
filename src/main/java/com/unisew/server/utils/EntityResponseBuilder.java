@@ -33,7 +33,6 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.TransactionRepo;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,7 @@ public class EntityResponseBuilder {
 
     //-------Account---------
     public static Map<String, Object> buildAccountResponse(Account account) {
-        if(account == null) return null;
+        if (account == null) return null;
 
         Map<String, Object> data = new HashMap<>();
         data.put("id", account.getId());
@@ -59,7 +58,7 @@ public class EntityResponseBuilder {
 
     //-------Customer---------
     public static Map<String, Object> buildCustomerResponse(Customer customer) {
-        if(customer == null) return null;
+        if (customer == null) return null;
 
         Map<String, Object> data = new HashMap<>();
 
@@ -96,21 +95,23 @@ public class EntityResponseBuilder {
         data.put("id", item.getId());
         data.put("designItem", buildDesignItemResponse(designItem));
         data.put("frontImageUrl", item.getFrontImageUrl());
+        data.put("backImageUrl", item.getBackImageUrl());
 
-        Map<String, Object> buttonData = (Map<String, Object>) accessoryData.get("button");
-        data.put("buttonQty", buttonData.get("button"));
-        data.put("buttonHeight", buttonData.get("height"));
-        data.put("buttonWidth", buttonData.get("width"));
-        data.put("buttonHoleQty", buttonData.get("holeQty"));
-        data.put("buttonColor", buttonData.get("color"));
-        data.put("buttonNote", buttonData.get("note"));
+        if (designItem.getType().equals(DesignItemType.SHIRT)) {
+            Map<String, Object> buttonData = (Map<String, Object>) accessoryData.get("button");
+            data.put("buttonQty", buttonData.get("button"));
+            data.put("buttonHeight", buttonData.get("height"));
+            data.put("buttonWidth", buttonData.get("width"));
+            data.put("buttonHoleQty", buttonData.get("holeQty"));
+            data.put("buttonColor", buttonData.get("color"));
+            data.put("buttonNote", buttonData.get("note"));
 
-        Map<String, Object> logoData = (Map<String, Object>) accessoryData.get("logo");
-        data.put("logoAttachingTechnique", logoData.get("attachingTechnique"));
-        data.put("baseLogoHeight", logoData.get("baseHeight"));
-        data.put("baseLogoWidth", logoData.get("baseWidth"));
-        data.put("logoNote", logoData.get("note"));
-
+            Map<String, Object> logoData = (Map<String, Object>) accessoryData.get("logo");
+            data.put("logoAttachingTechnique", logoData.get("attachingTechnique"));
+            data.put("baseLogoHeight", logoData.get("baseHeight"));
+            data.put("baseLogoWidth", logoData.get("baseWidth"));
+            data.put("logoNote", logoData.get("note"));
+        }
         boolean zipperData = (boolean) accessoryData.get("zipper");
         data.put("zipper", zipperData);
 
@@ -588,8 +589,8 @@ public class EntityResponseBuilder {
         return garmentQuotations.stream().map(q -> buildQuotationResponse(q, designRequestRepo, designQuotationRepo)).toList();
     }
 
-    public static Map<String, Object> buildQuotationResponse(GarmentQuotation garmentQuotation, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo){
-        if(garmentQuotation == null) return null;
+    public static Map<String, Object> buildQuotationResponse(GarmentQuotation garmentQuotation, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
+        if (garmentQuotation == null) return null;
         Map<String, Object> map = new HashMap<>();
         map.put("id", garmentQuotation.getId());
         map.put("garment", buildPartnerResponse(garmentQuotation.getGarment(), designQuotationRepo, designRequestRepo));
@@ -696,7 +697,7 @@ public class EntityResponseBuilder {
         data.put("paymentType", transaction.getPaymentType().getValue());
         data.put("itemId", transaction.getItemId());
         data.put("paymentGatewayCode", transaction.getPaymentGatewayCode());
-        data.put("remain",(Map<String, Object>) transaction.getRemainingBalance());
+        data.put("remain", (Map<String, Object>) transaction.getRemainingBalance());
 
         return data;
     }
