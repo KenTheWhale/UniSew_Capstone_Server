@@ -97,9 +97,9 @@ public class EntityResponseBuilder {
         data.put("frontImageUrl", item.getFrontImageUrl());
         data.put("backImageUrl", item.getBackImageUrl());
 
-        if (designItem.getType().equals(DesignItemType.SHIRT)) {
+        if(designItem.getType().equals(DesignItemType.SHIRT)){
             Map<String, Object> buttonData = (Map<String, Object>) accessoryData.get("button");
-            data.put("buttonQty", buttonData.get("button"));
+            data.put("buttonQty", buttonData.get("quantity"));
             data.put("buttonHeight", buttonData.get("height"));
             data.put("buttonWidth", buttonData.get("width"));
             data.put("buttonHoleQty", buttonData.get("holeQty"));
@@ -112,6 +112,7 @@ public class EntityResponseBuilder {
             data.put("baseLogoWidth", logoData.get("baseWidth"));
             data.put("logoNote", logoData.get("note"));
         }
+
         boolean zipperData = (boolean) accessoryData.get("zipper");
         data.put("zipper", zipperData);
 

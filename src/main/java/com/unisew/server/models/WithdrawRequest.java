@@ -2,6 +2,8 @@ package com.unisew.server.models;
 
 import com.unisew.server.enums.Status;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,6 +35,7 @@ public class WithdrawRequest {
 
     long withdrawAmount;
 
+    @Enumerated(EnumType.STRING)
     Status status;
 
     @ManyToOne
