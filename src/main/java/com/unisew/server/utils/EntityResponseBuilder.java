@@ -33,7 +33,6 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.TransactionRepo;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,7 @@ public class EntityResponseBuilder {
 
     //-------Account---------
     public static Map<String, Object> buildAccountResponse(Account account) {
-        if(account == null) return null;
+        if (account == null) return null;
 
         Map<String, Object> data = new HashMap<>();
         data.put("id", account.getId());
@@ -59,7 +58,7 @@ public class EntityResponseBuilder {
 
     //-------Customer---------
     public static Map<String, Object> buildCustomerResponse(Customer customer) {
-        if(customer == null) return null;
+        if (customer == null) return null;
 
         Map<String, Object> data = new HashMap<>();
 
@@ -591,8 +590,8 @@ public class EntityResponseBuilder {
         return garmentQuotations.stream().map(q -> buildQuotationResponse(q, designRequestRepo, designQuotationRepo)).toList();
     }
 
-    public static Map<String, Object> buildQuotationResponse(GarmentQuotation garmentQuotation, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo){
-        if(garmentQuotation == null) return null;
+    public static Map<String, Object> buildQuotationResponse(GarmentQuotation garmentQuotation, DesignRequestRepo designRequestRepo, DesignQuotationRepo designQuotationRepo) {
+        if (garmentQuotation == null) return null;
         Map<String, Object> map = new HashMap<>();
         map.put("id", garmentQuotation.getId());
         map.put("garment", buildPartnerResponse(garmentQuotation.getGarment(), designQuotationRepo, designRequestRepo));
@@ -699,7 +698,7 @@ public class EntityResponseBuilder {
         data.put("paymentType", transaction.getPaymentType().getValue());
         data.put("itemId", transaction.getItemId());
         data.put("paymentGatewayCode", transaction.getPaymentGatewayCode());
-        data.put("remain",(Map<String, Object>) transaction.getRemainingBalance());
+        data.put("remain", (Map<String, Object>) transaction.getRemainingBalance());
 
         return data;
     }
