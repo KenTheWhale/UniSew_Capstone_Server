@@ -75,7 +75,7 @@ public class AccountController {
 
     @PostMapping("/withdraw")
     @PreAuthorize("hasAnyRole('DESIGNER', 'SCHOOL', 'GARMENT')")
-    public ResponseEntity<ResponseObject> withdraw(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request) {
+    public ResponseEntity<ResponseObject> createWithDrawRequest(HttpServletRequest httpRequest, @RequestBody CreateWithDrawRequest request) {
         return accountService.createWithDrawRequest(httpRequest, request);
     }
 
@@ -114,4 +114,6 @@ public class AccountController {
     public ResponseEntity<ResponseObject> getProfilePartner(@RequestBody GetProfilePartnerRequest request){
         return accountService.getProfilePartner(request);
     }
+
+
 }
