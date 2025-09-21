@@ -12,8 +12,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AcceptOrRejectWithDrawRequest {
-    int withdrawId;
-    String decision;
-    String evidenceImage;
+public class RequestWithdrawRequest {
+    Integer walletId;
+    long amount;
 }

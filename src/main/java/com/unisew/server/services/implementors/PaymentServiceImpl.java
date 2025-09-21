@@ -11,6 +11,7 @@ import com.unisew.server.models.Feedback;
 import com.unisew.server.models.Order;
 import com.unisew.server.models.Transaction;
 import com.unisew.server.models.Wallet;
+import com.unisew.server.models.WithdrawRequest;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.CustomerRepo;
 import com.unisew.server.repositories.DeliveryItemRepo;
@@ -573,51 +574,6 @@ public class PaymentServiceImpl implements PaymentService {
         return ResponseBuilder.build(HttpStatus.OK, "", data);
     }
 
-    //    public ResponseEntity<ResponseObject> disburseTransaction(RefundRequest request, HttpServletRequest httpRequest) {
-//        Account actor = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-//        if (actor == null || actor.getRole() != Role.ADMIN) {
-//            return ResponseBuilder.build(HttpStatus.FORBIDDEN, "Only ADMIN can refund/resolve report", null);
-//        }
-//
-//        String error = validateRefund(request);
-//        if (error != null) {
-//            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
-//        }
-//
-//        Feedback report = feedbackRepo.findById(request.getReportId()).orElse(null);
-//        if (report == null || !report.isReport()) {
-//            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Report not found", null);
-//        }
-//
-//        List<Transaction> transactions;
-//        if (report.getDesignRequest() != null) {
-//
-//            transactions = transactionRepo.findAllByItemId(report.getDesignRequest().getId()).stream()
-//                    .filter(transaction -> transaction.getPaymentType().equals(PaymentType.DESIGN) && !transaction.getBalanceType().equals("fail"))
-//                    .toList();
-//        } else {
-//            transactions = transactionRepo.findAllByItemId(report.getOrder().getId()).stream()
-//                    .filter(transaction -> (transaction.getPaymentType().equals(PaymentType.ORDER) || transaction.getPaymentType().equals(PaymentType.DEPOSIT)) && !transaction.getBalanceType().equals("fail"))
-//                    .toList();
-//        }
-//
-//        List<Transaction> balanceTransactions = new ArrayList<>();
-//        List<Transaction> pendingTransactions = new ArrayList<>();
-//        for (Transaction transaction : transactions) {
-//            if (transaction.getBalanceType().equals("pending")) {
-//                pendingTransactions.add(transaction);
-//            } else {
-//                balanceTransactions.add(transaction);
-//            }
-//        }
-//        int variance = pendingTransactions.size() - balanceTransactions.size(); //do lech
-//
-//        List<Transaction> refundTransaction = new ArrayList<>();
-//        for (int i = variance; i > 0; i++) {
-//            refundTransaction.add(pendingTransactions.get(pendingTransactions.size() - i));
-//        }
-//
-//    }
 
 
 }
