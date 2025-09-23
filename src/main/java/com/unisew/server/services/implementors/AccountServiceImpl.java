@@ -3,9 +3,29 @@ package com.unisew.server.services.implementors;
 import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.*;
-import com.unisew.server.repositories.*;
-import com.unisew.server.requests.*;
+import com.unisew.server.models.Account;
+import com.unisew.server.models.Customer;
+import com.unisew.server.models.DeactivateTicket;
+import com.unisew.server.models.Partner;
+import com.unisew.server.models.Transaction;
+import com.unisew.server.models.Wallet;
+import com.unisew.server.models.WithdrawRequest;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.DeactivateTicketRepo;
+import com.unisew.server.repositories.DesignQuotationRepo;
+import com.unisew.server.repositories.DesignRequestRepo;
+import com.unisew.server.repositories.PartnerRepo;
+import com.unisew.server.repositories.TransactionRepo;
+import com.unisew.server.repositories.WalletRepo;
+import com.unisew.server.repositories.WithdrawRequestRepo;
+import com.unisew.server.requests.ChangeAccountStatusRequest;
+import com.unisew.server.requests.CheckSchoolInitRequest;
+import com.unisew.server.requests.CreateWithDrawRequest;
+import com.unisew.server.requests.GetProfilePartnerRequest;
+import com.unisew.server.requests.ProcessWithdrawRequest;
+import com.unisew.server.requests.UpdateCustomerBasicDataRequest;
+import com.unisew.server.requests.UpdatePartnerProfileRequest;
 import com.unisew.server.responses.ResponseObject;
 import com.unisew.server.services.AccountService;
 import com.unisew.server.services.JWTService;
@@ -22,7 +42,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -253,7 +276,7 @@ public class AccountServiceImpl implements AccountService {
         data.put("creationDate", withdrawRequest.getCreationDate());
         data.put("withdrawAmount", withdrawRequest.getWithdrawAmount());
         data.put("status", withdrawRequest.getStatus().getValue());
-        data.put("account", EntityResponseBuilder.buildAccountResponse(withdrawRequest.getWallet().getAccount()));
+        data.put("account", buildAccountResponse(withdrawRequest.getWallet().getAccount()));
 
         return data;
     }
