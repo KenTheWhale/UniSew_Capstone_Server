@@ -84,7 +84,7 @@ public class AccountController {
         return accountService.getAllWithdraws();
     }
 
-    @PutMapping("/withdraw/decision")
+    @PutMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseObject> processWithdraw(@RequestBody ProcessWithdrawRequest request) {
         return accountService.processWithdraw(request);
