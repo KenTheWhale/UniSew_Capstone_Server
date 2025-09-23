@@ -1,6 +1,7 @@
 package com.unisew.server.models;
 
 import com.unisew.server.enums.Status;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,15 +32,20 @@ public class WithdrawRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
+    @Column(name = "`creation_date`")
     LocalDateTime creationDate;
 
+    @Column(name = "`withdraw_amount`")
     long withdrawAmount;
+
+    @Column(name = "`evidence_image_url`")
+    String evidenceImageUrl;
 
     @Enumerated(EnumType.STRING)
     Status status;
 
     @ManyToOne
-    @JoinColumn(name = "wallet_id)")
+    @JoinColumn(name = "`wallet_id`")
     Wallet wallet;
 
 }

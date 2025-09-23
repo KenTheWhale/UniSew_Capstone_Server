@@ -12,8 +12,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProcessWithdrawRequest {
-    int withdrawId;
-    boolean approved;
-    String evidenceImage;
+public class RequestWithdrawRequest {
+    Integer walletId;
+    long amount;
 }

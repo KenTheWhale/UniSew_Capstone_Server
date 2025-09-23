@@ -190,6 +190,7 @@ public class AccountServiceImpl implements AccountService {
             wallet = walletRepo.save(wallet);
 
             withdrawRequest.setStatus(Status.WITHDRAW_APPROVED);
+            withdrawRequest.setEvidenceImageUrl(request.getEvidenceImage());
             withdrawRequestRepo.save(withdrawRequest);
 
             Map<String, Object> remainingBalance = new HashMap<>();
@@ -265,9 +266,12 @@ public class AccountServiceImpl implements AccountService {
 
         data.put("id", account.getId());
         data.put("registerDate", account.getRegisterDate());
+        data.put("name", account.getCustomer().getName());
         data.put("email", account.getEmail());
         data.put("role", account.getRole());
         data.put("status", account.getStatus());
+        data.put("code", account.getWallet().getBank());
+        data.put("accountNo", account.getWallet().getBankAccountNumber());
 
         return data;
     }

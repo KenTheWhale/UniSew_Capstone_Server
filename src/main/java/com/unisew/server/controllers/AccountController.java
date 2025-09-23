@@ -113,4 +113,6 @@ public class AccountController {
     public ResponseEntity<ResponseObject> getProfilePartner(@RequestBody GetProfilePartnerRequest request){
         return accountService.getProfilePartner(request);
     }
+
+
 }
