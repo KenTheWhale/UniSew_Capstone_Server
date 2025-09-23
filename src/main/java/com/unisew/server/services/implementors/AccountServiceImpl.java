@@ -225,7 +225,7 @@ public class AccountServiceImpl implements AccountService {
                             .wallet(wallet)
                             .receiver(wallet.getAccount().getCustomer())
                             .sender(wallet.getAccount().getCustomer())
-                            .itemId(0)
+                            .itemId(withdrawRequest.getId())
                             .receiverName(wallet.getAccount().getCustomer().getName())
                             .senderName(wallet.getAccount().getCustomer().getName())
                             .amount(withdrawRequest.getWithdrawAmount())
@@ -234,7 +234,7 @@ public class AccountServiceImpl implements AccountService {
                             .status(Status.TRANSACTION_SUCCESS)
                             .creationDate(LocalDateTime.now())
                             .balanceType("balance")
-                            .paymentGatewayCode("00")
+                            .paymentGatewayCode("00q")
                             .remainingBalance(remainingBalance)
                             .build()
             );
