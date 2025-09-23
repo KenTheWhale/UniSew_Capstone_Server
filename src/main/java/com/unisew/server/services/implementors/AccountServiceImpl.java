@@ -1,5 +1,6 @@
 package com.unisew.server.services.implementors;
 
+import com.unisew.server.enums.PaymentType;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.*;
@@ -33,12 +34,10 @@ public class AccountServiceImpl implements AccountService {
     private final DeactivateTicketRepo deactivateTicketRepo;
     private final WalletRepo walletRepo;
     private final WithdrawRequestRepo withdrawRequestRepo;
-    private final PlatformConfigRepo platformConfigRepo;
     private final CustomerRepo customerRepo;
     private final PartnerRepo partnerRepo;
-    private final DeliveryItemRepo deliveryItemRepo;
-    private final DesignItemRepo designItemRepo;
     private final DesignQuotationRepo designQuotationRepo;
+    private final TransactionRepo transactionRepo;
 
     @Override
     public ResponseEntity<ResponseObject> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -146,76 +145,89 @@ public class AccountServiceImpl implements AccountService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
         }
 
-        Wallet wallet = walletRepo.findByAccount_Id(account.getId());
-
-        if (wallet == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Wallet not found", null);
-        }
+        Wallet wallet = account.getWallet();
 
         if (request.getWithdrawAmount() > wallet.getBalance()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Withdraw amount exceeded", null);
         }
 
-        WithdrawRequest withdrawRequest = WithdrawRequest.builder()
+        withdrawRequestRepo.save(WithdrawRequest.builder()
                 .wallet(wallet)
                 .creationDate(LocalDateTime.now())
                 .withdrawAmount(request.getWithdrawAmount())
                 .status(Status.WITHDRAW_PENDING)
-                .build();
+                .build());
 
-        withdrawRequestRepo.save(withdrawRequest);
         return ResponseBuilder.build(HttpStatus.OK, "Submit withdraw request successfully", null);
     }
 
     @Override
     public ResponseEntity<ResponseObject> getAllWithdraws() {
-
-        List<WithdrawRequest> withdrawRequests = withdrawRequestRepo.findAll();
-        List<Map<String, Object>> mapList = withdrawRequests.stream()
-                .map(wr -> buildWithdrawResponse(wr, false))
+        List<Map<String, Object>> mapList = withdrawRequestRepo.findAll().stream()
+                .map(this::buildWithdrawResponse)
                 .toList();
         return ResponseBuilder.build(HttpStatus.OK, "Get all list withdraws successfully", mapList);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<ResponseObject> acceptOrRejectWithDraw(AcceptOrRejectWithDrawRequest request) {
+    public ResponseEntity<ResponseObject> processWithdraw(ProcessWithdrawRequest request) {
 
         WithdrawRequest withdrawRequest = withdrawRequestRepo.findById(request.getWithdrawId()).orElse(null);
 
-        if (withdrawRequest == null) {
-            return ResponseBuilder.build(HttpStatus.NOT_FOUND, "Withdraw not found", null);
+        if (withdrawRequest == null || !withdrawRequest.getStatus().equals(Status.WITHDRAW_PENDING)) {
+            return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Withdraw request invalid", null);
         }
 
         if (withdrawRequest.getWithdrawAmount() > withdrawRequest.getWallet().getBalance()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Withdraw amount exceeded", null);
         }
 
-        if ("approve".equalsIgnoreCase(request.getDecision())) {
+        if (request.isApproved()) {
             Wallet wallet = withdrawRequest.getWallet();
-            wallet.setBalance(wallet.getBalance() - withdrawRequest.getWithdrawAmount());
-            walletRepo.save(wallet);
+            long newBalance = wallet.getBalance() - withdrawRequest.getWithdrawAmount();
+            wallet.setBalance(newBalance);
+            wallet = walletRepo.save(wallet);
 
             withdrawRequest.setStatus(Status.WITHDRAW_APPROVED);
             withdrawRequest.setEvidenceImageUrl(request.getEvidenceImage());
             withdrawRequestRepo.save(withdrawRequest);
 
-            return ResponseBuilder.build(HttpStatus.OK,
-                    "Withdraw " + withdrawRequest.getId() + " has been approved", null);
+            Map<String, Object> remainingBalance = new HashMap<>();
+            remainingBalance.put("sender", 0L);
+            remainingBalance.put("receiver", newBalance);
 
-        } else if ("reject".equalsIgnoreCase(request.getDecision())) {
-            withdrawRequest.setStatus(Status.WITHDRAW_REJECTED);
-            withdrawRequestRepo.save(withdrawRequest);
+            transactionRepo.save(
+                    Transaction.builder()
+                            .wallet(wallet)
+                            .receiver(wallet.getAccount().getCustomer())
+                            .sender(wallet.getAccount().getCustomer())
+                            .itemId(0)
+                            .receiverName(wallet.getAccount().getCustomer().getName())
+                            .senderName(wallet.getAccount().getCustomer().getName())
+                            .amount(withdrawRequest.getWithdrawAmount())
+                            .paymentType(PaymentType.WITHDRAW)
+                            .serviceFee(0)
+                            .status(Status.TRANSACTION_SUCCESS)
+                            .creationDate(LocalDateTime.now())
+                            .balanceType("balance")
+                            .paymentGatewayCode("00")
+                            .remainingBalance(remainingBalance)
+                            .build()
+            );
 
-            return ResponseBuilder.build(HttpStatus.OK,
-                    "Withdraw " + withdrawRequest.getId() + " has been rejected", null);
+            return ResponseBuilder.build(HttpStatus.OK, "Withdraw request has been approved", null);
+
         }
 
-        return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid decision", null);
+        withdrawRequest.setStatus(Status.WITHDRAW_REJECTED);
+        withdrawRequestRepo.save(withdrawRequest);
+
+        return ResponseBuilder.build(HttpStatus.OK, "Withdraw request has been rejected", null);
     }
 
     @Override
-    public ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request) {
+    public ResponseEntity<ResponseObject> getAllMyWithdraws(HttpServletRequest request) {
 
         Account account = CookieUtil.extractAccountFromCookie(request, jwtService, accountRepo);
 
@@ -223,16 +235,14 @@ public class AccountServiceImpl implements AccountService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account invalid", null);
         }
 
-        List<WithdrawRequest> withdrawRequests = withdrawRequestRepo.findAllByWallet_Account_Id(account.getId());
-
-        List<Map<String, Object>> mapList = withdrawRequests.stream()
-                .map(wr -> buildWithdrawResponse(wr, true))
+        List<Map<String, Object>> mapList = account.getWallet().getWithdrawRequests().stream()
+                .map(this::buildWithdrawResponse)
                 .toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "Get my list withdraws successfully", mapList);
     }
 
-    private Map<String, Object> buildWithdrawResponse(WithdrawRequest withdrawRequest, boolean simpleMode) {
+    private Map<String, Object> buildWithdrawResponse(WithdrawRequest withdrawRequest) {
         if (withdrawRequest == null) {
             return null;
         }
@@ -243,10 +253,6 @@ public class AccountServiceImpl implements AccountService {
         data.put("creationDate", withdrawRequest.getCreationDate());
         data.put("withdrawAmount", withdrawRequest.getWithdrawAmount());
         data.put("status", withdrawRequest.getStatus().getValue());
-
-        if (!simpleMode) {
-            data.put("account", buildAccountResponse(withdrawRequest.getWallet().getAccount()));
-        }
 
         return data;
     }

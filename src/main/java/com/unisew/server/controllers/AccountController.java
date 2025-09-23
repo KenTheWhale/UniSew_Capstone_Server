@@ -1,7 +1,6 @@
 package com.unisew.server.controllers;
 
-import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
-import com.unisew.server.requests.ApproveCreateAccountRequest;
+import com.unisew.server.requests.ProcessWithdrawRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
@@ -79,22 +78,22 @@ public class AccountController {
         return accountService.createWithDrawRequest(httpRequest, request);
     }
 
-    @GetMapping("/withdraw/all-list")
+    @GetMapping("/withdraw/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseObject> getWithdrawList() {
+    public ResponseEntity<ResponseObject> getAllWithdraws() {
         return accountService.getAllWithdraws();
     }
 
     @PutMapping("/withdraw/decision")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResponseObject> withdrawDecision(@RequestBody AcceptOrRejectWithDrawRequest request) {
-        return accountService.acceptOrRejectWithDraw(request);
+    public ResponseEntity<ResponseObject> processWithdraw(@RequestBody ProcessWithdrawRequest request) {
+        return accountService.processWithdraw(request);
     }
 
-    @PostMapping("/withdraw/my-list")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DESIGNER', 'SCHOOL', 'GARMENT')")
-    public ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request) {
-        return accountService.getAllMyWithdraw(request);
+    @PostMapping("/withdraw/list")
+    @PreAuthorize("hasAnyRole('DESIGNER', 'SCHOOL', 'GARMENT')")
+    public ResponseEntity<ResponseObject> getAllMyWithdraws(HttpServletRequest request) {
+        return accountService.getAllMyWithdraws(request);
     }
 
     @PutMapping("/partner/profile")

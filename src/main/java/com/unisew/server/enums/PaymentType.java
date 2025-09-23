@@ -13,7 +13,8 @@ public enum PaymentType {
     DESIGN_RETURN("design_return"),
     WALLET("wallet"),
     WALLET_DISBURSEMENT("disbursement"),
-    DEPOSIT("deposit");
+    DEPOSIT("deposit"),
+    WITHDRAW("withdraw");
 
     private final String value;
 }
