@@ -1,7 +1,6 @@
 package com.unisew.server.services;
 
-import com.unisew.server.requests.AcceptOrRejectWithDrawRequest;
-import com.unisew.server.requests.ApproveCreateAccountRequest;
+import com.unisew.server.requests.ProcessWithdrawRequest;
 import com.unisew.server.requests.ChangeAccountStatusRequest;
 import com.unisew.server.requests.CheckSchoolInitRequest;
 import com.unisew.server.requests.CreateWithDrawRequest;
@@ -29,9 +28,9 @@ public interface AccountService {
 
     ResponseEntity<ResponseObject> getAllWithdraws();
 
-    ResponseEntity<ResponseObject> acceptOrRejectWithDraw(AcceptOrRejectWithDrawRequest request);
+    ResponseEntity<ResponseObject> processWithdraw(ProcessWithdrawRequest request);
 
-    ResponseEntity<ResponseObject> getAllMyWithdraw(HttpServletRequest request);
+    ResponseEntity<ResponseObject> getAllMyWithdraws(HttpServletRequest request);
 
     ResponseEntity<ResponseObject> getAccessToken(HttpServletRequest request);
 
