@@ -271,8 +271,11 @@ public class EntityResponseBuilder {
         data.put("id", fabric.getId());
         data.put("name", fabric.getName());
         data.put("description", fabric.getDescription());
-        data.put("clothType", fabric.getDesignItemType().getValue());
-        data.put("clothCategory", fabric.getDesignItemCategory().getValue());
+        data.put("forRegular", fabric.isForRegular());
+        data.put("forPE", fabric.isForPE());
+        data.put("forShirt", fabric.isForShirt());
+        data.put("forPants", fabric.isForPants());
+        data.put("forSkirt", fabric.isForSkirt());
 
         return data;
     }
