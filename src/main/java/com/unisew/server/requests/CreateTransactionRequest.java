@@ -21,4 +21,5 @@ public class CreateTransactionRequest {
     String gatewayCode;
     long serviceFee;
     boolean payFromWallet;
+    Long shippingFee;
 }

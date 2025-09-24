@@ -808,7 +808,7 @@ public class DesignServiceImpl implements DesignService {
         designRequest.setDesignQuotationId(request.getDesignQuotationId());
         designRequest.setRevisionTime(designQuotation.getRevisionTime() + request.getExtraRevision());
         designRequest.setStatus(Status.DESIGN_REQUEST_PROCESSING);
-        designRequest.setPrice(designQuotation.getPrice() + request.getServiceFee() + designQuotation.getExtraRevisionPrice() * request.getExtraRevision());
+        designRequest.setPrice(designQuotation.getPrice() + request.getCreateTransactionRequest().getServiceFee() + designQuotation.getExtraRevisionPrice() * request.getExtraRevision());
         designRequestRepo.save(designRequest);
 
         designQuotation.setStatus(Status.DESIGN_QUOTATION_SELECTED);
