@@ -265,6 +265,7 @@ public class SystemServiceImpl implements SystemService {
                 } else {
                     Map<String, Object> priceData = (Map<String, Object>) priceDataMap;
                     List<Map<String, Object>> sizeData = priceData.keySet().stream()
+//                            .filter(key -> key.toUpperCase().contains("FEMALE_"))
                             .map(key -> {
                                 DeliveryItemSize size = DeliveryItemSize.valueOf(key.toUpperCase());
                                 Map<String, Object> sizeMap = new HashMap<>();

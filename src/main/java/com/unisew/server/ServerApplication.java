@@ -3,9 +3,14 @@ package com.unisew.server;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
 import com.unisew.server.models.Account;
+import com.unisew.server.models.Fabric;
 import com.unisew.server.models.PlatformConfig;
 import com.unisew.server.models.Wallet;
-import com.unisew.server.repositories.*;
+import com.unisew.server.repositories.AccountRepo;
+import com.unisew.server.repositories.CustomerRepo;
+import com.unisew.server.repositories.FabricRepo;
+import com.unisew.server.repositories.PlatformConfigRepo;
+import com.unisew.server.repositories.WalletRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +78,136 @@ public class ServerApplication {
 
                     //----------------------FABRIC--------------------//
                     if (fabricRepo.count() == 0) {
+                        List<Fabric> seeds = Arrays.asList(
+                                // --- REGULAR: SHIRT ---
+                                Fabric.builder()
+                                        .name("Polycotton Poplin")
+                                        .description("Smooth, low-wrinkle poplin blend; breathable and ideal for school shirts.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Oxford")
+                                        .description("Classic Oxford, slightly textured hand, holds shape well for uniform shirts.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Broadcloth")
+                                        .description("Lightweight polycotton broadcloth; easy care and comfortable in warm weather.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Pinpoint Oxford")
+                                        .description("Denser than broadcloth with a crisp look; great for neat, durable shirts.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Dobby Check Polycotton")
+                                        .description("Subtle dobby micro-checks; tidy appearance with reduced wrinkling.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                // --- REGULAR: PANTS/SKIRT ---
+                                Fabric.builder()
+                                        .name("Cotton Twill")
+                                        .description("Breathable twill with sturdy diagonal weave; suitable for school trousers.")
+                                        .forShirt(false).forPants(true).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Chino Twill")
+                                        .description("Hard-wearing chino twill; low wrinkle and colorfast for daily trousers.")
+                                        .forShirt(false).forPants(true).forSkirt(false).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Gabardine PV")
+                                        .description("Poly-viscose gabardine; firm hand with slight drape for pants and skirts.")
+                                        .forShirt(false).forPants(true).forSkirt(true).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Ponte Roma Kni")
+                                        .description("Double-knit with good recovery; comfy and neat for pleated school skirts.")
+                                        .forShirt(false).forPants(false).forSkirt(true).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Tropical Wool Blend")
+                                        .description("Light wool blend for hot climates; smart look for formal pants/skirts.")
+                                        .forShirt(false).forPants(true).forSkirt(true).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("T/R Suiting")
+                                        .description("Poly/rayon suiting with nice drape; holds shape well for skirts and trousers.")
+                                        .forShirt(false).forPants(true).forSkirt(true).forRegular(true).forPE(false)
+                                        .garmentPrice(null).build(),
+
+                                // --- PE: SHIRT ---
+                                Fabric.builder()
+                                        .name("Pique Knit")
+                                        .description("Breathable pique knit; classic for polo-style PE shirts.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Interlock")
+                                        .description("Soft, smooth interlock with 2-way stretch; comfortable PE tees.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Microfiber Jersey")
+                                        .description("Lightweight quick-dry jersey; high moisture wicking for sports shirts.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Air Mesh")
+                                        .description("Fine mesh for ventilation; ideal for high-activity PE tops.")
+                                        .forShirt(true).forPants(false).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                // --- PE: PANTS/SHORTS ---
+                                Fabric.builder()
+                                        .name("Tricot Knit")
+                                        .description("Smooth tricot with good stretch; suitable for PE shorts/joggers.")
+                                        .forShirt(false).forPants(true).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("French Terry")
+                                        .description("Loop-back terry; absorbent and comfy for PE sweatshorts/sweatpants.")
+                                        .forShirt(false).forPants(true).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Microfleece")
+                                        .description("Light, warm fleece; good for cooler-weather PE pants/jackets.")
+                                        .forShirt(false).forPants(true).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                Fabric.builder()
+                                        .name("Ripstop Microfiber")
+                                        .description("Light ripstop resists tearing; durable option for outdoor PE shorts.")
+                                        .forShirt(false).forPants(true).forSkirt(false).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build(),
+
+                                // --- PE / HYBRID ---
+                                Fabric.builder()
+                                        .name("Stretch Woven")
+                                        .description("Poly+spandex stretch woven; flexible for PE shorts or skorts.")
+                                        .forShirt(false).forPants(true).forSkirt(true).forRegular(false).forPE(true)
+                                        .garmentPrice(null).build()
+                        );
+
+                        fabricRepo.saveAll(seeds);
                     }
+
 
                 }
             }

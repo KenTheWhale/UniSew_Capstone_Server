@@ -54,8 +54,8 @@ public class ImportDesignRequest {
     @Builder
     public static class ButtonData {
         int quantity;
-        int height;
-        int width;
+        double height;
+        double width;
         int holeQty;
         String color;
         String note;
@@ -67,8 +67,8 @@ public class ImportDesignRequest {
     @Builder
     public static class LogoData {
         String attachingTechnique;
-        int baseHeight;
-        int baseWidth;
+        double baseHeight;
+        double baseWidth;
         String note;
     }
 }
