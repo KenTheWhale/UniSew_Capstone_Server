@@ -29,6 +29,7 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.RevisionRequestRepo;
 import com.unisew.server.repositories.SampleImageRepo;
 import com.unisew.server.repositories.SchoolDesignRepo;
+import com.unisew.server.repositories.TransactionRepo;
 import com.unisew.server.requests.CancelRequest;
 import com.unisew.server.requests.CreateDesignQuotationRequest;
 import com.unisew.server.requests.CreateDesignRequest;
@@ -86,6 +87,7 @@ public class DesignServiceImpl implements DesignService {
     private final SchoolDesignRepo schoolDesignRepo;
     private final PaymentService paymentService;
     private final PartnerRepo partnerRepo;
+    private final TransactionRepo transactionRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -736,7 +738,7 @@ public class DesignServiceImpl implements DesignService {
                     .toList();
         }
 
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildSchoolDesignListResponse(schoolDesigns, designItemRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildSchoolDesignListResponse(schoolDesigns, designItemRepo, transactionRepo));
     }
 
     @Override
@@ -834,7 +836,7 @@ public class DesignServiceImpl implements DesignService {
                 quotation -> {
                     Map<String, Object> data = new HashMap<>();
                     data.put("id", quotation.getId());
-                    data.put("designRequest", EntityResponseBuilder.buildDesignRequestResponse(quotation.getDesignRequest()));
+                    data.put("designRequest", EntityResponseBuilder.buildDesignRequestResponse(quotation.getDesignRequest(), transactionRepo));
                     data.put("note", quotation.getNote());
                     data.put("deliveryWithIn", quotation.getDeliveryWithIn());
                     data.put("revisionTime", quotation.getRevisionTime());
@@ -890,7 +892,7 @@ public class DesignServiceImpl implements DesignService {
         List<DesignRequest> designRequests = designRequestRepo.findAll().stream()
                 .filter(req -> req.getStatus() != Status.DESIGN_REQUEST_IMPORTED)
                 .toList();
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildDesignRequestListForAdminResponse(designRequests, designQuotationRepo, designRequestRepo, designItemRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildDesignRequestListForAdminResponse(designRequests, designQuotationRepo, designRequestRepo, designItemRepo, transactionRepo));
     }
 
     //-----------------------PRIVATE-------------------------//
@@ -913,15 +915,17 @@ public class DesignServiceImpl implements DesignService {
     }
 
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForDesigner(List<DesignRequest> designRequests) {
-        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
-                EntityResponseBuilder::buildDesignRequestResponse
-        ).toList();
+        List<Map<String, Object>> designRequestMaps = designRequests.stream().map( designRequest -> {
+            Map<String, Object> data = EntityResponseBuilder.buildDesignRequestResponse(designRequest, transactionRepo);
+            data.put("resultDelivery", buildResultDeliveryResponse(designRequest));
+            return data;
+        }).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
 
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForDesigner(DesignRequest designRequest) {
-        Map<String, Object> data = EntityResponseBuilder.buildDesignRequestResponse(designRequest);
+        Map<String, Object> data = EntityResponseBuilder.buildDesignRequestResponse(designRequest, transactionRepo);
         data.put("resultDelivery", buildResultDeliveryResponse(designRequest));
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", data);
     }
