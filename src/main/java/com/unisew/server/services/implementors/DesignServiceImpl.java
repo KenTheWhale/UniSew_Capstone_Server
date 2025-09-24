@@ -495,39 +495,25 @@ public class DesignServiceImpl implements DesignService {
 
         List<Fabric> fabrics = fabricRepo.findAll();
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> categoryMap = new HashMap<>();
 
-        for (DesignItemCategory category : DesignItemCategory.values()) {
-            List<Fabric> categoryFabric = fabrics.stream()
-                    .filter(fabric -> fabric.getDesignItemCategory().equals(category))
-                    .toList();
+        List<Fabric> regularFabrics = fabrics.stream().filter(Fabric::isForRegular).toList();
+        Map<String, Object> regularMap = getCateMap(regularFabrics);
+        categoryMap.put("regular", regularMap);
 
-            Map<String, Object> categoryMap = new HashMap<>();
+        List<Fabric> peFabrics = fabrics.stream().filter(Fabric::isForPE).toList();
+        Map<String, Object> peMap = getCateMap(peFabrics);
+        categoryMap.put("physical", peMap);
 
-            List<Map<String, Object>> shirts = categoryFabric.stream()
-                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SHIRT))
-                    .map(this::mapFabric)
-                    .toList();
+        return ResponseBuilder.build(HttpStatus.OK, "list fabrics", categoryMap);
+    }
 
-            List<Map<String, Object>> pants = categoryFabric.stream()
-                    .filter(f -> f.getDesignItemType().equals(DesignItemType.PANTS))
-                    .map(this::mapFabric)
-                    .toList();
-
-            List<Map<String, Object>> skirts = categoryFabric.stream()
-                    .filter(f -> f.getDesignItemType().equals(DesignItemType.SKIRT))
-                    .map(this::mapFabric)
-                    .toList();
-
-            categoryMap.put("shirts", shirts);
-            categoryMap.put("pants", pants);
-            categoryMap.put("skirts", skirts);
-
-            response.put(category.name().toLowerCase(), categoryMap);
-
-        }
-
-        return ResponseBuilder.build(HttpStatus.OK, "list fabrics", response);
+    private Map<String, Object> getCateMap(List<Fabric> fabrics){
+        Map<String, Object> fabricMap = new HashMap<>();
+        fabricMap.put("shirts", fabrics.stream().filter(Fabric::isForShirt).toList());
+        fabricMap.put("pants", fabrics.stream().filter(Fabric::isForShirt).toList());
+        fabricMap.put("skirts", fabrics.stream().filter(Fabric::isForShirt).toList());
+        return fabricMap;
     }
 
     //---------------------------------DESIGN_DELIVERY--------------------------------//

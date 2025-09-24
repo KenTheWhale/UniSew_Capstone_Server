@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface FabricRepo extends JpaRepository<Fabric, Integer> {
-    Optional<Fabric> findByNameAndDesignItemTypeAndDesignItemCategory(String name, DesignItemType type, DesignItemCategory category);
+    Optional<Fabric> findByName(String name);
 }

@@ -223,15 +223,16 @@ public class SystemServiceImpl implements SystemService {
         List<CreateConfigDataRequest.FabricData> fabrics = request.getFabricDataList();
         try {
             for (CreateConfigDataRequest.FabricData fabric : fabrics) {
-                DesignItemType type = DesignItemType.valueOf(fabric.getType().toUpperCase());
-                DesignItemCategory category = DesignItemCategory.valueOf(fabric.getCategory().toUpperCase());
-                Fabric f = fabricRepo.findByNameAndDesignItemTypeAndDesignItemCategory(fabric.getName(), type, category).orElse(null);
+                Fabric f = fabricRepo.findByName(fabric.getName()).orElse(null);
                 if (f == null) {
                     fabricRepo.save(Fabric.builder()
                             .name(fabric.getName())
                             .description(fabric.getDescription())
-                            .designItemType(type)
-                            .designItemCategory(category)
+                            .forShirt(fabric.isForShirt())
+                            .forPants(fabric.isForPants())
+                            .forSkirt(fabric.isForSkirt())
+                            .forRegular(fabric.isForRegular())
+                            .forPE(fabric.isForPE())
                             .build());
                 }
             }
@@ -394,9 +395,14 @@ public class SystemServiceImpl implements SystemService {
         try {
             Map<String, Object> sizeData = new HashMap<>();
             for (UpdateGarmentFabricRequest.SizePrice sizePrice : sizePrices) {
-                DeliveryItemSize size = DeliveryItemSize.valueOf(sizePrice.getSizeEnumName().toUpperCase());
+                String[] sizeArray = sizePrice.getSizeEnumName().split("_");
+                String boySizeString = "MALE_" + sizeArray[1] + "_" + sizeArray[2];
+                String girlSizeString = "FEMALE_" + sizeArray[1] + "_" + sizeArray[2];
+                DeliveryItemSize boySize = DeliveryItemSize.valueOf(boySizeString.toUpperCase());
+                DeliveryItemSize girlSize = DeliveryItemSize.valueOf(girlSizeString.toUpperCase());
                 if (sizePrice.getPrice() <= 0) return false;
-                sizeData.put(size.name(), sizePrice.getPrice());
+                sizeData.put(boySize.name(), sizePrice.getPrice());
+                sizeData.put(girlSize.name(), sizePrice.getPrice());
             }
             data.put("garment_" + garmentId, sizeData);
             fabric.setGarmentPrice(data);
@@ -409,10 +415,17 @@ public class SystemServiceImpl implements SystemService {
 
     private boolean updateExistedGarmentPrice(List<UpdateGarmentFabricRequest.SizePrice> sizePrices, Fabric fabric, int garmentId) {
         Map<String, Object> data = (Map<String, Object>) fabric.getGarmentPrice();
+        Map<String, Object> sizeData = new HashMap<>();
         if (data.get("garment_" + garmentId) != null) {
-            Map<String, Object> sizeData = new HashMap<>();
             for (UpdateGarmentFabricRequest.SizePrice sizePrice : sizePrices) {
-                sizeData.put(sizePrice.getSizeEnumName().toUpperCase(), sizePrice.getPrice());
+                String[] sizeArray = sizePrice.getSizeEnumName().split("_");
+                String boySizeString = "MALE_" + sizeArray[1] + "_" + sizeArray[2];
+                String girlSizeString = "FEMALE_" + sizeArray[1] + "_" + sizeArray[2];
+                DeliveryItemSize boySize = DeliveryItemSize.valueOf(boySizeString.toUpperCase());
+                DeliveryItemSize girlSize = DeliveryItemSize.valueOf(girlSizeString.toUpperCase());
+                if (sizePrice.getPrice() <= 0) return false;
+                sizeData.put(boySize.name(), sizePrice.getPrice());
+                sizeData.put(girlSize.name(), sizePrice.getPrice());
             }
 
             data.replace("garment_" + garmentId, sizeData);
@@ -420,9 +433,15 @@ public class SystemServiceImpl implements SystemService {
             fabric.setGarmentPrice(data);
             fabricRepo.save(fabric);
         } else {
-            Map<String, Object> sizeData = new HashMap<>();
             for (UpdateGarmentFabricRequest.SizePrice sizePrice : sizePrices) {
-                sizeData.put(sizePrice.getSizeEnumName().toUpperCase(), sizePrice.getPrice());
+                String[] sizeArray = sizePrice.getSizeEnumName().split("_");
+                String boySizeString = "MALE_" + sizeArray[1] + "_" + sizeArray[2];
+                String girlSizeString = "FEMALE_" + sizeArray[1] + "_" + sizeArray[2];
+                DeliveryItemSize boySize = DeliveryItemSize.valueOf(boySizeString.toUpperCase());
+                DeliveryItemSize girlSize = DeliveryItemSize.valueOf(girlSizeString.toUpperCase());
+                if (sizePrice.getPrice() <= 0) return false;
+                sizeData.put(boySize.name(), sizePrice.getPrice());
+                sizeData.put(girlSize.name(), sizePrice.getPrice());
             }
 
             data.put("garment_" + garmentId, sizeData);

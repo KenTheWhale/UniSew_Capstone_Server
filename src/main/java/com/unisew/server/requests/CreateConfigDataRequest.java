@@ -30,8 +30,11 @@ public class CreateConfigDataRequest {
     public static class FabricData{
         String name;
         String description;
-        String type;
-        String category;
+        boolean forShirt;
+        boolean forPants;
+        boolean forSkirt;
+        boolean forRegular;
+        boolean forPE;
     }
 
     @Data
