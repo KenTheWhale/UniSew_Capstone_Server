@@ -147,6 +147,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public ResponseEntity<ResponseObject> createTransaction(CreateTransactionRequest request, HttpServletRequest httpRequest) {
+        if(request.getShippingFee() == null) request.setShippingFee(0L);
+
         String error = validateCreateTransaction(request);
         if (!error.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
@@ -175,7 +177,7 @@ public class PaymentServiceImpl implements PaymentService {
         boolean depositWallet = false;
 
         if (isPaymentSuccess) {
-            adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee());
+            adminWallet.setPendingBalance(adminWallet.getPendingBalance() + request.getServiceFee() + request.getShippingFee());
             if (request.getType().equalsIgnoreCase(PaymentType.WALLET.name())) {
                 receiverWallet.setBalance(receiverWallet.getBalance() + amount);
                 balanceType = "balance";

@@ -16,6 +16,5 @@ public class PickDesignQuotationRequest {
     int designQuotationId;
     int designRequestId;
     int extraRevision;
-    long serviceFee;
     CreateTransactionRequest createTransactionRequest;
 }

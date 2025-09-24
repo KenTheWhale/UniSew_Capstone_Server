@@ -15,6 +15,5 @@ import lombok.experimental.FieldDefaults;
 public class ConfirmDeliveredOrderRequest {
     int orderId;
     String shippingCode;
-    long shippingFee;
     CreateTransactionRequest createTransactionRequest;
 }
