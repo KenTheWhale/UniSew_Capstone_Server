@@ -43,13 +43,20 @@ public class Fabric {
 
     String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "`cloth_type`")
-    DesignItemType designItemType;
+    @Column(name = "`for_shirt`")
+    boolean forShirt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "`cloth_category`")
-    DesignItemCategory designItemCategory;
+    @Column(name = "`for_pants`")
+    boolean forPants;
+
+    @Column(name = "`for_skirt`")
+    boolean forSkirt;
+
+    @Column(name = "`for_regular`")
+    boolean forRegular;
+
+    @Column(name = "`for_pe`")
+    boolean forPE;
 
     @Column(columnDefinition = "jsonb", name = "`garment_price`")
     @Type(JsonBinaryType.class)
