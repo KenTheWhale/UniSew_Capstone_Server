@@ -510,9 +510,9 @@ public class DesignServiceImpl implements DesignService {
 
     private Map<String, Object> getCateMap(List<Fabric> fabrics){
         Map<String, Object> fabricMap = new HashMap<>();
-        fabricMap.put("shirts", fabrics.stream().filter(Fabric::isForShirt).toList());
-        fabricMap.put("pants", fabrics.stream().filter(Fabric::isForShirt).toList());
-        fabricMap.put("skirts", fabrics.stream().filter(Fabric::isForShirt).toList());
+        fabricMap.put("shirts", fabrics.stream().filter(Fabric::isForShirt).map(EntityResponseBuilder::buildFabricResponse).toList());
+        fabricMap.put("pants", fabrics.stream().filter(Fabric::isForPants).map(EntityResponseBuilder::buildFabricResponse).toList());
+        fabricMap.put("skirts", fabrics.stream().filter(Fabric::isForSkirt).map(EntityResponseBuilder::buildFabricResponse).toList());
         return fabricMap;
     }
 
