@@ -207,8 +207,8 @@ public class EntityResponseBuilder {
     }
 
     //-------Design Request---------
-    public static List<Map<String, Object>> buildDesignRequestListForAdminResponse(List<DesignRequest> requests, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
-        return requests.stream().map(request -> buildDesignRequestForAdminResponse(request, designQuotationRepo, designRequestRepo)).toList();
+    public static List<Map<String, Object>> buildDesignRequestListForAdminResponse(List<DesignRequest> requests, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo, DesignItemRepo designItemRepo) {
+        return requests.stream().map(request -> buildDesignRequestForAdminResponse(request, designQuotationRepo, designRequestRepo, designItemRepo)).toList();
     }
 
     public static Map<String, Object> buildDesignRequestResponse(DesignRequest request) {
@@ -232,7 +232,7 @@ public class EntityResponseBuilder {
         return data;
     }
 
-    public static Map<String, Object> buildDesignRequestForAdminResponse(DesignRequest request, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo) {
+    public static Map<String, Object> buildDesignRequestForAdminResponse(DesignRequest request, DesignQuotationRepo designQuotationRepo, DesignRequestRepo designRequestRepo, DesignItemRepo designItemRepo) {
         if (request == null) {
             return null;
         }
@@ -252,6 +252,7 @@ public class EntityResponseBuilder {
         var dq = (quotationId == null) ? null
                 : designQuotationRepo.findById(quotationId).orElse(null);
         data.put("quotation", (dq != null) ? buildDesignQuotationResponse(dq, designQuotationRepo, designRequestRepo) : "");
+        data.put("resultDelivery", buildDeliveryItemListResponse(request.getDesignDeliveries().stream().map(DesignDelivery::getDeliveryItems).flatMap(List::stream).toList(), designItemRepo));
 
         return data;
     }

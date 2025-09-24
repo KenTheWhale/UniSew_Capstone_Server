@@ -276,6 +276,7 @@ public class AccountServiceImpl implements AccountService {
         data.put("creationDate", withdrawRequest.getCreationDate());
         data.put("withdrawAmount", withdrawRequest.getWithdrawAmount());
         data.put("status", withdrawRequest.getStatus().getValue());
+        data.put("evidenceImg", withdrawRequest.getEvidenceImageUrl());
         data.put("account", buildAccountResponse(withdrawRequest.getWallet().getAccount()));
 
         return data;
