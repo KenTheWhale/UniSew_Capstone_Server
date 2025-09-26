@@ -407,7 +407,7 @@ public class PaymentServiceImpl implements PaymentService {
                 } else if ("design".equalsIgnoreCase(kind) && itemId != null && itemId > 0) {
                     DesignRequest dr = designRequestRepo.findById(itemId).orElse(null);
                     if (dr != null) {
-                        group.put("design", EntityResponseBuilder.buildDesignRequestResponse(dr));
+                        group.put("design", EntityResponseBuilder.buildDesignRequestResponse(dr, transactionRepo));
                     } else {
                         group.put("title", "Design #" + itemId);
                     }

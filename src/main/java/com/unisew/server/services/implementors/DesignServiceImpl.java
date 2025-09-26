@@ -29,6 +29,7 @@ import com.unisew.server.repositories.PartnerRepo;
 import com.unisew.server.repositories.RevisionRequestRepo;
 import com.unisew.server.repositories.SampleImageRepo;
 import com.unisew.server.repositories.SchoolDesignRepo;
+import com.unisew.server.repositories.TransactionRepo;
 import com.unisew.server.requests.CancelRequest;
 import com.unisew.server.requests.CreateDesignQuotationRequest;
 import com.unisew.server.requests.CreateDesignRequest;
@@ -86,6 +87,7 @@ public class DesignServiceImpl implements DesignService {
     private final SchoolDesignRepo schoolDesignRepo;
     private final PaymentService paymentService;
     private final PartnerRepo partnerRepo;
+    private final TransactionRepo transactionRepo;
 
 
     //-----------------------------------DESIGN_REQUEST---------------------------------------//
@@ -211,7 +213,7 @@ public class DesignServiceImpl implements DesignService {
         List<DesignRequest> designRequests = new ArrayList<>();
 
         for (DesignQuotation quotation : quotations) {
-           designRequests.add(quotation.getDesignRequest());
+            designRequests.add(quotation.getDesignRequest());
         }
 
         return buildDesignRequestResponseForDesigner(designRequests);
@@ -347,13 +349,13 @@ public class DesignServiceImpl implements DesignService {
     @Transactional
     public ResponseEntity<ResponseObject> importDesign(ImportDesignRequest request, HttpServletRequest httpRequest) {
         String error = validateImportDesign(request);
-        if(!error.isEmpty()){
+        if (!error.isEmpty()) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, error, null);
         }
 
         try {
             Account account = CookieUtil.extractAccountFromCookie(httpRequest, jwtService, accountRepo);
-            if(account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid user", null);
+            if (account == null) return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Invalid user", null);
             Customer school = account.getCustomer();
             LocalDateTime today = LocalDateTime.now();
 
@@ -384,7 +386,7 @@ public class DesignServiceImpl implements DesignService {
                             .note("")
                             .build()
             );
-            for (ImportDesignRequest.DesignItemData designItemData: request.getDesignItemDataList()){
+            for (ImportDesignRequest.DesignItemData designItemData : request.getDesignItemDataList()) {
                 DesignItemType type = DesignItemType.valueOf(designItemData.getType().toUpperCase());
                 DesignItemCategory category = DesignItemCategory.valueOf(designItemData.getCategory().toUpperCase());
                 Gender gender = Gender.valueOf(designItemData.getGender().toUpperCase());
@@ -408,7 +410,7 @@ public class DesignServiceImpl implements DesignService {
                 accessory.put("button", null);
                 accessory.put("logo", null);
                 accessory.put("zipper", false);
-                if(item.getType().equals(DesignItemType.SHIRT)){
+                if (item.getType().equals(DesignItemType.SHIRT)) {
                     Map<String, Object> buttonData = new HashMap<>();
                     Map<String, Object> logoData = new HashMap<>();
 
@@ -428,7 +430,7 @@ public class DesignServiceImpl implements DesignService {
                     accessory.replace("logo", logoData);
                 }
 
-                if(item.getType().equals(DesignItemType.PANTS)){
+                if (item.getType().equals(DesignItemType.PANTS)) {
                     accessory.replace("zipper", designItemData.isZipper());
                 }
 
@@ -451,41 +453,48 @@ public class DesignServiceImpl implements DesignService {
             );
 
             return ResponseBuilder.build(HttpStatus.CREATED, "Import successfully", null);
-        }catch (Exception e){
+        } catch (Exception e) {
             Map<String, Object> errorData = new HashMap<>();
             errorData.put("error", e);
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Something wrong", errorData);
         }
     }
 
-    private String validateImportDesign(ImportDesignRequest request){
-        if(request.getDesignData() == null || request.getDesignItemDataList() == null ||request.getDesignItemDataList().isEmpty()){
+    private String validateImportDesign(ImportDesignRequest request) {
+        if (request.getDesignData() == null || request.getDesignItemDataList() == null || request.getDesignItemDataList().isEmpty()) {
             return "Missing data";
         }
 
         ImportDesignRequest.DesignData designData = request.getDesignData();
         List<ImportDesignRequest.DesignItemData> designItemData = request.getDesignItemDataList();
 
-        if(validateStringData(designData.getName())) return "Name invalid";
-        if(validateStringData(designData.getLogoImage())) return "Logo invalid";
-        for (ImportDesignRequest.DesignItemData data: designItemData){
-            if(validateStringData(data.getType())) return "Type invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getCategory())) return "Category invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getLogoPosition()) && data.getType().equalsIgnoreCase(DesignItemType.SHIRT.getValue())) return "Logo position invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getColor())) return "Color invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getGender())) return "Gender invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getFrontImage())) return "Front image invalid at index " + designItemData.indexOf(data);
-            if(validateStringData(data.getBackImage())) return "Back image invalid at index " + designItemData.indexOf(data);
-            if(data.getFabricId() < 0) return "Fabric invalid at index " + designItemData.indexOf(data);
-            if(data.getLogoData().getBaseHeight() < 0) return "Logo height invalid at index " + designItemData.indexOf(data);
-            if(data.getLogoData().getBaseWidth() < 0) return "Logo width invalid at index " + designItemData.indexOf(data);
-
+        if (validateStringData(designData.getName())) return "Name invalid";
+        if (validateStringData(designData.getLogoImage())) return "Logo invalid";
+        for (ImportDesignRequest.DesignItemData data : designItemData) {
+            if (validateStringData(data.getType())) return "Type invalid at index " + designItemData.indexOf(data);
+            if (validateStringData(data.getCategory()))
+                return "Category invalid at index " + designItemData.indexOf(data);
+            if (validateStringData(data.getLogoPosition()) && data.getType().equalsIgnoreCase(DesignItemType.SHIRT.getValue()))
+                return "Logo position invalid at index " + designItemData.indexOf(data);
+            if (validateStringData(data.getColor())) return "Color invalid at index " + designItemData.indexOf(data);
+            if (validateStringData(data.getGender())) return "Gender invalid at index " + designItemData.indexOf(data);
+            if (validateStringData(data.getFrontImage()))
+                return "Front image invalid at index " + designItemData.indexOf(data);
+            if (validateStringData(data.getBackImage()))
+                return "Back image invalid at index " + designItemData.indexOf(data);
+            if (data.getFabricId() < 0) return "Fabric invalid at index " + designItemData.indexOf(data);
+            if (data.getType().equalsIgnoreCase("shirt")) {
+                if (data.getLogoData().getBaseHeight() < 0)
+                    return "Logo height invalid at index " + designItemData.indexOf(data);
+                if (data.getLogoData().getBaseWidth() < 0)
+                    return "Logo width invalid at index " + designItemData.indexOf(data);
+            }
         }
 
         return "";
     }
 
-    private boolean validateStringData(String data){
+    private boolean validateStringData(String data) {
         return data == null || data.isEmpty();
     }
 
@@ -508,7 +517,7 @@ public class DesignServiceImpl implements DesignService {
         return ResponseBuilder.build(HttpStatus.OK, "list fabrics", categoryMap);
     }
 
-    private Map<String, Object> getCateMap(List<Fabric> fabrics){
+    private Map<String, Object> getCateMap(List<Fabric> fabrics) {
         Map<String, Object> fabricMap = new HashMap<>();
         fabricMap.put("shirts", fabrics.stream().filter(Fabric::isForShirt).map(EntityResponseBuilder::buildFabricResponse).toList());
         fabricMap.put("pants", fabrics.stream().filter(Fabric::isForPants).map(EntityResponseBuilder::buildFabricResponse).toList());
@@ -589,7 +598,7 @@ public class DesignServiceImpl implements DesignService {
             accessory.put("zipper", false);
             DesignItem item = designItemRepo.findById(i.getDesignItemId()).orElse(null);
             assert item != null;
-            if(item.getType().equals(DesignItemType.SHIRT)){
+            if (item.getType().equals(DesignItemType.SHIRT)) {
                 Map<String, Object> buttonData = new HashMap<>();
                 Map<String, Object> logoData = new HashMap<>();
 
@@ -609,7 +618,7 @@ public class DesignServiceImpl implements DesignService {
                 accessory.replace("logo", logoData);
             }
 
-            if(item.getType().equals(DesignItemType.PANTS)){
+            if (item.getType().equals(DesignItemType.PANTS)) {
                 accessory.replace("zipper", i.isZipper());
             }
 
@@ -729,7 +738,7 @@ public class DesignServiceImpl implements DesignService {
                     .toList();
         }
 
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildSchoolDesignListResponse(schoolDesigns, designItemRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildSchoolDesignListResponse(schoolDesigns, designItemRepo, transactionRepo));
     }
 
     @Override
@@ -827,7 +836,7 @@ public class DesignServiceImpl implements DesignService {
                 quotation -> {
                     Map<String, Object> data = new HashMap<>();
                     data.put("id", quotation.getId());
-                    data.put("designRequest", EntityResponseBuilder.buildDesignRequestResponse(quotation.getDesignRequest()));
+                    data.put("designRequest", EntityResponseBuilder.buildDesignRequestResponse(quotation.getDesignRequest(), transactionRepo));
                     data.put("note", quotation.getNote());
                     data.put("deliveryWithIn", quotation.getDeliveryWithIn());
                     data.put("revisionTime", quotation.getRevisionTime());
@@ -883,7 +892,7 @@ public class DesignServiceImpl implements DesignService {
         List<DesignRequest> designRequests = designRequestRepo.findAll().stream()
                 .filter(req -> req.getStatus() != Status.DESIGN_REQUEST_IMPORTED)
                 .toList();
-        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildDesignRequestListForAdminResponse(designRequests, designQuotationRepo, designRequestRepo));
+        return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildDesignRequestListForAdminResponse(designRequests, designQuotationRepo, designRequestRepo, designItemRepo, transactionRepo));
     }
 
     //-----------------------PRIVATE-------------------------//
@@ -906,15 +915,17 @@ public class DesignServiceImpl implements DesignService {
     }
 
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForDesigner(List<DesignRequest> designRequests) {
-        List<Map<String, Object>> designRequestMaps = designRequests.stream().map(
-                EntityResponseBuilder::buildDesignRequestResponse
-        ).toList();
+        List<Map<String, Object>> designRequestMaps = designRequests.stream().map( designRequest -> {
+            Map<String, Object> data = EntityResponseBuilder.buildDesignRequestResponse(designRequest, transactionRepo);
+            data.put("resultDelivery", buildResultDeliveryResponse(designRequest));
+            return data;
+        }).toList();
 
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", designRequestMaps);
     }
 
     private ResponseEntity<ResponseObject> buildDesignRequestResponseForDesigner(DesignRequest designRequest) {
-        Map<String, Object> data = EntityResponseBuilder.buildDesignRequestResponse(designRequest);
+        Map<String, Object> data = EntityResponseBuilder.buildDesignRequestResponse(designRequest, transactionRepo);
         data.put("resultDelivery", buildResultDeliveryResponse(designRequest));
         return ResponseBuilder.build(HttpStatus.OK, "list design requests successfully", data);
     }
