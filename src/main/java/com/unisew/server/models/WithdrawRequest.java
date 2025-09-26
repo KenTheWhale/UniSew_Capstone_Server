@@ -32,6 +32,10 @@ public class WithdrawRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
+    @ManyToOne
+    @JoinColumn(name = "`wallet_id`")
+    Wallet wallet;
+
     @Column(name = "`creation_date`")
     LocalDateTime creationDate;
 
@@ -43,9 +47,5 @@ public class WithdrawRequest {
 
     @Enumerated(EnumType.STRING)
     Status status;
-
-    @ManyToOne
-    @JoinColumn(name = "`wallet_id`")
-    Wallet wallet;
 
 }

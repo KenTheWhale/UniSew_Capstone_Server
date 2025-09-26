@@ -42,6 +42,10 @@ public class DesignItem {
     @JoinColumn(name = "`request_id`")
     DesignRequest designRequest;
 
+    @ManyToOne
+    @JoinColumn(name = "`fabric_id`")
+    Fabric fabric;
+
     @Enumerated(EnumType.STRING)
     DesignItemType type;
 
@@ -62,8 +66,4 @@ public class DesignItem {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     List<SampleImage> sampleImages;
-
-    @ManyToOne
-    @JoinColumn(name = "`fabric_id`")
-    Fabric fabric;
 }
