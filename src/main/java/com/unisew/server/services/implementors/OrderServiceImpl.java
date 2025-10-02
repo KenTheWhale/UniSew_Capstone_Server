@@ -4,15 +4,7 @@ import com.unisew.server.controllers.ConfirmOrderRequest;
 import com.unisew.server.enums.DeliveryItemSize;
 import com.unisew.server.enums.Role;
 import com.unisew.server.enums.Status;
-import com.unisew.server.models.Account;
-import com.unisew.server.models.DesignDelivery;
-import com.unisew.server.models.GarmentQuotation;
-import com.unisew.server.models.Milestone;
-import com.unisew.server.models.Order;
-import com.unisew.server.models.OrderDetail;
-import com.unisew.server.models.Partner;
-import com.unisew.server.models.SchoolDesign;
-import com.unisew.server.models.SewingPhase;
+import com.unisew.server.models.*;
 import com.unisew.server.repositories.AccountRepo;
 import com.unisew.server.repositories.DeliveryItemRepo;
 import com.unisew.server.repositories.DesignDeliveryRepo;
@@ -171,7 +163,9 @@ public class OrderServiceImpl implements OrderService {
         if (account == null) {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "Account not found", null);
         }
-        List<Order> orders = orderRepo.findAllByGarmentId(account.getCustomer().getPartner().getId());
+        List<Order> orders = orderRepo.findAllByGarmentId(account.getCustomer().getPartner().getId()).stream()
+                .sorted(Comparator.comparing(Order::getId).reversed())
+                .toList();
         return ResponseBuilder.build(HttpStatus.OK, "Get garment order list successfully", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
     }
 
