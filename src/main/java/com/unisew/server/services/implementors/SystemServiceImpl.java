@@ -399,10 +399,13 @@ public class SystemServiceImpl implements SystemService {
                 String[] sizeArray = sizePrice.getSizeEnumName().split("_");
                 String boySizeString = "MALE_" + sizeArray[1] + "_" + sizeArray[2];
                 String girlSizeString = "FEMALE_" + sizeArray[1] + "_" + sizeArray[2];
-                DeliveryItemSize boySize = DeliveryItemSize.valueOf(boySizeString.toUpperCase());
+                DeliveryItemSize boySize = !sizePrice.getSizeEnumName().contains("SKIRT") ? DeliveryItemSize.valueOf(boySizeString.toUpperCase()) : null;
                 DeliveryItemSize girlSize = DeliveryItemSize.valueOf(girlSizeString.toUpperCase());
                 if (sizePrice.getPrice() <= 0) return false;
-                sizeData.put(boySize.name(), sizePrice.getPrice());
+                if(!sizePrice.getSizeEnumName().contains("SKIRT")){
+                    assert boySize != null;
+                    sizeData.put(boySize.name(), sizePrice.getPrice());
+                }
                 sizeData.put(girlSize.name(), sizePrice.getPrice());
             }
             data.put("garment_" + garmentId, sizeData);
@@ -422,10 +425,13 @@ public class SystemServiceImpl implements SystemService {
                 String[] sizeArray = sizePrice.getSizeEnumName().split("_");
                 String boySizeString = "MALE_" + sizeArray[1] + "_" + sizeArray[2];
                 String girlSizeString = "FEMALE_" + sizeArray[1] + "_" + sizeArray[2];
-                DeliveryItemSize boySize = DeliveryItemSize.valueOf(boySizeString.toUpperCase());
+                DeliveryItemSize boySize = !sizePrice.getSizeEnumName().contains("SKIRT") ? DeliveryItemSize.valueOf(boySizeString.toUpperCase()) : null;
                 DeliveryItemSize girlSize = DeliveryItemSize.valueOf(girlSizeString.toUpperCase());
                 if (sizePrice.getPrice() <= 0) return false;
-                sizeData.put(boySize.name(), sizePrice.getPrice());
+                if(!sizePrice.getSizeEnumName().contains("SKIRT")){
+                    assert boySize != null;
+                    sizeData.put(boySize.name(), sizePrice.getPrice());
+                }
                 sizeData.put(girlSize.name(), sizePrice.getPrice());
             }
 
@@ -438,10 +444,13 @@ public class SystemServiceImpl implements SystemService {
                 String[] sizeArray = sizePrice.getSizeEnumName().split("_");
                 String boySizeString = "MALE_" + sizeArray[1] + "_" + sizeArray[2];
                 String girlSizeString = "FEMALE_" + sizeArray[1] + "_" + sizeArray[2];
-                DeliveryItemSize boySize = DeliveryItemSize.valueOf(boySizeString.toUpperCase());
+                DeliveryItemSize boySize = !sizePrice.getSizeEnumName().contains("SKIRT") ? DeliveryItemSize.valueOf(boySizeString.toUpperCase()) : null;
                 DeliveryItemSize girlSize = DeliveryItemSize.valueOf(girlSizeString.toUpperCase());
                 if (sizePrice.getPrice() <= 0) return false;
-                sizeData.put(boySize.name(), sizePrice.getPrice());
+                if(!sizePrice.getSizeEnumName().contains("SKIRT")){
+                    assert boySize != null;
+                    sizeData.put(boySize.name(), sizePrice.getPrice());
+                }
                 sizeData.put(girlSize.name(), sizePrice.getPrice());
             }
 
