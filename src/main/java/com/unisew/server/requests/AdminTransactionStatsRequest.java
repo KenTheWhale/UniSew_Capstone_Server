@@ -1,13 +1,9 @@
 package com.unisew.server.requests;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -15,6 +11,6 @@ import java.time.LocalDateTime;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AdminTransactionStatsRequest {
-    LocalDateTime from;
-    LocalDateTime to;
+    LocalDate from;
+    LocalDate to;
 }
