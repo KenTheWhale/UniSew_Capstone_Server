@@ -184,6 +184,7 @@ public class AdminServiceImpl implements AdminService {
         }
         return out;
     }
+    //----------------------------------------------
 
     @Override
     public ResponseEntity<ResponseObject> getTransactionStats(AdminTransactionStatsRequest request) {
@@ -194,10 +195,10 @@ public class AdminServiceImpl implements AdminService {
             return ResponseBuilder.build(HttpStatus.BAD_REQUEST, "from must be <= to", null);
         }
 
-        LocalDateTime from = request.getFrom();
-        LocalDateTime to = request.getTo();
+        LocalDate from = request.getFrom();
+        LocalDate to = request.getTo();
 
-        List<Transaction> txs = transactionRepo.findAllByCreationDateBetween(from, to);
+        List<Transaction> txs = transactionRepo.findAllByCreationDateBetween(from.atStartOfDay(), to.atStartOfDay().plusDays(1));
 
         Map<String, Long> byStatus = txs.stream()
                 .collect(Collectors.groupingBy(t -> t.getStatus().name(),
@@ -209,7 +210,7 @@ public class AdminServiceImpl implements AdminService {
                         LinkedHashMap::new, Collectors.counting()));
 
         long totalCount = txs.size();
-        long totalAmountAll = txs.stream().mapToLong(Transaction::getAmount).sum();
+        long totalAmountAll = txs.stream().filter(transaction -> transaction.getStatus().equals(Status.TRANSACTION_SUCCESS)).mapToLong(Transaction::getAmount).sum();
 
         long totalServiceFee = txs.stream()
                 .mapToLong(this::revenueOf)
@@ -238,37 +239,40 @@ public class AdminServiceImpl implements AdminService {
     private long revenueOf(Transaction t) {
         if (t.getStatus() == null) return 0L;
         long fee = t.getServiceFee();
-        return switch (t.getStatus()) {
-            case TRANSACTION_SUCCESS -> fee;
-            case TRANSACTION_FAIL -> -fee;
-            default -> 0L;
-        };
+        return t.getStatus().equals(Status.TRANSACTION_SUCCESS) ? fee  : 0L;
     }
 
-    private List<Map<String, Object>> buildDailyRevenueSeries(LocalDateTime from, LocalDateTime to, List<Transaction> txs) {
-        Map<LocalDateTime, List<Transaction>> byDate = txs.stream()
-                .collect(Collectors.groupingBy(Transaction::getCreationDate));
+    private List<Map<String, Object>> buildDailyRevenueSeries(
+            LocalDate from,
+            LocalDate to,
+            List<Transaction> txs
+    ) {
+        // Group transactions theo LocalDate thay vì LocalDateTime
+        Map<LocalDate, List<Transaction>> byDate = txs.stream()
+                .collect(Collectors.groupingBy(t -> t.getCreationDate().toLocalDate()));
 
         List<Map<String, Object>> out = new ArrayList<>();
-        LocalDateTime cursor = from;
-        while (!cursor.isAfter(to)) {
-            List<Transaction> dayTx = byDate.getOrDefault(cursor, Collections.emptyList());
+        LocalDate temp = from;
+        while (!temp.isAfter(to)) {
+            List<Transaction> dayTx = byDate.getOrDefault(temp, Collections.emptyList());
             long revenue = dayTx.stream().mapToLong(this::revenueOf).sum();
-            long completedCount = dayTx.stream().filter(t -> t.getStatus() == Status.TRANSACTION_SUCCESS).count();
+            long completedCount = dayTx.stream()
+                    .filter(t -> t.getStatus() == Status.TRANSACTION_SUCCESS)
+                    .count();
 
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("date", cursor);
+            m.put("date", temp);
             m.put("revenue", revenue);
             m.put("completedCount", completedCount);
             m.put("txCount", (long) dayTx.size());
             out.add(m);
 
-            cursor = cursor.plusDays(1);
+            temp = temp.plusDays(1);
         }
         return out;
     }
 
-    private List<Map<String, Object>> buildMonthlyRevenueSeries(LocalDateTime from, LocalDateTime to, List<Transaction> txs) {
+    private List<Map<String, Object>> buildMonthlyRevenueSeries(LocalDate from, LocalDate to, List<Transaction> txs) {
         YearMonth start = YearMonth.from(from);
         YearMonth end = YearMonth.from(to);
 
@@ -294,7 +298,7 @@ public class AdminServiceImpl implements AdminService {
         return out;
     }
 
-    private List<Map<String, Object>> buildYearlyRevenueSeries(LocalDateTime from, LocalDateTime to, List<Transaction> txs) {
+    private List<Map<String, Object>> buildYearlyRevenueSeries(LocalDate from, LocalDate to, List<Transaction> txs) {
         int startYear = from.getYear();
         int endYear = to.getYear();
 
