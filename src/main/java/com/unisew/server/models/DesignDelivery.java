@@ -51,6 +51,8 @@ public class DesignDelivery {
 
     String name;
 
+    int version;
+
     @Column(name = "`submit_date`")
     LocalDateTime submitDate;
 
@@ -58,8 +60,6 @@ public class DesignDelivery {
     boolean revision;
 
     String note;
-
-    int version;
 
     @OneToOne(mappedBy = "designDelivery", cascade = CascadeType.ALL)
     @ToString.Exclude

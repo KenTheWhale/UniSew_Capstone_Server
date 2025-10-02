@@ -29,13 +29,13 @@ public class DeactivateTicket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
+    @ManyToOne
+    @JoinColumn(name = "`account_id`")
+    Account account;
+
     String reason;
 
     LocalDateTime startDate;
 
     LocalDateTime endDate;
-
-    @ManyToOne
-    @JoinColumn(name = "`accountId`")
-    Account account;
 }
