@@ -153,7 +153,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseEntity<ResponseObject> viewAllOrder() {
 
-        List<Order> orders = orderRepo.findAll().stream().filter(order -> order.getStatus().equals(Status.ORDER_PENDING)).toList();
+        List<Order> orders = orderRepo.findAll().stream()
+                .sorted(Comparator.comparing(Order::getId).reversed())
+                .filter(order -> order.getStatus().equals(Status.ORDER_PENDING)).toList();
         return ResponseBuilder.build(HttpStatus.OK, "", EntityResponseBuilder.buildOrderList(orders, partnerRepo, deliveryItemRepo, designItemRepo, designRequestRepo, designQuotationRepo, transactionRepo));
     }
 
